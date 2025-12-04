@@ -125,6 +125,16 @@
     }
 
     @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
+
+    /* Picker modal (reutilizado) */
+    .picker-modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .picker-box { width: 90%; max-width: 520px; background: #fff; border-radius: 8px; padding: 16px; }
+    .picker-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; }
+    .picker-grid select { width: 100%; height: 180px; font-size: 16px; }
+    .picker-actions { display:flex; gap: 8px; justify-content: flex-end; }
+    .btn { padding: 8px 14px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; }
+    .btn-ok { background: #16a34a; color: #fff; border-color: #16a34a; }
+    .btn-cancel { background: #fff; color: #111; }
   </style>
 </head>
 <body>
@@ -181,7 +191,7 @@
           <button class="chip" id="btn-open-menu">MENÚ</button>
         </div>
 
-        <img class="avatar-emoji" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
+        <img class="avatar-emoji" id="emoji-user" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
 
         <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
         <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
@@ -199,6 +209,10 @@
         </div>
 
         <img id="inicio-firma" class="brand" alt="Firma" src="" style="display:none; max-width:260px; border-radius:12px; border:1.5px solid #d8e4ff; margin-top:8px;" />
+
+        <div class="btn-row spaced">
+          <button id="btn-ver-noticias" class="btn-primary">VER NOTICIAS 📅</button>
+        </div>
 
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -276,7 +290,37 @@
         <img id="reg-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
         <label>Fecha de nacimiento</label>
-        <input id="reg-cumple" type="date" placeholder="dd/mm/aaaa">
+        <input
+          id="reg-cumple"
+          type="text"
+          placeholder="dd/mm/AAAA"
+          required
+          readonly
+          onclick="abrirPickerNacimiento()" />
+        <!-- Modal Nacimiento -->
+        <div id="nacimientoModal" class="picker-modal" aria-hidden="true">
+          <div class="picker-box">
+            <h3 style="margin:0 0 8px 0;">Selecciona tu fecha de nacimiento</h3>
+            <div class="picker-grid">
+              <div>
+                <small>Día</small>
+                <select id="pickerDiaNac" size="10"></select>
+              </div>
+              <div>
+                <small>Mes</small>
+                <select id="pickerMesNac" size="12"></select>
+              </div>
+              <div>
+                <small>Año</small>
+                <select id="pickerAnioNac" size="10"></select>
+              </div>
+            </div>
+            <div class="picker-actions">
+              <button type="button" class="btn btn-cancel" onclick="cancelarPickerNacimiento()">Cancelar</button>
+              <button type="button" class="btn btn-ok" onclick="confirmarPickerNacimiento()">Ok</button>
+            </div>
+          </div>
+        </div>
 
         <div class="btn-row spaced">
           <button class="btn-primary" id="reg-guardar">Guardar</button>
@@ -299,12 +343,12 @@
 
         <div id="contrato-form" class="hidden" style="margin-top:10px;">
           <label>Fecha de Inicio</label>
-          <input id="c-fechaInicio" type="date" placeholder="dd/mm/aaaa">
+          <input id="c-fechaInicio" type="text" placeholder="dd/mm/2026" required readonly onclick="abrirPickerContratoInicio()">
           <input id="c-diaInicio" type="text" readonly style="display:none;">
           <input id="c-mesInicio" type="text" readonly style="display:none;">
 
           <label>Fecha de Terminación</label>
-          <input id="c-fechaTermino" type="date" placeholder="dd/mm/aaaa">
+          <input id="c-fechaTermino" type="text" placeholder="dd/mm/2026" required readonly onclick="abrirPickerContratoTermino()">
           <input id="c-diaTermino" type="text" readonly style="display:none;">
           <input id="c-mesTermino" type="text" readonly style="display:none;">
 
@@ -319,10 +363,10 @@
           <input id="c-rp" type="tel" inputmode="numeric" placeholder="N° de RP" maxlength="10" style="border:1.5px solid #ccc;">
 
           <label>¿Régimen SIMPLE?</label>
-          <select id="c-costos">
+          <select id="c-costos" required>
             <option value="" disabled selected>Selecciona</option>
-            <option>SI tomaré costos o deducciones.</option>
-            <option>NO tomaré costos o deducciones.</option>
+            <option value="SI tomaré costos o deducciones.">SI</option>
+            <option value="NO tomaré costos o deducciones.">NO</option>
           </select>
           <input id="c-regimen" type="text" readonly style="display:none;">
 
@@ -333,6 +377,58 @@
         </div>
       </div>
     </section>
+
+    <!-- Modales Fechas de Contrato -->
+    <div id="fechaModalInicio" class="picker-modal" aria-hidden="true">
+      <div class="picker-box">
+        <h3 style="margin:0 0 8px 0;">Selecciona la fecha de inicio</h3>
+        <div class="picker-grid">
+          <div>
+            <small>Día</small>
+            <select id="pickerDiaInicio" size="10"></select>
+          </div>
+          <div>
+            <small>Mes</small>
+            <select id="pickerMesInicio" size="12"></select>
+          </div>
+          <div>
+            <small>Año</small>
+            <select id="pickerAnioInicio" size="3" disabled>
+              <option selected>2026</option>
+            </select>
+          </div>
+        </div>
+        <div class="picker-actions">
+          <button type="button" class="btn btn-cancel" onclick="cancelarPickerContratoInicio()">Cancelar</button>
+          <button type="button" class="btn btn-ok" onclick="confirmarPickerContratoInicio()">Ok</button>
+        </div>
+      </div>
+    </div>
+    <div id="fechaModalTermino" class="picker-modal" aria-hidden="true">
+      <div class="picker-box">
+        <h3 style="margin:0 0 8px 0;">Selecciona la fecha de terminación</h3>
+        <div class="picker-grid">
+          <div>
+            <small>Día</small>
+            <select id="pickerDiaTerm" size="10"></select>
+          </div>
+          <div>
+            <small>Mes</small>
+            <select id="pickerMesTerm" size="12"></select>
+          </div>
+          <div>
+            <small>Año</small>
+            <select id="pickerAnioTerm" size="3" disabled>
+              <option selected>2026</option>
+            </select>
+          </div>
+        </div>
+        <div class="picker-actions">
+          <button type="button" class="btn btn-cancel" onclick="cancelarPickerContratoTermino()">Cancelar</button>
+          <button type="button" class="btn btn-ok" onclick="confirmarPickerContratoTermino()">Ok</button>
+        </div>
+      </div>
+    </div>
 
     <!-- VISTA DATOS PERSONALES -->
     <section id="view-personales" class="view">
@@ -390,7 +486,7 @@
           <img id="p-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
           <label>Fecha de nacimiento</label>
-          <input id="p-cumple" type="date" placeholder="dd/mm/aaaa">
+          <input id="p-cumple" type="text" placeholder="dd/mm/AAAA" required readonly onclick="abrirPickerNacimientoEdit()">
 
           <div class="btn-row spaced" style="margin-top:12px;">
             <button id="p-guardar" class="btn-primary">Guardar Cambios</button>
@@ -428,7 +524,7 @@
 
 <script>
 /* ================== CONFIGURACIÓN ================== */
-const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec'; // Reemplaza por tu despliegue GS-Contratista
+const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec'; // Usa tu despliegue actual
 
 /* ================== SONIDOS ================== */
 const SOUNDS = {
@@ -477,8 +573,8 @@ function stopLoading(){
 }
 
 /* ================== API ================== */
-async function apiGet(action, params = {}){
-  startLoading();
+async function apiGet(action, params = {}, useLoader = true){
+  if(useLoader) startLoading();
   try{
     const url = new URL(API_BASE);
     url.search = new URLSearchParams({ action, ...params }).toString();
@@ -486,7 +582,7 @@ async function apiGet(action, params = {}){
     const j = await r.json();
     if(!j.ok) throw new Error(j.error || 'Error');
     return j.data;
-  } finally { stopLoading(); }
+  } finally { if(useLoader) stopLoading(); }
 }
 async function apiPost(action, body = {}){
   startLoading();
@@ -582,6 +678,8 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     }else{
       await cargarInicio();
       playSoundOnce(SOUNDS.login);
+      // Cargar noticias rápidamente al iniciar sesión
+      await cargarNoticias();
       showView('view-inicio');
     }
   }catch(e){
@@ -613,6 +711,10 @@ document.getElementById('ovlClose').addEventListener('click', ()=>{
 
 document.getElementById('go-noticias').addEventListener('click', async ()=>{
   overlay.classList.remove('open');
+  await cargarNoticias();
+  showView('view-noticias');
+});
+document.getElementById('btn-ver-noticias').addEventListener('click', async ()=>{
   await cargarNoticias();
   showView('view-noticias');
 });
@@ -662,6 +764,7 @@ function fillSelect(id, options){
 }
 
 /* ================== QUERY MUNICIPIOS ================== */
+/* Sin loader; y validación de coincidencia exacta con la A2:A1119 del Spreadsheet en el resumen/guardado */
 function bindQuery(inputId, datalistId){
   const input = document.getElementById(inputId);
   const list = document.getElementById(datalistId);
@@ -670,13 +773,18 @@ function bindQuery(inputId, datalistId){
     const q = input.value.trim();
     list.innerHTML = '';
     if(q.length === 0) return;
-    const opts = await apiGet('getFilteredResidencias', { query: q });
+    const opts = await apiGet('getFilteredResidencias', { query: q }, /*useLoader*/ false);
     (opts||[]).forEach(opt=>{
       const o = document.createElement('option');
       o.value = opt;
       list.appendChild(o);
     });
   });
+}
+async function validarMunicipioExacto(valor){
+  const opts = await apiGet('getMunicipiosAll', {}, false);
+  const low = String(valor||'').trim().toLowerCase();
+  return (opts||[]).some(v => String(v||'').trim().toLowerCase() === low);
 }
 
 /* ================== REGISTRO ================== */
@@ -699,6 +807,28 @@ fillSelect('reg-arl', ARL);
 
 bindQuery('reg-expedida','dl-expedida');
 bindQuery('reg-municipio','dl-municipio');
+
+/* Modal Nacimiento (1936–2008) */
+(function initPickerNacimiento(){
+  const dia = document.getElementById('pickerDiaNac');
+  const mes = document.getElementById('pickerMesNac');
+  const anio = document.getElementById('pickerAnioNac');
+  if(!dia || !mes || !anio) return;
+  for(let d=1; d<=31; d++){ const o=document.createElement('option'); o.value=String(d).padStart(2,'0'); o.textContent=o.value; dia.appendChild(o); }
+  const mesesN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  for(let i=0;i<12;i++){ const o=document.createElement('option'); o.value=String(i+1).padStart(2,'0'); o.textContent=mesesN[i]; mes.appendChild(o); }
+  for(let y=1936; y<=2008; y++){ const o=document.createElement('option'); o.value=String(y); o.textContent=String(y); anio.appendChild(o); }
+})();
+function abrirPickerNacimiento(){ document.getElementById('nacimientoModal').style.display='flex'; }
+function cancelarPickerNacimiento(){ document.getElementById('nacimientoModal').style.display='none'; document.getElementById('reg-cumple').value=''; }
+function confirmarPickerNacimiento(){
+  const dSel = (document.getElementById('pickerDiaNac').value) || '01';
+  const mSel = (document.getElementById('pickerMesNac').value) || '01';
+  const aSel = (document.getElementById('pickerAnioNac').value) || '2000';
+  document.getElementById('reg-cumple').value = `${dSel}/${mSel}/${aSel}`;
+  document.getElementById('nacimientoModal').style.display='none';
+}
+function abrirPickerNacimientoEdit(){ abrirPickerNacimiento(); }
 
 document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
@@ -727,6 +857,13 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
   if(!correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
   if(!(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
+  // Validación MUNICIPIOS exacta
+  const expOk = await validarMunicipioExacto(body.expedida);
+  const munOk = await validarMunicipioExacto(body.municipio);
+  if(!expOk || !munOk){
+    Swal.fire({icon:'warning', title:'Municipio inválido', text:'Verifica que Expedida y Municipio coincidan con la lista oficial.'});
+    return;
+  }
 
   const resumenHtml = `
     <b>Expedida:</b> ${body.expedida}<br>
@@ -780,57 +917,107 @@ document.getElementById('c-costos').addEventListener('change', function(){
   }
 });
 
-function actualizarCamposFecha(fechaISO, idDia, idMes){
-  if(!fechaISO){ document.getElementById(idDia).value=''; document.getElementById(idMes).value=''; return; }
-  const dObj = new Date(fechaISO + 'T00:00:00');
-  if(isNaN(dObj)) { document.getElementById(idDia).value=''; document.getElementById(idMes).value=''; return; }
-  const dd = String(dObj.getUTCDate()).padStart(2,'0');
-  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const mm = dObj.getUTCMonth();
-  document.getElementById(idDia).value = dd;
-  document.getElementById(idMes).value = meses[mm];
+/* Modal Contrato (Inicio/Termino, año fijo 2026) */
+function initContratoPickers(){
+  const d1=document.getElementById('pickerDiaInicio'), m1=document.getElementById('pickerMesInicio');
+  const d2=document.getElementById('pickerDiaTerm'), m2=document.getElementById('pickerMesTerm');
+  if(d1 && m1){
+    d1.innerHTML=''; m1.innerHTML='';
+    for(let d=1; d<=31; d++){ const o=document.createElement('option'); o.value=String(d).padStart(2,'0'); o.textContent=o.value; d1.appendChild(o); }
+    const mesesN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    for(let i=0;i<12;i++){ const o=document.createElement('option'); o.value=String(i+1).padStart(2,'0'); o.textContent=mesesN[i]; m1.appendChild(o); }
+  }
+  if(d2 && m2){
+    d2.innerHTML=''; m2.innerHTML='';
+    for(let d=1; d<=31; d++){ const o=document.createElement('option'); o.value=String(d).padStart(2,'0'); o.textContent=o.value; d2.appendChild(o); }
+    const mesesN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    for(let i=0;i<12;i++){ const o=document.createElement('option'); o.value=String(i+1).padStart(2,'0'); o.textContent=mesesN[i]; m2.appendChild(o); }
+  }
+}
+function abrirPickerContratoInicio(){ initContratoPickers(); document.getElementById('fechaModalInicio').style.display='flex'; }
+function cancelarPickerContratoInicio(){ document.getElementById('fechaModalInicio').style.display='none'; document.getElementById('c-fechaInicio').value=''; document.getElementById('c-diaInicio').value=''; document.getElementById('c-mesInicio').value=''; actualizarEjecucion(); }
+function confirmarPickerContratoInicio(){
+  const dSel = (document.getElementById('pickerDiaInicio').value) || '01';
+  const mSel = (document.getElementById('pickerMesInicio').value) || '01';
+  const anio = '2026';
+  document.getElementById('c-fechaInicio').value = `${dSel}/${mSel}/${anio}`;
+  document.getElementById('c-diaInicio').value = dSel;
+  const mesesN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const idx = Math.max(1, Math.min(12, parseInt(mSel, 10))) - 1;
+  document.getElementById('c-mesInicio').value = mesesN[idx];
+  document.getElementById('fechaModalInicio').style.display='none';
+  calcularPlazo();
+}
+function abrirPickerContratoTermino(){ initContratoPickers(); document.getElementById('fechaModalTermino').style.display='flex'; }
+function cancelarPickerContratoTermino(){ document.getElementById('fechaModalTermino').style.display='none'; document.getElementById('c-fechaTermino').value=''; document.getElementById('c-diaTermino').value=''; document.getElementById('c-mesTermino').value=''; actualizarEjecucion(); }
+function confirmarPickerContratoTermino(){
+  const dSel = (document.getElementById('pickerDiaTerm').value) || '01';
+  const mSel = (document.getElementById('pickerMesTerm').value) || '01';
+  const anio = '2026';
+  document.getElementById('c-fechaTermino').value = `${dSel}/${mSel}/${anio}`;
+  document.getElementById('c-diaTermino').value = dSel;
+  const mesesN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const idx = Math.max(1, Math.min(12, parseInt(mSel, 10))) - 1;
+  document.getElementById('c-mesTermino').value = mesesN[idx];
+  document.getElementById('fechaModalTermino').style.display='none';
+  calcularPlazo();
 }
 
-document.getElementById('c-fechaInicio').addEventListener('change', ()=>{
-  actualizarCamposFecha(document.getElementById('c-fechaInicio').value, 'c-diaInicio', 'c-mesInicio');
-  calcularPlazo();
-});
-document.getElementById('c-fechaTermino').addEventListener('change', ()=>{
-  actualizarCamposFecha(document.getElementById('c-fechaTermino').value, 'c-diaTermino', 'c-mesTermino');
-  calcularPlazo();
-});
-
-function getDaysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
-function convertirNumeroATexto(n){ return String(n); } // simple
+/* Tiempo de ejecución en MAYÚSCULAS con formato exacto */
+function numTextoMayus(n){
+  const unidades = ["", "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE"];
+  const decenas  = ["", "DIEZ", "VEINTE", "TREINTA", "CUARENTA", "CINCUENTA", "SESENTA", "SETENTA", "OCHENTA", "NOVENTA"];
+  const centenas = ["", "CIENTO", "DOSCIENTOS", "TRESCIENTOS", "CUATROCIENTOS", "QUINIENTOS", "SEISCIENTOS", "SETECIENTOS", "OCHOCIENTOS", "NOVECIENTOS"];
+  const especiales = ["DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE"];
+  function c(n){ if(n===100) return "CIEN"; if(n>100) return (centenas[Math.floor(n/100)] + " " + d(n%100)).trim(); return d(n); }
+  function d(n){ if(n<10) return unidades[n]; if(n<20) return especiales[n-10]; if(n===20) return "VEINTE"; if(n<30) return "VEINTI"+unidades[n%10]; return decenas[Math.floor(n/10)] + (n%10 ? " Y " + unidades[n%10] : ""); }
+  function m(n){ if(n<1000) return c(n); if(n<1000000){ const miles=Math.floor(n/1000), r=n%1000; if(miles===1) return ("MIL " + (r?c(r):"")).trim(); return (c(miles) + " MIL " + (r?c(r):"")).trim(); }
+    const millones=Math.floor(n/1000000), r=n%1000000; if(millones===1) return ("UN MILLÓN " + (r?m(r):"DE")).trim(); return (c(millones) + " MILLONES " + (r?m(r):"DE")).trim();
+  }
+  let t = m(parseInt(n||0,10)); if(t.endsWith(" UNO")) t = t.slice(0,-4) + " UN"; return t;
+}
 function actualizarEjecucion(){
   const meses = parseInt(document.getElementById('c-meses').value)||0;
   const dias = parseInt(document.getElementById('c-dias').value)||0;
-  let txt = '';
-  if(meses>0){ txt += `${meses===1?'un':convertirNumeroATexto(meses)} (${meses}) ${meses===1?'mes':'meses'}`; }
-  if(dias>0){ if(txt!=='') txt += ' y '; txt += `${dias===1?'un':convertirNumeroATexto(dias)} (${dias}) ${dias===1?'día':'días'}`; }
-  document.getElementById('c-ejecucion').value = txt;
+  let parts = [];
+  if(meses>0){ parts.push(`${numTextoMayus(meses)} (${meses}) ${meses===1?'MES':'MESES'}`); }
+  if(dias>0){ parts.push(`${numTextoMayus(dias)} (${dias}) ${dias===1?'DIA':'DIAS'}`); }
+  document.getElementById('c-ejecucion').value = parts.join(' Y ');
 }
 document.getElementById('c-meses').addEventListener('input', actualizarEjecucion);
 document.getElementById('c-dias').addEventListener('input', actualizarEjecucion);
 
+/* cálculo meses/días contando ambos extremos */
+function getDaysInMonthNumber(y,m){ return new Date(y, m, 0).getDate(); } // m: 1..12
+function parseDMYToDate(dmy){ // dmy "dd/mm/yyyy"
+  const m = String(dmy||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(!m) return null;
+  const dd=parseInt(m[1],10), mm=parseInt(m[2],10), yyyy=parseInt(m[3],10);
+  const d = new Date(yyyy, mm-1, dd);
+  return isNaN(d) ? null : d;
+}
 function calcularPlazo(){
-  const fi = document.getElementById('c-fechaInicio').value;
-  const ft = document.getElementById('c-fechaTermino').value;
-  if(!fi || !ft) { document.getElementById('c-meses').value=0; document.getElementById('c-dias').value=0; actualizarEjecucion(); return; }
-  let fechaInicio = new Date(fi);
-  let fechaTermino = new Date(ft);
-  if(isNaN(fechaInicio)||isNaN(fechaTermino)||fechaTermino<fechaInicio){
-    document.getElementById('c-meses').value=0; document.getElementById('c-dias').value=0; actualizarEjecucion(); return;
-  }
-  // Contar ambos extremos
-  let diffTime = Math.abs(fechaTermino - fechaInicio) + (1000*60*60*24);
+  const fiStr = document.getElementById('c-fechaInicio').value;
+  const ftStr = document.getElementById('c-fechaTermino').value;
+  if(!fiStr || !ftStr){ document.getElementById('c-meses').value=0; document.getElementById('c-dias').value=0; actualizarEjecucion(); return; }
+  const fi = parseDMYToDate(fiStr), ft = parseDMYToDate(ftStr);
+  if(!fi || !ft || ft < fi){ document.getElementById('c-meses').value=0; document.getElementById('c-dias').value=0; actualizarEjecucion(); return; }
+  // Contar ambos extremos: días absolutos +1
+  let diffTime = Math.abs(ft - fi) + (1000*60*60*24);
   let diffDays = Math.ceil(diffTime / (1000*60*60*24));
   let meses=0, dias=0;
+  // sumando meses completos desde la fecha inicio
+  let cursorY = fi.getFullYear(), cursorM = fi.getMonth()+1, cursorD = fi.getDate();
   while(diffDays>0){
-    const daysInMonth = getDaysInMonth(fechaInicio.getFullYear(), fechaInicio.getMonth());
-    if(diffDays >= daysInMonth){
-      meses++; diffDays -= daysInMonth; fechaInicio.setMonth(fechaInicio.getMonth()+1);
-    }else{ dias = diffDays; diffDays = 0; }
+    const dim = getDaysInMonthNumber(cursorY, cursorM);
+    const remMes = dim - (cursorD - 1); // días restantes del mes contando el día actual
+    if(diffDays >= remMes){
+      meses++; diffDays -= remMes;
+      cursorM++; if(cursorM>12){ cursorM=1; cursorY++; }
+      cursorD = 1;
+    } else {
+      dias = diffDays; diffDays = 0;
+    }
   }
   document.getElementById('c-meses').value = meses;
   document.getElementById('c-dias').value = dias;
@@ -851,10 +1038,10 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const body = {
     documento: currentUser.documento,
-    fechaInicioISO: document.getElementById('c-fechaInicio').value||'',
+    fechaInicioDMY: document.getElementById('c-fechaInicio').value||'',
     diaInicio: document.getElementById('c-diaInicio').value||'',
     mesInicio: document.getElementById('c-mesInicio').value||'',
-    fechaTerminoISO: document.getElementById('c-fechaTermino').value||'',
+    fechaTerminoDMY: document.getElementById('c-fechaTermino').value||'',
     diaTermino: document.getElementById('c-diaTermino').value||'',
     mesTermino: document.getElementById('c-mesTermino').value||'',
     meses: document.getElementById('c-meses').value||'0',
@@ -864,9 +1051,16 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
     costos: document.getElementById('c-costos').value||'',
     regimen: document.getElementById('c-regimen').value||''
   };
+  // Validaciones requeridas
+  if(!/^\d{2}\/\d{2}\/\d{4}$/.test(body.fechaInicioDMY) || !/^\d{2}\/\d{2}\/\d{4}$/.test(body.fechaTerminoDMY)){
+    Swal.fire({icon:'warning', title:'Fechas requeridas'}); return;
+  }
+  if(!body.costos){ Swal.fire({icon:'warning', title:'Selecciona costos/deducciones'}); return; }
+  if(!/^\d{1,10}$/.test(body.rp)){ Swal.fire({icon:'warning', title:'RP inválido'}); return; }
+
   const resumenHtml = `
-    <b>Inicio:</b> ${body.fechaInicioISO}<br>
-    <b>Terminación:</b> ${body.fechaTerminoISO}<br>
+    <b>Inicio:</b> ${body.fechaInicioDMY}<br>
+    <b>Terminación:</b> ${body.fechaTerminoDMY}<br>
     <b>Meses/Días:</b> ${body.meses} / ${body.dias}<br>
     <b>Ejecución:</b> ${body.ejecucion}<br>
     <b>RP:</b> ${body.rp}<br>
@@ -959,6 +1153,8 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
   if(body.telefono && !telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
   if(body.correo && !correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
   if(body.numeroCuenta && !(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
+  if(body.expedida && !(await validarMunicipioExacto(body.expedida))){ Swal.fire({icon:'warning', title:'Municipio de expedición inválido'}); return; }
+  if(body.municipio && !(await validarMunicipioExacto(body.municipio))){ Swal.fire({icon:'warning', title:'Municipio de residencia inválido'}); return; }
 
   try{
     const r = await apiPost('saveDatosPersonales', body);
@@ -990,27 +1186,16 @@ function extractFirstUrl(text){
   if(u.startsWith('www.')) u = 'https://' + u;
   return u;
 }
-function fallbackThumbFor(url){
-  const u = String(url||'').toLowerCase();
-  if(u.includes('facebook'))  return 'https://res.cloudinary.com/dqqeavica/image/upload/v1759166342/facebook_nezbkz.webp';
-  if(u.includes('instagram')) return 'https://res.cloudinary.com/dqqeavica/image/upload/v1759166342/instragram_uft2wl.webp';
-  if(u.includes('tiktok'))    return 'https://res.cloudinary.com/dqqeavica/image/upload/v1759166342/tiktok_tdvc2x.webp';
-  return 'https://res.cloudinary.com/dqqeavica/image/upload/v1759798601/noticias_dax8sd.jpg';
-}
-function firstLinkThumb(url){
-  const placeholder = 'https://res.cloudinary.com/dqqeavica/image/upload/v1759798601/noticias_dax8sd.jpg';
-  if(!url) return placeholder;
-  if(/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(url)) return url;
-  return 'https://image.thum.io/get/og/' + encodeURIComponent(url);
-}
 async function cargarNoticias(){
-  const list = await apiGet('listComunicados');
+  const list = await apiGet('listComunicados', {}, false);
   FEED_CACHE = Array.isArray(list) ? list.slice(0,20) : [];
   const wrap = document.getElementById('feed-list');
   wrap.innerHTML='';
   if(!FEED_CACHE.length){
     const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay noticias disponibles.'; wrap.appendChild(p); return;
   }
+  const emojiUrl = document.getElementById('emoji-user').src;
+  let anyUnread = false;
   FEED_CACHE.forEach(it=>{
     const item = document.createElement('div');
     item.style.cssText = 'display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.9);border:2px solid #ddd;border-radius:16px;padding:10px;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer;';
@@ -1018,9 +1203,8 @@ async function cargarNoticias(){
     const img = document.createElement('img');
     img.style.cssText='width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#eee;border:1px solid #ddd;';
     img.alt='';
-    const thumbUrl = it.imagenId ? thumbById(it.imagenId) : firstLinkThumb(it.first_link);
+    const thumbUrl = it.imagenId ? thumbById(it.imagenId) : emojiUrl;
     img.src = thumbUrl;
-    img.onerror = ()=>{ img.src = fallbackThumbFor(it.first_link); };
 
     const ct = document.createElement('div'); ct.style.flex='1'; ct.style.minWidth='0';
     const h = document.createElement('h4'); h.style.margin='0 0 4px 0'; h.style.fontWeight='800'; h.textContent = String(it.titulo||'');
@@ -1029,24 +1213,25 @@ async function cargarNoticias(){
 
     item.appendChild(img); item.appendChild(ct);
     if(!isRead(it.id)){
+      anyUnread = true;
       const dot = document.createElement('span');
       dot.style.cssText='width:12px;height:12px;background:#e11;border-radius:999px;flex-shrink:0;margin-left:6px;margin-top:4px;box-shadow:0 0 0 2px #fff;';
       item.appendChild(dot);
-      // sonido de notificación cuando hay no leídas
-      playSoundOnce(SOUNDS.notify);
     }
     item.addEventListener('click', ()=> abrirNoticia(it));
     wrap.appendChild(item);
   });
+  if(anyUnread){ playSoundOnce(SOUNDS.notify); }
 }
 function abrirNoticia(it){
+  const emojiUrl = document.getElementById('emoji-user').src;
   const thumb = document.getElementById('fd-thumb');
   const title = document.getElementById('fd-title');
   const sub   = document.getElementById('fd-sub');
   const desc  = document.getElementById('fd-desc');
   const link  = document.getElementById('fd-link');
 
-  thumb.src = it.imagenId ? thumbById(it.imagenId) : fallbackThumbFor(it.first_link);
+  thumb.src = it.imagenId ? thumbById(it.imagenId) : emojiUrl;
   title.textContent = String(it.titulo||'');
   sub.textContent   = String(it.subtitulo||'');
   desc.textContent  = String(it.contenido||'');
@@ -1228,6 +1413,7 @@ if ('serviceWorker' in navigator){
   });
 }
 window.addEventListener('load', initPWAVista);
+  
 
 /* ================== FIN ================== */
 </script>
