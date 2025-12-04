@@ -329,31 +329,8 @@
         <img id="reg-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
         <label>Fecha de nacimiento</label>
-        <input id="reg-cumple" type="text" placeholder="dd/mm/AAAA" required readonly onclick="abrirPickerNacimiento()" />
-        <!-- Modal Nacimiento -->
-        <div id="nacimientoModal" class="picker-modal" aria-hidden="true">
-          <div class="picker-box">
-            <h3 style="margin:0 0 8px 0;">Selecciona tu fecha de nacimiento</h3>
-            <div class="picker-grid">
-              <div>
-                <small>Día</small>
-                <select id="pickerDiaNac" size="10"></select>
-              </div>
-              <div>
-                <small>Mes</small>
-                <select id="pickerMesNac" size="12"></select>
-              </div>
-              <div>
-                <small>Año</small>
-                <select id="pickerAnioNac" size="10"></select>
-              </div>
-            </div>
-            <div class="picker-actions">
-              <button type="button" class="btn btn-cancel" onclick="cancelarPickerNacimiento()">Cancelar</button>
-              <button type="button" class="btn btn-ok" onclick="confirmarPickerNacimiento()">Ok</button>
-            </div>
-          </div>
-        </div>
+        <input id="reg-cumple" type="text" placeholder="dd/mm/AAAA" readonly onclick="abrirPickerNacimiento()" />
+       
 
         <div class="btn-row spaced">
           <button class="btn-primary" id="reg-guardar">Guardar</button>
@@ -521,7 +498,7 @@
           <img id="p-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
           <label>Fecha de nacimiento</label>
-          <input id="p-cumple" type="text" placeholder="dd/mm/AAAA" required readonly onclick="abrirPickerNacimiento()" />
+          <input id="p-cumple" type="text" placeholder="dd/mm/AAAA" readonly onclick="abrirPickerNacimiento()" />
 
           <div class="btn-row spaced" style="margin-top:12px;">
             <button id="p-guardar" class="btn-primary">Guardar Cambios</button>
@@ -946,6 +923,31 @@ document.getElementById('reg-volver').addEventListener('click', ()=>{
   document.getElementById('reg-firma').value=''; document.getElementById('reg-firma-preview').style.display='none'; document.getElementById('reg-firma-preview').src='';
   showView('view-login');
 });
+
+  <!-- Modal Fecha de Nacimiento (compartido para registro y actualización) -->
+<div id="nacimientoModal" class="picker-modal" aria-hidden="true" style="display:none;">
+  <div class="picker-box">
+    <h3 style="margin:0 0 8px 0;">Selecciona tu fecha de nacimiento</h3>
+    <div class="picker-grid">
+      <div>
+        <small>Día</small>
+        <select id="pickerDiaNac" size="10"></select>
+      </div>
+      <div>
+        <small>Mes</small>
+        <select id="pickerMesNac" size="12"></select>
+      </div>
+      <div>
+        <small>Año</small>
+        <select id="pickerAnioNac" size="10"></select>
+      </div>
+    </div>
+    <div class="picker-actions">
+      <button type="button" class="btn btn-cancel" onclick="cancelarPickerNacimiento()">Cancelar</button>
+      <button type="button" class="btn btn-ok" onclick="confirmarPickerNacimiento()">Ok</button>
+    </div>
+  </div>
+</div>
 
 /* ================== CONTRATO (lectura + edición) ================== */
 document.getElementById('contrato-volver').addEventListener('click', ()=>{
