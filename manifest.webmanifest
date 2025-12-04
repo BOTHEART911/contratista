@@ -1,0 +1,36 @@
+{
+  "id": "/contratista/",
+  "name": "CONTRATISTA",
+  "short_name": "CONTRATISTA",
+  "start_url": "/contratista/",
+  "scope": "/contratista/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#06402B",
+  "capture_links": "existing-client-navigate",
+  "launch_handler": { "client_mode": "navigate-existing" },
+
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://botheart911.github.io/contratista/manifest.webmanifest",
+      "id": "/contratista/"
+    }
+  ],
+
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/dqqeavica/image/upload/v1763928947/Logo_lt365u.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://res.cloudinary.com/dqqeavica/image/upload/v1763928947/Logo_lt365u.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
