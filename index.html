@@ -122,11 +122,43 @@
 
     .avatar-emoji{
       width:120px; height:120px; display:block; margin:0 auto;
+      position:relative;
+    }
+
+    /* Notificación estilo referencia: campana + badge y "Ponte al día" a la derecha del emoji */
+    .notif-wrap{ position:absolute; right:-10px; top:-6px; }
+    .notif-bell{
+      width:28px; height:28px; display:none;
+      animation:heartbeat 1.2s infinite;
+    }
+    .notif-bell.active{ display:block; }
+    .notif-count{
+      position:absolute; right:-6px; top:-6px;
+      background:#e11; color:#fff; border-radius:999px; min-width:18px; height:18px; line-height:18px;
+      text-align:center; padding:0 4px; font-size:12px; font-weight:800; display:none;
+      box-shadow: 0 0 0 2px #fff;
+    }
+    .notif-count.active{ display:inline-block; }
+    .notif-label{
+      position:absolute; left:calc(100% + 6px); top:-6px;
+      height:28px; line-height:28px; padding:0 10px;
+      background:#7de3ef; color:#000; border-radius:999px;
+      font-weight:800; font-size:14px; white-space:nowrap; display:none;
+      animation:heartbeat 1.2s infinite;
+      cursor: pointer;
+    }
+    .notif-label.active{ display:inline-block; }
+    @keyframes heartbeat{
+      0%{ transform: scale(1); }
+      20%{ transform: scale(1.15); }
+      40%{ transform: scale(1); }
+      60%{ transform: scale(1.15); }
+      100%{ transform: scale(1); }
     }
 
     @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
 
-    /* Picker modal (reutilizado) */
+    /* Picker modal reutilizado */
     .picker-modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 9999; }
     .picker-box { width: 90%; max-width: 520px; background: #fff; border-radius: 8px; padding: 16px; }
     .picker-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; }
@@ -185,13 +217,20 @@
 
     <!-- VISTA INICIO -->
     <section id="view-inicio" class="view">
-      <div class="card narrow">
+      <div class="card narrow" style="position:relative;">
         <div class="btn-row" style="margin-bottom:12px;">
           <button class="chip danger" id="btn-logout">Cerrar Sesión</button>
           <button class="chip" id="btn-open-menu">MENÚ</button>
         </div>
 
-        <img class="avatar-emoji" id="emoji-user" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
+        <div class="image-center" style="position:relative;">
+          <img class="avatar-emoji" id="emoji-user" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
+          <div class="notif-wrap">
+            <img id="notif-bell" class="notif-bell" src="https://res.cloudinary.com/dqqeavica/image/upload/v1759767447/Notificaci%C3%B3n_jtptyw.webp" alt="">
+            <span id="notif-count" class="notif-count">0</span>
+            <span id="notif-label" class="notif-label" title="Ponte al día">Ponte al día</span>
+          </div>
+        </div>
 
         <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
         <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
@@ -209,10 +248,7 @@
         </div>
 
         <img id="inicio-firma" class="brand" alt="Firma" src="" style="display:none; max-width:260px; border-radius:12px; border:1.5px solid #d8e4ff; margin-top:8px;" />
-
-        <div class="btn-row spaced">
-          <button id="btn-ver-noticias" class="btn-primary">VER NOTICIAS 📅</button>
-        </div>
+        <!-- Se elimina el botón inferior de ver noticias -->
 
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -230,7 +266,10 @@
           <img alt="banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763930524/menu_t9xli7.gif" style="max-width:180px;border-radius:10px;" />
         </div>
         <h3>Selecciona una opción</h3>
-        <button class="menu-btn" id="go-noticias">VER NOTICIAS 📅</button>
+        <button class="menu-btn" id="go-noticias">
+          Ponte al día 📅
+          <span id="go-feed-badge" class="notif-count" style="position:static; box-shadow:none; margin-left:8px;">0</span>
+        </button>
         <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO 📄</button>
         <button class="menu-btn" id="go-personales">DATOS PERSONALES 👤</button>
         <div style="height:24px"></div>
@@ -290,13 +329,7 @@
         <img id="reg-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
         <label>Fecha de nacimiento</label>
-        <input
-          id="reg-cumple"
-          type="text"
-          placeholder="dd/mm/AAAA"
-          required
-          readonly
-          onclick="abrirPickerNacimiento()" />
+        <input id="reg-cumple" type="text" placeholder="dd/mm/AAAA" required readonly onclick="abrirPickerNacimiento()" />
         <!-- Modal Nacimiento -->
         <div id="nacimientoModal" class="picker-modal" aria-hidden="true">
           <div class="picker-box">
@@ -334,6 +367,7 @@
       <div class="card narrow">
         <h2 style="color:var(--primary)">DATOS DEL CONTRATO</h2>
 
+        <!-- Lectura: muestra todos los campos -->
         <div id="contrato-lectura" class="narrow"></div>
 
         <div class="btn-row spaced">
@@ -341,6 +375,7 @@
           <button id="contrato-volver" class="danger">Regresar</button>
         </div>
 
+        <!-- Form de edición: sólo los campos solicitados -->
         <div id="contrato-form" class="hidden" style="margin-top:10px;">
           <label>Fecha de Inicio</label>
           <input id="c-fechaInicio" type="text" placeholder="dd/mm/2026" required readonly onclick="abrirPickerContratoInicio()">
@@ -486,7 +521,7 @@
           <img id="p-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
           <label>Fecha de nacimiento</label>
-          <input id="p-cumple" type="text" placeholder="dd/mm/AAAA" required readonly onclick="abrirPickerNacimientoEdit()">
+          <input id="p-cumple" type="text" placeholder="dd/mm/AAAA" required readonly onclick="abrirPickerNacimiento()" />
 
           <div class="btn-row spaced" style="margin-top:12px;">
             <button id="p-guardar" class="btn-primary">Guardar Cambios</button>
@@ -499,7 +534,7 @@
     <!-- VISTA VER NOTICIAS (lista) -->
     <section id="view-noticias" class="view">
       <div class="card narrow">
-        <h2 style="color:var(--primary)">¡VER NOTICIAS!</h2>
+        <h2 style="color:var(--primary)">¡PONTE AL DÍA!</h2>
         <div id="feed-list" style="display:flex; flex-direction:column; gap:12px;"></div>
         <div class="btn-row spaced">
           <button id="feed-volver" class="danger">Regresar</button>
@@ -524,7 +559,7 @@
 
 <script>
 /* ================== CONFIGURACIÓN ================== */
-const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec'; // Usa tu despliegue actual
+const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec'; // Tu despliegue
 
 /* ================== SONIDOS ================== */
 const SOUNDS = {
@@ -608,6 +643,9 @@ function showView(id){
   document.getElementById(id)?.classList.add('active');
   overlay.classList.remove('open');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Al entrar a inicio, refrescar badge si hay noticias cargadas
+  if(id==='view-inicio'){ refreshNotificationsBadge(); }
 }
 
 /* ================== INPUT SANITIZERS ================== */
@@ -678,7 +716,7 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     }else{
       await cargarInicio();
       playSoundOnce(SOUNDS.login);
-      // Cargar noticias rápidamente al iniciar sesión
+      // Preparar noticias y badge rápidamente
       await cargarNoticias();
       showView('view-inicio');
     }
@@ -714,7 +752,8 @@ document.getElementById('go-noticias').addEventListener('click', async ()=>{
   await cargarNoticias();
   showView('view-noticias');
 });
-document.getElementById('btn-ver-noticias').addEventListener('click', async ()=>{
+// El label “Ponte al día” junto a emoji abre noticias
+document.getElementById('notif-label').addEventListener('click', async ()=>{
   await cargarNoticias();
   showView('view-noticias');
 });
@@ -764,7 +803,6 @@ function fillSelect(id, options){
 }
 
 /* ================== QUERY MUNICIPIOS ================== */
-/* Sin loader; y validación de coincidencia exacta con la A2:A1119 del Spreadsheet en el resumen/guardado */
 function bindQuery(inputId, datalistId){
   const input = document.getElementById(inputId);
   const list = document.getElementById(datalistId);
@@ -773,7 +811,7 @@ function bindQuery(inputId, datalistId){
     const q = input.value.trim();
     list.innerHTML = '';
     if(q.length === 0) return;
-    const opts = await apiGet('getFilteredResidencias', { query: q }, /*useLoader*/ false);
+    const opts = await apiGet('getFilteredResidencias', { query: q }, false);
     (opts||[]).forEach(opt=>{
       const o = document.createElement('option');
       o.value = opt;
@@ -820,16 +858,21 @@ bindQuery('reg-municipio','dl-municipio');
   for(let y=1936; y<=2008; y++){ const o=document.createElement('option'); o.value=String(y); o.textContent=String(y); anio.appendChild(o); }
 })();
 function abrirPickerNacimiento(){ document.getElementById('nacimientoModal').style.display='flex'; }
-function cancelarPickerNacimiento(){ document.getElementById('nacimientoModal').style.display='none'; document.getElementById('reg-cumple').value=''; }
+function cancelarPickerNacimiento(){ document.getElementById('nacimientoModal').style.display='none'; document.getElementById('reg-cumple').value=''; document.getElementById('p-cumple').value=''; }
 function confirmarPickerNacimiento(){
   const dSel = (document.getElementById('pickerDiaNac').value) || '01';
   const mSel = (document.getElementById('pickerMesNac').value) || '01';
   const aSel = (document.getElementById('pickerAnioNac').value) || '2000';
-  document.getElementById('reg-cumple').value = `${dSel}/${mSel}/${aSel}`;
+  const val = `${dSel}/${mSel}/${aSel}`;
+  if(document.activeElement && document.activeElement.id === 'p-cumple'){
+    document.getElementById('p-cumple').value = val;
+  }else{
+    document.getElementById('reg-cumple').value = val;
+  }
   document.getElementById('nacimientoModal').style.display='none';
 }
-function abrirPickerNacimientoEdit(){ abrirPickerNacimiento(); }
 
+/* Guardar registro */
 document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
@@ -851,19 +894,14 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
     firmaDataUrl: regFirmaDataUrl || '',
     cumpleISO: document.getElementById('reg-cumple').value || ''
   };
-  // Requeridos
   const requiredOk = body.expedida && body.telefono && body.direccion && body.municipio && body.correo && body.tipoCuenta && body.numeroCuenta && body.banco && body.eps && body.pension && body.arl && body.firmaDataUrl && body.cumpleISO;
   if(!requiredOk){ Swal.fire({icon:'warning', title:'Faltan campos Requeridos'}); return; }
   if(!telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
   if(!correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
   if(!(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
-  // Validación MUNICIPIOS exacta
   const expOk = await validarMunicipioExacto(body.expedida);
   const munOk = await validarMunicipioExacto(body.municipio);
-  if(!expOk || !munOk){
-    Swal.fire({icon:'warning', title:'Municipio inválido', text:'Verifica que Expedida y Municipio coincidan con la lista oficial.'});
-    return;
-  }
+  if(!expOk || !munOk){ Swal.fire({icon:'warning', title:'Municipio inválido', text:'Verifica que Expedida y Municipio coincidan con la lista oficial.'}); return; }
 
   const resumenHtml = `
     <b>Expedida:</b> ${body.expedida}<br>
@@ -897,10 +935,28 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
     Swal.fire({ icon:'error', title:'Error', text:e.message });
   }
 });
-document.getElementById('reg-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-login'); });
+document.getElementById('reg-volver').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  // Reset de la vista
+  ['reg-expedida','reg-telefono','reg-direccion','reg-municipio','reg-correo','reg-tipoCuenta','reg-numeroCuenta','reg-banco','reg-eps','reg-pension','reg-arl','reg-cumple'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    if(el.tagName==='SELECT') el.value='';
+    else el.value='';
+  });
+  document.getElementById('reg-firma').value=''; document.getElementById('reg-firma-preview').style.display='none'; document.getElementById('reg-firma-preview').src='';
+  showView('view-login');
+});
 
 /* ================== CONTRATO (lectura + edición) ================== */
-document.getElementById('contrato-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
+document.getElementById('contrato-volver').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  // reset form
+  document.getElementById('contrato-form').classList.add('hidden');
+  ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-costos','c-regimen'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.value=''; }
+  });
+  showView('view-inicio');
+});
 document.getElementById('contrato-editar').addEventListener('click', ()=>{
   document.getElementById('contrato-form').classList.remove('hidden');
 });
@@ -963,12 +1019,12 @@ function confirmarPickerContratoTermino(){
   calcularPlazo();
 }
 
-/* Tiempo de ejecución en MAYÚSCULAS con formato exacto */
+/* Tiempo de ejecución en MAYÚSCULAS exacto */
 function numTextoMayus(n){
   const unidades = ["", "UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE"];
   const decenas  = ["", "DIEZ", "VEINTE", "TREINTA", "CUARENTA", "CINCUENTA", "SESENTA", "SETENTA", "OCHENTA", "NOVENTA"];
   const centenas = ["", "CIENTO", "DOSCIENTOS", "TRESCIENTOS", "CUATROCIENTOS", "QUINIENTOS", "SEISCIENTOS", "SETECIENTOS", "OCHOCIENTOS", "NOVECIENTOS"];
-  const especiales = ["DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE"];
+  const especiales = ["DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECISEIS", "DIECISIETE", "DIECINUEVE"];
   function c(n){ if(n===100) return "CIEN"; if(n>100) return (centenas[Math.floor(n/100)] + " " + d(n%100)).trim(); return d(n); }
   function d(n){ if(n<10) return unidades[n]; if(n<20) return especiales[n-10]; if(n===20) return "VEINTE"; if(n<30) return "VEINTI"+unidades[n%10]; return decenas[Math.floor(n/10)] + (n%10 ? " Y " + unidades[n%10] : ""); }
   function m(n){ if(n<1000) return c(n); if(n<1000000){ const miles=Math.floor(n/1000), r=n%1000; if(miles===1) return ("MIL " + (r?c(r):"")).trim(); return (c(miles) + " MIL " + (r?c(r):"")).trim(); }
@@ -987,38 +1043,55 @@ function actualizarEjecucion(){
 document.getElementById('c-meses').addEventListener('input', actualizarEjecucion);
 document.getElementById('c-dias').addEventListener('input', actualizarEjecucion);
 
-/* cálculo meses/días contando ambos extremos */
-function getDaysInMonthNumber(y,m){ return new Date(y, m, 0).getDate(); } // m: 1..12
-function parseDMYToDate(dmy){ // dmy "dd/mm/yyyy"
+/* cálculo meses/días contando ambos extremos – corregido según tu script */
+function parseDMYToDate(dmy){
   const m = String(dmy||'').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if(!m) return null;
   const dd=parseInt(m[1],10), mm=parseInt(m[2],10), yyyy=parseInt(m[3],10);
   const d = new Date(yyyy, mm-1, dd);
   return isNaN(d) ? null : d;
 }
+function getDaysInMonth(y, mIndex){ // mIndex: 0..11
+  return new Date(y, mIndex+1, 0).getDate();
+}
 function calcularPlazo(){
   const fiStr = document.getElementById('c-fechaInicio').value;
   const ftStr = document.getElementById('c-fechaTermino').value;
-  if(!fiStr || !ftStr){ document.getElementById('c-meses').value=0; document.getElementById('c-dias').value=0; actualizarEjecucion(); return; }
-  const fi = parseDMYToDate(fiStr), ft = parseDMYToDate(ftStr);
-  if(!fi || !ft || ft < fi){ document.getElementById('c-meses').value=0; document.getElementById('c-dias').value=0; actualizarEjecucion(); return; }
-  // Contar ambos extremos: días absolutos +1
-  let diffTime = Math.abs(ft - fi) + (1000*60*60*24);
+  if(!fiStr || !ftStr){
+    document.getElementById('c-meses').value=0;
+    document.getElementById('c-dias').value=0;
+    actualizarEjecucion();
+    return;
+  }
+  let fechaInicio = parseDMYToDate(fiStr);
+  const fechaUltima = parseDMYToDate(ftStr);
+  if(!fechaInicio || !fechaUltima || fechaUltima < fechaInicio){
+    document.getElementById('c-meses').value=0;
+    document.getElementById('c-dias').value=0;
+    actualizarEjecucion();
+    return;
+  }
+  // Contar ambos extremos (+1 día)
+  let diffTime = Math.abs(fechaUltima - fechaInicio) + (1000*60*60*24);
   let diffDays = Math.ceil(diffTime / (1000*60*60*24));
-  let meses=0, dias=0;
-  // sumando meses completos desde la fecha inicio
-  let cursorY = fi.getFullYear(), cursorM = fi.getMonth()+1, cursorD = fi.getDate();
-  while(diffDays>0){
-    const dim = getDaysInMonthNumber(cursorY, cursorM);
-    const remMes = dim - (cursorD - 1); // días restantes del mes contando el día actual
-    if(diffDays >= remMes){
-      meses++; diffDays -= remMes;
-      cursorM++; if(cursorM>12){ cursorM=1; cursorY++; }
-      cursorD = 1;
+
+  let meses = 0;
+  let dias = 0;
+
+  while (diffDays > 0) {
+    const daysInMonth = getDaysInMonth(fechaInicio.getFullYear(), fechaInicio.getMonth());
+    const remainingThisMonth = daysInMonth - (fechaInicio.getDate() - 1); // incluye el día actual
+    if (diffDays >= remainingThisMonth) {
+      meses++;
+      diffDays -= remainingThisMonth;
+      fechaInicio.setMonth(fechaInicio.getMonth() + 1);
+      fechaInicio.setDate(1);
     } else {
-      dias = diffDays; diffDays = 0;
+      dias = diffDays;
+      diffDays = 0;
     }
   }
+
   document.getElementById('c-meses').value = meses;
   document.getElementById('c-dias').value = dias;
   actualizarEjecucion();
@@ -1051,7 +1124,6 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
     costos: document.getElementById('c-costos').value||'',
     regimen: document.getElementById('c-regimen').value||''
   };
-  // Validaciones requeridas
   if(!/^\d{2}\/\d{2}\/\d{4}$/.test(body.fechaInicioDMY) || !/^\d{2}\/\d{2}\/\d{4}$/.test(body.fechaTerminoDMY)){
     Swal.fire({icon:'warning', title:'Fechas requeridas'}); return;
   }
@@ -1078,7 +1150,11 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
     if(r && r.success){
       await Swal.fire({ icon:'success', title:'Actualización Exitosa', timer:1600, showConfirmButton:false });
       await cargarContratoLectura();
+      // cerrar y limpiar
       document.getElementById('contrato-form').classList.add('hidden');
+      ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-costos','c-regimen'].forEach(id=>{
+        const el=document.getElementById(id); if(el){ el.value=''; }
+      });
     }else{
       Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
     }
@@ -1087,7 +1163,11 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
   }
 });
 document.getElementById('c-cancelar').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
   document.getElementById('contrato-form').classList.add('hidden');
+  ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-costos','c-regimen'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.value=''; }
+  });
 });
 
 /* ================== PERSONALES (lectura + edición) ================== */
@@ -1111,12 +1191,26 @@ fillSelect('p-arl', ARL);
 bindQuery('p-expedida','dl-expedida2');
 bindQuery('p-municipio','dl-municipio2');
 
-document.getElementById('personales-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
+document.getElementById('personales-volver').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  // reset
+  document.getElementById('personales-form').classList.add('hidden');
+  ['p-expedida','p-telefono','p-direccion','p-municipio','p-correo','p-tipoCuenta','p-numeroCuenta','p-banco','p-eps','p-pension','p-arl','p-cumple'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return; el.value='';
+  });
+  document.getElementById('p-firma').value=''; document.getElementById('p-firma-preview').style.display='none'; document.getElementById('p-firma-preview').src='';
+  showView('view-inicio');
+});
 document.getElementById('personales-editar').addEventListener('click', ()=>{
   document.getElementById('personales-form').classList.remove('hidden');
 });
 document.getElementById('p-cancelar').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
   document.getElementById('personales-form').classList.add('hidden');
+  ['p-expedida','p-telefono','p-direccion','p-municipio','p-correo','p-tipoCuenta','p-numeroCuenta','p-banco','p-eps','p-pension','p-arl','p-cumple'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return; el.value='';
+  });
+  document.getElementById('p-firma').value=''; document.getElementById('p-firma-preview').style.display='none'; document.getElementById('p-firma-preview').src='';
 });
 
 document.getElementById('p-guardar').addEventListener('click', async ()=>{
@@ -1149,7 +1243,6 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
   });
   if(!rs.isConfirmed) return;
 
-  // Validaciones suaves: si viene, valida; se guardan solo campos con valor
   if(body.telefono && !telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
   if(body.correo && !correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
   if(body.numeroCuenta && !(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
@@ -1192,7 +1285,7 @@ async function cargarNoticias(){
   const wrap = document.getElementById('feed-list');
   wrap.innerHTML='';
   if(!FEED_CACHE.length){
-    const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay noticias disponibles.'; wrap.appendChild(p); return;
+    const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay noticias disponibles.'; wrap.appendChild(p); refreshNotificationsBadge(); return;
   }
   const emojiUrl = document.getElementById('emoji-user').src;
   let anyUnread = false;
@@ -1222,6 +1315,7 @@ async function cargarNoticias(){
     wrap.appendChild(item);
   });
   if(anyUnread){ playSoundOnce(SOUNDS.notify); }
+  refreshNotificationsBadge();
 }
 function abrirNoticia(it){
   const emojiUrl = document.getElementById('emoji-user').src;
@@ -1241,10 +1335,35 @@ function abrirNoticia(it){
   if(firstUrl){ link.href = firstUrl; link.style.display=''; } else { link.href='#'; link.style.display='none'; }
 
   markRead(it.id);
+  refreshNotificationsBadge();
   showView('view-noticia-detalle');
 }
 document.getElementById('fd-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-noticias'); });
 document.getElementById('feed-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
+
+function unreadCountFrom(items){
+  if(!Array.isArray(items) || !items.length) return 0;
+  let n = 0;
+  for(const it of items){ if(!isRead(it.id)) n++; }
+  return n;
+}
+function refreshNotificationsBadge(){
+  const count = unreadCountFrom(FEED_CACHE);
+  const bell = document.getElementById('notif-bell');
+  const label = document.getElementById('notif-label');
+  const btnBadge = document.getElementById('go-feed-badge');
+  if(btnBadge){
+    btnBadge.textContent = String(count);
+    if(count>0) btnBadge.classList.add('active'); else btnBadge.classList.remove('active');
+  }
+  if(count>0){
+    bell && bell.classList.add('active');
+    label && label.classList.add('active');
+  }else{
+    bell && bell.classList.remove('active');
+    label && label.classList.remove('active');
+  }
+}
 
 /* ================== CONTRATO: cargar lectura ================== */
 async function cargarContratoLectura(){
@@ -1283,7 +1402,6 @@ async function cargarPersonalesLectura(){
   ];
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
 }
-
 /* ================== PWA AVANZADO ================== */
 let deferredPrompt = null;
 let __installStartShown = false;    // bandera: ya mostramos "App instalándose"
