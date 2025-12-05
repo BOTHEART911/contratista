@@ -155,22 +155,22 @@
 
   <div class="container">
     <!-- VISTA INSTALAR -->
-    <section id="view-instalar" class="view">
+     <section id="view-instalar" class="view">
       <div class="card narrow" style="text-align:center;">
-        <h2 style="color:var(--primary);">APP CONTRATISTAS</h2>
-        <img class="brand" alt="Instalar" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
-        <p style="font-weight:600;">Herramienta para Contratistas</p>
+        <h2 style="color:var(--primary);">APP CONTRATISTA</h2>
+        <img class="brand" alt="Instalar" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763930524/menu_t9xli7.gif" />
+        <p style="font-weight:600;">Herramienta de uso exclusivo para CONTRATISTAS activos de la Alcaldía de Flandes</p>
         <div class="btn-row" style="justify-content:center; margin-top:12px;">
           <button id="btn-instalar" class="btn-primary" style="display:none;">Instalar la App 📲</button>
         </div>
-        <p class="center muted" style="margin-top:14px;">Si ya instalaste la App y no se inicia automáticamente, refresca en unos segundos.</p>
+        <p class="muted" style="margin-top:14px;">Si ya instalaste la App y no se inicia automáticamente, refresca en unos segundos.</p>
       </div>
     </section>
 
     <!-- VISTA LOGIN -->
     <section id="view-login" class="view active">
       <div class="card narrow">
-        <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">CONTRATISTAS</h1>
+        <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">CONTRATISTA</h1>
         <p class="helper"><b>Acceso exclusivo para Contratistas activos.</b></p>
 
         <label>Contraseña</label>
@@ -233,8 +233,8 @@
           <img alt="banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763930524/menu_t9xli7.gif" style="max-width:180px;border-radius:10px;" />
         </div>
         <h3>Selecciona una opción</h3>
-        <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO 📄</button>
-        <button class="menu-btn" id="go-personales">DATOS PERSONALES 👤</button>
+        <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO</button>
+        <button class="menu-btn" id="go-personales">DATOS PERSONALES</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -426,17 +426,17 @@
           <datalist id="dl-expedida2"></datalist>
 
           <label>Teléfono Línea WhatsApp</label>
-          <input id="p-telefono" type="tel" inputmode="numeric" placeholder="10 dígitos">
+          <input id="p-telefono" type="tel" inputmode="numeric" placeholder="Número Personal">
 
           <label>Dirección de Residencia</label>
-          <textarea id="p-direccion" rows="2" placeholder="Usa abreviaciones."></textarea>
+          <textarea id="p-direccion" rows="2" placeholder="Usa abreviaciones y no escribas el nombre del Municipio. Ejemplo: Mz 5 Casa 16 B/ Orquídeas II"></textarea>
 
           <label>Municipio de Residencia</label>
           <input id="p-municipio" list="dl-municipio2" placeholder="Escribe para buscar…" autocomplete="off">
           <datalist id="dl-municipio2"></datalist>
 
           <label>Correo Personal</label>
-          <input id="p-correo" type="email" placeholder="correo que te pertenezca">
+          <input id="p-correo" type="email" placeholder="correo que te pertenezca, NO Institucional">
 
           <label>Tipo de cuenta</label>
           <select id="p-tipoCuenta">
@@ -454,6 +454,10 @@
           <select id="p-eps"></select>
 
           <label>Fondo de Pensiones (AFP)</label>
+          <div class="muted" style="margin:6px 0 8px;">
+          <b>Sí eres Pensionado(a), selecciona N/A</b><br>Esto implica que, en cada cuenta debes presentar alguno de los siguientes soportes:<br>- Certificación de Pensionado(a)<br>- Resolución de Pensión<br>- Certificación de Devolución del Saldo por Vejez.
+        </div>
+
           <select id="p-pension"></select>
 
           <label>ARL</label>
@@ -726,11 +730,13 @@ document.getElementById('ovlClose').addEventListener('click', ()=>{
 
 
 document.getElementById('go-contrato').addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
   await cargarContratoLectura();
   showView('view-contrato');
 });
 document.getElementById('go-personales').addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
   await cargarPersonalesLectura();
   showView('view-personales');
@@ -911,6 +917,7 @@ document.getElementById('reg-volver').addEventListener('click', ()=>{ playSoundO
 /* ================== CONTRATO (lectura + edición) ================== */
 document.getElementById('contrato-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
 document.getElementById('contrato-editar').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
   document.getElementById('contrato-form').classList.remove('hidden');
 });
 bindNumericSanitizer('c-meses', 3);
@@ -1050,6 +1057,7 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
   }
 });
 document.getElementById('c-cancelar').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
   document.getElementById('contrato-form').classList.add('hidden');
 });
 
@@ -1076,9 +1084,11 @@ bindQuery('p-municipio','dl-municipio2');
 
 document.getElementById('personales-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
 document.getElementById('personales-editar').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
   document.getElementById('personales-form').classList.remove('hidden');
 });
 document.getElementById('p-cancelar').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
   document.getElementById('personales-form').classList.add('hidden');
 });
 
