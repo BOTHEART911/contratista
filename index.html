@@ -631,60 +631,47 @@ bindNumericSanitizer('login-doc', 10);
 document.getElementById('btn-login').addEventListener('click', async ()=>{
   const documento = (loginDoc.value||'').trim();
   if(documento === ''){
-    Swal.fire({ icon:'question', title:'¿Deseas comenzar?', text:'Ingresa un Documento para validar.', timer:3000 });
+    Swal.fire({ icon:'question', title:'¿Deseas comenzar?', text:'Ingresa un Documento para validar.', timer:1800, showConfirmButton:false });
     return;
   }
   if(!/^\d{6,10}$/.test(documento)){
-    Swal.fire({
-      icon:'error',
-      title:'CONTRASEÑA INCORRECTA',
-      text:'La contraseña contiene entre 6 y 10 digitos numéricos.',
-      timer:3000,
-      showConfirmButton:false
-    });
+    Swal.fire({ icon:'error', title:'CONTRASEÑA INCORRECTA', text:'La contraseña contiene entre 6 y 10 digitos numéricos.', timer:1800, showConfirmButton:false });
     return;
   }
   try{
-    const res = await apiGet('loginContratista', { documento });
-    if(!res?.existe){
+    // Llamada rápida (sin loader artificial) y sin post-procesos costosos
+    const url = new URL(API_BASE);
+    url.search = new URLSearchParams({ action: 'loginContratista', documento }).toString();
+    const r = await fetch(url.toString(), { method: 'GET' });
+    const j = await r.json();
+    if(!j.ok || !j.data){ throw new Error(j.error || 'Error'); }
+    const res = j.data;
+
+    if(!res?.existe || String(res.estado||'').toUpperCase()==='INACTIVO'){
       await Swal.fire({
         icon:'info',
         title:'NO TIENES ACCESO AÚN',
         text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-        timer:6000,
+        timer:3000,
         showConfirmButton:false
       });
       return;
     }
-    if(String(res.estado||'').toUpperCase()==='INACTIVO'){
-      await Swal.fire({
-        icon:'info',
-        title:'NO TIENES ACCESO AÚN',
-        text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-        timer:6000,
-        showConfirmButton:false
-      });
-      return;
-    }
-    // ACTIVO
+
+    // ACTIVO: entra de inmediato; carga datos en paralelo
     currentUser = { documento: res.documento };
-    if(res.incompleto){ // H..S vacías
+    playSoundOnce(SOUNDS.login);
+
+    if(res.incompleto){
       showView('view-registro');
     }else{
-      await cargarInicio();
-      playSoundOnce(SOUNDS.login);
-      showView('view-inicio');
+      showView('view-inicio');        // navega primero
+      // carga en paralelo sin bloquear navegación
+      cargarInicio().catch(()=>{});
     }
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text:e.message });
   }
-});
-
-document.getElementById('btn-logout').addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.logout);
-  currentUser = null;
-  loginDoc.value = '';
-  showView('view-login');
 });
 
 /* ================== MENÚ ================== */
@@ -761,12 +748,19 @@ function bindQuery(inputId, datalistId){
     const q = input.value.trim();
     list.innerHTML = '';
     if(q.length === 0) return;
-    const opts = await apiGet('getFilteredResidencias', { query: q });
-    (opts||[]).forEach(opt=>{
-      const o = document.createElement('option');
-      o.value = opt;
-      list.appendChild(o);
-    });
+    // Llamada directa sin startLoading/stopLoading (no usar loader en query)
+    try{
+      const url = new URL(API_BASE);
+      url.search = new URLSearchParams({ action: 'getFilteredResidencias', query: q }).toString();
+      const r = await fetch(url.toString(), { method: 'GET' });
+      const j = await r.json();
+      const opts = (j && j.ok && Array.isArray(j.data)) ? j.data : [];
+      opts.forEach(opt=>{
+        const o = document.createElement('option');
+        o.value = opt;
+        list.appendChild(o);
+      });
+    }catch(_){ /* silencio */ }
   });
 }
 
@@ -1126,40 +1120,51 @@ function firstLinkThumb(url){
   return 'https://image.thum.io/get/og/' + encodeURIComponent(url);
 }
 async function cargarNoticias(){
-  const list = await apiGet('listComunicados');
-  FEED_CACHE = Array.isArray(list) ? list.slice(0,20) : [];
-  const wrap = document.getElementById('feed-list');
-  wrap.innerHTML='';
-  if(!FEED_CACHE.length){
-    const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay comunicados disponibles.'; wrap.appendChild(p); return;
-  }
-  FEED_CACHE.forEach(it=>{
-    const item = document.createElement('div');
-    item.style.cssText = 'display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.9);border:2px solid #ddd;border-radius:16px;padding:10px;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer;';
-    item.dataset.id = it.id;
-    const img = document.createElement('img');
-    img.style.cssText='width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#eee;border:1px solid #ddd;';
-    img.alt='';
-    const thumbUrl = it.imagenId ? thumbById(it.imagenId) : firstLinkThumb(it.first_link);
-    img.src = thumbUrl;
-    img.onerror = ()=>{ img.src = fallbackThumbFor(it.first_link); };
+  try{
+    const url = new URL(API_BASE);
+    url.search = new URLSearchParams({ action: 'listComunicados' }).toString();
+    const r = await fetch(url.toString(), { method: 'GET' });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'Error');
+    const FEED = Array.isArray(j.data) ? j.data.slice(0,20) : [];
+    FEED_CACHE = FEED;
 
-    const ct = document.createElement('div'); ct.style.flex='1'; ct.style.minWidth='0';
-    const h = document.createElement('h4'); h.style.margin='0 0 4px 0'; h.style.fontWeight='800'; h.textContent = String(it.titulo||'');
-    const p = document.createElement('p'); p.style.margin='0'; p.style.color='#333'; p.textContent = String(it.subtitulo||'');
-
-    ct.appendChild(h); ct.appendChild(p);
-
-    item.appendChild(img); item.appendChild(ct);
-    if(!isRead(it.id)){
-      const dot = document.createElement('span');
-      dot.style.cssText='width:12px;height:12px;background:#e11;border-radius:999px;flex-shrink:0;margin-left:6px;margin-top:4px;box-shadow:0 0 0 2px #fff;';
-      item.appendChild(dot);
-      playSoundOnce(SOUNDS.notify);
+    const wrap = document.getElementById('feed-list');
+    wrap.innerHTML='';
+    if(!FEED_CACHE.length){
+      const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay comunicados disponibles.'; wrap.appendChild(p); return;
     }
-    item.addEventListener('click', ()=> abrirNoticia(it));
-    wrap.appendChild(item);
-  });
+    FEED_CACHE.forEach(it=>{
+      const item = document.createElement('div');
+      item.style.cssText = 'display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.9);border:2px solid #ddd;border-radius:16px;padding:10px;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer;';
+      item.dataset.id = it.id;
+      const img = document.createElement('img');
+      img.style.cssText='width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#eee;border:1px solid #ddd;';
+      img.alt='';
+      const thumbUrl = it.imagenId ? thumbById(it.imagenId) : firstLinkThumb(it.first_link);
+      img.src = thumbUrl;
+      img.onerror = ()=>{ img.src = fallbackThumbFor(it.first_link); };
+
+      const ct = document.createElement('div'); ct.style.flex='1'; ct.style.minWidth='0';
+      const h = document.createElement('h4'); h.style.margin='0 0 4px 0'; h.style.fontWeight='800'; h.textContent = String(it.titulo||'');
+      const p = document.createElement('p'); p.style.margin='0'; p.style.color='#333'; p.textContent = String(it.subtitulo||'');
+
+      ct.appendChild(h); ct.appendChild(p);
+
+      item.appendChild(img); item.appendChild(ct);
+      if(!isRead(it.id)){
+        const dot = document.createElement('span');
+        dot.style.cssText='width:12px;height:12px;background:#e11;border-radius:999px;flex-shrink:0;margin-left:6px;margin-top:4px;box-shadow:0 0 0 2px #fff;';
+        item.appendChild(dot);
+        playSoundOnce(SOUNDS.notify);
+      }
+      item.addEventListener('click', ()=> abrirNoticia(it));
+      wrap.appendChild(item);
+    });
+  }catch(e){
+    const wrap = document.getElementById('feed-list');
+    wrap.innerHTML = '<p class="muted center">No fue posible cargar los comunicados.</p>';
+  }
 }
 function abrirNoticia(it){
   const thumb = document.getElementById('fd-thumb');
@@ -1187,15 +1192,42 @@ document.getElementById('feed-volver').addEventListener('click', ()=>{ playSound
 async function cargarContratoLectura(){
   if(!currentUser) return;
   const d = await apiGet('getDatosContrato', { documento: currentUser.documento });
+
+  // d incluye: secretaria, supervisor, contrato, fechaContrato, tipoContrato, objeto, obligaciones[]
+  // Para lectura completa, también mostrar: fechaInicio (Z), diaInicio (AA), mesInicio (AB),
+  // fechaTermino (AH), diaTermino (AI), mesTermino (AJ), meses (AT), dias (AU), ejecucion (AV),
+  // rp (AQ), costos (AX), regimen (AY).
+
+  // Pedimos extra por inicio/termino/meses/dias/ejecucion/rp/costos/regimen
+  // Para no cambiar el backend, hacemos una segunda llamada a getDatosPersonales y componemos (o agrega a getDatosContrato si prefieres ampliarlo en GS).
+  // Aquí asumimos que getDatosContrato ya tiene contrato/fechaContrato/tipo/objeto/obligaciones.
+
+  // Render lectura completa:
   const box = document.getElementById('contrato-lectura');
   const lines = [
     `<b>Secretaría:</b> ${d.secretaria||''}`,
     `<b>Supervisor:</b> ${d.supervisor||''}`,
     `<b>Contrato N°:</b> ${d.contrato||''} de ${d.fechaContrato||''}`,
     `<b>Tipo de Contrato:</b> ${d.tipoContrato||''}`,
-    `<b>Objeto:</b> ${d.objeto||''}`
+    `<b>Objeto:</b> ${d.objeto||''}`,
+    `<hr>`
   ];
+
+  // Los campos de edición se verán también en lectura (si han sido cargados en la hoja)
+  // Para obtenerlos, llamamos una ruta auxiliar del backend: getInicio (que incluye fechas? si no, se puede ampliar GS).
+  try{
+    const i = await apiGet('getInicio', { documento: currentUser.documento });
+    // Estas columnas en GS saveDatosContrato se guardan: Z (fechaInicio), AH (fechaTermino), AT (meses), AU (dias), AV (ejecucion), AQ (rp), AX (costos), AY (regimen)
+    // No están en getInicio actual (solo datos personales). Para lectura completa, mostramos si existen en "CONTRATISTAS" con una llamada dedicada en GS.
+    // Si no existen en i, se omiten.
+  }catch(_){}
+
+  // Para mantenerlo consistente sin depender de getInicio, pedimos un bloque dedicado (opcional):
+  // Si decides ampliar el backend, añade en GS una acción getContratoEditableFields(documento) que retorne Z,AA,AB,AH,AI,AJ,AQ,AT,AU,AV,AX,AY.
+  // Mientras tanto, mostramos encabezado y obligaciones:
   (d.obligaciones||[]).forEach((o,i)=>{ lines.push(`<b>Obligación ${i+1}:</b> ${o}`); });
+
+  // Campos del formulario se inicializan vacíos (el usuario los editará); lectura solo muestra lo existente.
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
 }
 
@@ -1341,10 +1373,12 @@ window.addEventListener('load', initPWAVista);
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
 let __cumpleISO = ''; // dd/mm/yyyy
-function initPickerBase(dSelId, mSelId, aSelId, years){
-  const dSel = document.getElementById(dSelId);
-  const mSel = document.getElementById(mSelId);
-  const aSel = aSelId ? document.getElementById(aSelId) : null;
+
+(function initCumplePicker(){
+  const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y);
+  const dSel = document.getElementById('cumpleDia');
+  const mSel = document.getElementById('cumpleMes');
+  const aSel = document.getElementById('cumpleAnio');
   if(dSel && !dSel.childElementCount){
     for(let d=1; d<=31; d++){ const opt=document.createElement('option'); opt.value=String(d).padStart(2,'0'); opt.textContent=opt.value; dSel.appendChild(opt); }
   }
@@ -1353,13 +1387,16 @@ function initPickerBase(dSelId, mSelId, aSelId, years){
     for(let i=0;i<12;i++){ const opt=document.createElement('option'); opt.value=String(i+1).padStart(2,'0'); opt.textContent=mesesNombres[i]; mSel.appendChild(opt); }
   }
   if(aSel && !aSel.childElementCount){
-    years.forEach(y=>{ const opt=document.createElement('option'); opt.value=String(y); opt.textContent=String(y); aSel.appendChild(opt); });
+    ys.forEach(y=>{ const opt=document.createElement('option'); opt.value=String(y); opt.textContent=String(y); aSel.appendChild(opt); });
   }
+})();
+
+function abrirPickerCumple(){
+  const m=document.getElementById('cumpleModal'); if(m) m.style.display='flex';
 }
-// Cumple: años 1936..2008
-(function(){ const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y); initPickerBase('cumpleDia','cumpleMes','cumpleAnio', ys); })();
-function abrirPickerCumple(){ const m=document.getElementById('cumpleModal'); if(m) m.style.display='flex'; }
-function cancelarPickerCumple(){ const m=document.getElementById('cumpleModal'); if(m) m.style.display='none'; }
+function cancelarPickerCumple(){
+  const m=document.getElementById('cumpleModal'); if(m) m.style.display='none';
+}
 function confirmarPickerCumple(){
   const dSel=document.getElementById('cumpleDia')?.value||'01';
   const mSel=document.getElementById('cumpleMes')?.value||'01';
@@ -1367,7 +1404,7 @@ function confirmarPickerCumple(){
   const val = `${dSel}/${mSel}/${aSel}`;
   __cumpleISO = val;
   const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
-  const p  = document.getElementById('p-cumple');    if(p)  p.value = val;
+  const p   = document.getElementById('p-cumple');  if(p)  p.value = val;
   cancelarPickerCumple();
 }
 // Contrato: año fijo 2026; reutilizable para inicio/termino
