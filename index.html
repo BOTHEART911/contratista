@@ -142,7 +142,8 @@
 .picker-box{
   margin: 0;               /* quita desplazamientos por margen */
 }
-    /* INSERT: Badge “Ver Noticias” en Inicio (igual efecto que referencia) */
+
+    /* INSERT: Badge “Ver Noticias” + estilos de lista/detalle de COMUNICADOS */
     .notif-wrap{ position:relative; display:inline-block; }
     .notif-bell{
       position:absolute; right:-6px; top:-6px; width:28px; height:28px; display:none;
@@ -172,7 +173,6 @@
       100%{ transform: scale(1); }
     }
 
-    /* INSERT: Lista y detalle de COMUNICADOS */
     .feed-list{ display:flex; flex-direction:column; gap:12px; }
     .feed-item{
       display:flex; gap:12px; align-items:center;
@@ -261,25 +261,14 @@
           <button class="chip" id="btn-open-menu">MENÚ</button>
         </div>
 
-        <section id="view-inicio" class="view">
-    <div class="card narrow">
-      <div class="btn-row" style="margin-bottom:12px;">
-        <button class="chip danger" id="btn-logout">Cerrar Sesión</button>
-        <button class="chip" id="btn-open-menu">MENÚ</button>
-      </div>
-
-      <div class="image-center">
-        <div class="notif-wrap">
-          <img class="avatar-emoji" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
-          <img id="notif-bell" class="notif-bell" src="https://res.cloudinary.com/dqqeavica/image/upload/v1759767447/Notificaci%C3%B3n_jtptyw.webp" alt="">
-          <span id="notif-count" class="notif-count">0</span>
-          <span id="notif-label" class="notif-label">Ver Noticias</span>
+        <div class="image-center">
+          <div class="notif-wrap">
+            <img class="avatar-emoji" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
+            <img id="notif-bell" class="notif-bell" src="https://res.cloudinary.com/dqqeavica/image/upload/v1759767447/Notificaci%C3%B3n_jtptyw.webp" alt="">
+            <span id="notif-count" class="notif-count">0</span>
+            <span id="notif-label" class="notif-label">Ver Noticias</span>
+          </div>
         </div>
-      </div>
-
-      <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
-      <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
-
 
         <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
         <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
@@ -314,9 +303,9 @@
           <img alt="banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763930524/menu_t9xli7.gif" style="max-width:180px;border-radius:10px;" />
         </div>
         <h3>Selecciona una opción</h3>
-        <button class="menu-btn" id="go-comunicados">COMUNICADOS</button>
         <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO</button>
         <button class="menu-btn" id="go-personales">DATOS PERSONALES</button>
+        <button class="menu-btn" id="go-comunicados">COMUNICADOS</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -591,30 +580,31 @@
       </div>
     </section>
 
-    <!-- VISTA DATOS COMUNICADOS -->
-        <section id="view-comunicados" class="view">
-    <div class="card narrow" style="padding-top:12px;">
-      <h2 style="color:var(--primary); text-shadow: 0 2px 2px #031732; margin-bottom:10px;">¡COMUNICADOS!</h2>
-      <div id="com-list" class="feed-list"></div>
-      <div class="btn-row spaced">
-        <button id="com-volver">Regresar</button>
+    <!-- VISTA COMUNICADOS -->
+    <section id="view-comunicados" class="view">
+      <div class="card narrow" style="padding-top:12px;">
+        <h2 style="color:var(--primary); text-shadow: 0 2px 2px #031732; margin-bottom:10px;">¡COMUNICADOS!</h2>
+        <div id="com-list" class="feed-list"></div>
+        <div class="btn-row spaced">
+          <button id="com-volver">Regresar</button>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-        <!-- VISTA DETALLES DATOS COMUNICADOS -->
-        <section id="view-comunicado-detalle" class="view">
-    <div class="feed-detail-card">
-      <img id="com-det-thumb" class="feed-detail-thumb" src="" alt="">
-      <h3 id="com-det-title" class="feed-detail-title">Título</h3>
-      <p id="com-det-sub" class="feed-detail-sub">Subtítulo</p>
-      <p id="com-det-desc" class="feed-detail-desc">Contenido</p>
-      <div class="btn-row spaced">
-        <a id="com-det-link" class="chip" href="#" target="_blank" rel="noopener" style="display:none;">Abrir Vínculo</a>
-        <button id="com-det-volver">Regresar</button>
+    <!-- VISTA COMUNICADO DETALLE -->
+    <section id="view-comunicado-detalle" class="view">
+      <div class="feed-detail-card">
+        <img id="com-det-thumb" class="feed-detail-thumb" src="" alt="">
+        <h3 id="com-det-title" class="feed-detail-title">Título</h3>
+        <p id="com-det-sub" class="feed-detail-sub">Subtítulo</p>
+        <p id="com-det-desc" class="feed-detail-desc">Contenido</p>
+        <div class="btn-row spaced">
+          <a id="com-det-link" class="chip" href="#" target="_blank" rel="noopener" style="display:none;">Abrir Vínculo</a>
+          <button id="com-det-volver">Regresar</button>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+
 
 <script>
 /* ================== CONFIGURACIÓN ================== */
@@ -866,7 +856,152 @@ async function cargarInicio(){
   document.getElementById('inicio-supervisor').textContent = d.supervisor || '';
   const firmaEl = document.getElementById('inicio-firma');
   if(d.firmaId){ firmaEl.src = thumbById(d.firmaId); firmaEl.style.display=''; } else { firmaEl.style.display='none'; }
+
+  // INSERT: cargar noticias para mostrar badge
+  try{ await loadNoticias(); }catch(_){}
 }
+
+/* ================== COMUNICADOS (NOTICIAS) ================== */
+/* UBICACIÓN EXACTA: colocar este bloque JS después de las funciones de “INICIO” y antes de “REGISTRO” para tener helpers disponibles */
+
+let NOTICIAS_CACHE = [];
+const READ_KEY_PREFIX = 'noticiasRead@v1:';
+function readKey(){
+  return READ_KEY_PREFIX + (currentUser?.documento || 'anon');
+}
+function getReadMap(){
+  try{ const raw = localStorage.getItem(readKey()); return raw ? JSON.parse(raw) : {}; }catch(_){ return {}; }
+}
+function setReadMap(map){
+  try{ localStorage.setItem(readKey(), JSON.stringify(map||{})); }catch(_){}
+}
+function isRead(id){ const m = getReadMap(); return !!m[id]; }
+function markRead(id){ const m = getReadMap(); m[id] = true; setReadMap(m); }
+
+function thumbByIdNoticias(id){ return id ? ('https://drive.google.com/thumbnail?sz=w1000&id='+id) : 'https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png'; }
+
+/* Cargar lista desde backend (20 últimas) */
+async function loadNoticias(){
+  const list = await apiGet('listNoticias');
+  NOTICIAS_CACHE = Array.isArray(list) ? list : [];
+  renderNoticiasList(NOTICIAS_CACHE);
+  refreshNoticiasBadge();
+}
+
+/* Badge en Inicio: campana + contador + “Ver Noticias” */
+function unreadNoticiasCount(items){
+  if(!Array.isArray(items) || !items.length) return 0;
+  let n=0; for(const it of items){ if(!isRead(it.id)) n++; }
+  return n;
+}
+function refreshNoticiasBadge(){
+  const count = unreadNoticiasCount(NOTICIAS_CACHE);
+  const bell  = document.getElementById('notif-bell');
+  const label = document.getElementById('notif-label');
+  const badge = document.getElementById('notif-count');
+
+  if(badge){ badge.textContent = String(count); badge.classList.toggle('active', count>0); }
+  const active = count>0;
+  if(bell)  bell.classList.toggle('active', active);
+  if(label) label.classList.toggle('active', active);
+}
+
+/* Lista de comunicados */
+function renderNoticiasList(items){
+  const wrap = document.getElementById('com-list');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  if(!items.length){
+    const p = document.createElement('p');
+    p.className = 'muted center';
+    p.textContent = 'No hay comunicados disponibles.';
+    wrap.appendChild(p);
+    return;
+  }
+
+  for(const it of items){
+    const item = document.createElement('div');
+    item.className = 'feed-item';
+    item.dataset.id = it.id;
+
+    const img = document.createElement('img');
+    img.className = 'feed-thumb';
+    img.alt = '';
+    img.src = thumbByIdNoticias(it.imagenId);
+
+    const ct = document.createElement('div');
+    ct.className = 'feed-content';
+    const h = document.createElement('h4');
+    h.className = 'feed-title';
+    h.textContent = it.titulo || '';
+    const s = document.createElement('p');
+    s.className = 'feed-sub';
+    s.textContent = it.subtitulo || '';
+
+    ct.appendChild(h);
+    ct.appendChild(s);
+
+    item.appendChild(img);
+    item.appendChild(ct);
+
+    if(!isRead(it.id)){
+      const dot = document.createElement('span');
+      dot.className = 'feed-dot';
+      item.appendChild(dot);
+    }
+
+    item.addEventListener('click', ()=> openComunicadoDetalle(it));
+    wrap.appendChild(item);
+  }
+}
+
+/* Detalle de comunicado */
+function openComunicadoDetalle(it){
+  const thumb = document.getElementById('com-det-thumb');
+  const title = document.getElementById('com-det-title');
+  const sub   = document.getElementById('com-det-sub');
+  const desc  = document.getElementById('com-det-desc');
+  const link  = document.getElementById('com-det-link');
+
+  if(thumb){ thumb.src = thumbByIdNoticias(it.imagenId); }
+  if(title) title.textContent = it.titulo || '';
+  if(sub)   sub.textContent   = it.subtitulo || '';
+  if(desc)  desc.textContent  = it.contenido || '';
+
+  const first = String(it.first_link||'').trim();
+  if(link){
+    if(first){ link.href = first; link.style.display=''; }
+    else { link.href='#'; link.style.display='none'; }
+  }
+
+  markRead(it.id);
+  renderNoticiasList(NOTICIAS_CACHE);
+  refreshNoticiasBadge();
+  showView('view-comunicado-detalle');
+}
+
+/* Navegación y eventos */
+document.getElementById('go-comunicados')?.addEventListener('click', async ()=>{
+  overlay.classList.remove('open');
+  try{ await loadNoticias(); }catch(_){}
+  showView('view-comunicados');
+});
+document.getElementById('com-volver')?.addEventListener('click', ()=>{ showView('view-inicio'); });
+document.getElementById('com-det-volver')?.addEventListener('click', ()=>{ showView('view-comunicados'); });
+
+/* Click en etiqueta “Ver Noticias” abre COMUNICADOS */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const label = document.getElementById('notif-label');
+  const btn   = document.getElementById('go-comunicados');
+  if(!label || !btn) return;
+  const openList = ()=> btn.click();
+  label.addEventListener('click', openList);
+  label.setAttribute('role','button');
+  label.setAttribute('tabindex','0');
+  label.setAttribute('aria-label','Abrir comunicados');
+  label.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openList(); } });
+});
 
 /* ================== SELECTS (banco/eps/afp/arl) ================== */
 const BANKS = [
@@ -928,171 +1063,6 @@ function bindQuery(inputId, datalistId){
     }, 10); // debounce corto
   });
 }
-
-  /* ================== COMUNICADOS (NOTICIAS) ================== */
-
-let NOTICIAS_CACHE = [];
-const READ_KEY_PREFIX = 'noticiasRead@v1:';
-function readKey(){
-  return READ_KEY_PREFIX + (currentUser?.documento || 'anon');
-}
-function getReadMap(){
-  try{ const raw = localStorage.getItem(readKey()); return raw ? JSON.parse(raw) : {}; }catch(_){ return {}; }
-}
-function setReadMap(map){
-  try{ localStorage.setItem(readKey(), JSON.stringify(map||{})); }catch(_){}
-}
-function isRead(id){ const m = getReadMap(); return !!m[id]; }
-function markRead(id){ const m = getReadMap(); m[id] = true; setReadMap(m); }
-
-function thumbById(id){ return id ? ('https://drive.google.com/thumbnail?sz=w1000&id='+id) : 'https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png'; }
-
-/* Cargar lista desde backend (20 últimas) */
-async function loadNoticias(){
-  const list = await apiGet('listNoticias');
-  NOTICIAS_CACHE = Array.isArray(list) ? list : [];
-  renderNoticiasList(NOTICIAS_CACHE);
-  refreshNoticiasBadge();
-}
-
-/* Badge en Inicio: campana + contador + “Ver Noticias” */
-function unreadNoticiasCount(items){
-  if(!Array.isArray(items) || !items.length) return 0;
-  let n=0; for(const it of items){ if(!isRead(it.id)) n++; }
-  return n;
-}
-function refreshNoticiasBadge(){
-  const count = unreadNoticiasCount(NOTICIAS_CACHE);
-  const bell  = document.getElementById('notif-bell');
-  const label = document.getElementById('notif-label');
-  const badge = document.getElementById('notif-count');
-
-  if(badge){ badge.textContent = String(count); badge.classList.toggle('active', count>0); }
-  const active = count>0;
-  if(bell)  bell.classList.toggle('active', active);
-  if(label) label.classList.toggle('active', active);
-}
-
-/* Lista de comunicados */
-function renderNoticiasList(items){
-  const wrap = document.getElementById('com-list');
-  if(!wrap) return;
-  wrap.innerHTML = '';
-
-  if(!items.length){
-    const p = document.createElement('p');
-    p.className = 'muted center';
-    p.textContent = 'No hay comunicados disponibles.';
-    wrap.appendChild(p);
-    return;
-  }
-
-  for(const it of items){
-    const item = document.createElement('div');
-    item.className = 'feed-item';
-    item.dataset.id = it.id;
-
-    const img = document.createElement('img');
-    img.className = 'feed-thumb';
-    img.alt = '';
-    img.src = thumbById(it.imagenId);
-
-    const ct = document.createElement('div');
-    ct.className = 'feed-content';
-    const h = document.createElement('h4');
-    h.className = 'feed-title';
-    h.textContent = it.titulo || '';
-    const s = document.createElement('p');
-    s.className = 'feed-sub';
-    s.textContent = it.subtitulo || '';
-
-    ct.appendChild(h);
-    ct.appendChild(s);
-
-    item.appendChild(img);
-    item.appendChild(ct);
-
-    if(!isRead(it.id)){
-      const dot = document.createElement('span');
-      dot.className = 'feed-dot';
-      item.appendChild(dot);
-    }
-
-    item.addEventListener('click', ()=> openComunicadoDetalle(it));
-    wrap.appendChild(item);
-  }
-}
-
-/* Detalle de comunicado */
-function openComunicadoDetalle(it){
-  const thumb = document.getElementById('com-det-thumb');
-  const title = document.getElementById('com-det-title');
-  const sub   = document.getElementById('com-det-sub');
-  const desc  = document.getElementById('com-det-desc');
-  const link  = document.getElementById('com-det-link');
-
-  if(thumb){ thumb.src = thumbById(it.imagenId); }
-  if(title) title.textContent = it.titulo || '';
-  if(sub)   sub.textContent   = it.subtitulo || '';
-  if(desc)  desc.textContent  = it.contenido || '';
-
-  const first = String(it.first_link||'').trim();
-  if(link){
-    if(first){ link.href = first; link.style.display=''; }
-    else { link.href='#'; link.style.display='none'; }
-  }
-
-  markRead(it.id);
-  renderNoticiasList(NOTICIAS_CACHE);
-  refreshNoticiasBadge();
-  showView('view-comunicado-detalle');
-}
-
-/* Navegación y eventos */
-document.getElementById('go-comunicados')?.addEventListener('click', async ()=>{
-  overlay.classList.remove('open');
-  try{ await loadNoticias(); }catch(_){}
-  showView('view-comunicados');
-});
-document.getElementById('com-volver')?.addEventListener('click', ()=>{ showView('view-inicio'); });
-document.getElementById('com-det-volver')?.addEventListener('click', ()=>{ showView('view-comunicados'); });
-
-/* Click en etiqueta “Ver Noticias” abre COMUNICADOS */
-document.addEventListener('DOMContentLoaded', ()=>{
-  const label = document.getElementById('notif-label');
-  const btn   = document.getElementById('go-comunicados');
-  if(!label || !btn) return;
-  const openList = ()=> btn.click();
-  label.addEventListener('click', openList);
-  label.setAttribute('role','button');
-  label.setAttribute('tabindex','0');
-  label.setAttribute('aria-label','Abrir comunicados');
-  label.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openList(); } });
-});
-
-/* Al iniciar sesión: cargar Inicio y luego noticias para badge */
-async function cargarInicio(){
-  if(!currentUser) return;
-  const d = await apiGet('getInicio', { documento: currentUser.documento });
-  document.getElementById('inicio-nombre').textContent = d.nombre || '';
-  document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
-  document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' de ' + d.expedida) : '');
-  document.getElementById('inicio-contacto').textContent = d.telefono || '';
-  document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
-  document.getElementById('inicio-correo').textContent = d.correo || '';
-  document.getElementById('inicio-cuenta').textContent = ((d.cuenta||'') + ' ' + (d.tipoCuenta||'') + ' ' + (d.banco||'')).trim();
-  document.getElementById('inicio-eps').textContent = d.eps || '';
-  document.getElementById('inicio-afp').textContent = d.pension || '';
-  document.getElementById('inicio-arl').textContent = d.arl || '';
-  document.getElementById('inicio-supervisor').textContent = d.supervisor || '';
-  const firmaEl = document.getElementById('inicio-firma');
-  if(d.firmaId){ firmaEl.src = thumbById(d.firmaId); firmaEl.style.display=''; } else { firmaEl.style.display='none'; }
-
-  // INSERT: cargar noticias para mostrar badge
-  try{ await loadNoticias(); }catch(_){}
-}
-
-/* ================== FIN COMUNICADOS ================== */
 
 /* ================== REGISTRO ================== */
 let regFirmaDataUrl = '';
