@@ -793,10 +793,43 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     if(res.incompleto){ // H..S vacías
       showView('view-registro');
     }else{
-      await cargarInicio();
-      playSoundOnce(SOUNDS.login);
-      showView('view-inicio');
-    }
+      (async ()=>{
+  const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento });
+  const d = boot?.inicio || {};
+  const list = boot?.noticias || [];
+
+  // Pintar INICIO
+  document.getElementById('inicio-nombre').textContent = d.nombre || '';
+  document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
+  document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' de ' + d.expedida) : '');
+  document.getElementById('inicio-contacto').textContent = d.telefono || '';
+  document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
+  document.getElementById('inicio-correo').textContent = d.correo || '';
+  document.getElementById('inicio-cuenta').textContent = ((d.cuenta||'') + ' ' + (d.tipoCuenta||'') + ' ' + (d.banco||'')).trim();
+  document.getElementById('inicio-eps').textContent = d.eps || '';
+  document.getElementById('inicio-afp').textContent = d.pension || '';
+  document.getElementById('inicio-arl').textContent = d.arl || '';
+  document.getElementById('inicio-supervisor').textContent = d.supervisor || '';
+  const firmaEl = document.getElementById('inicio-firma');
+  if(d.firmaId){ firmaEl.src = thumbById(d.firmaId); firmaEl.style.display=''; } else { firmaEl.style.display='none'; }
+
+  // Cache noticias + badge
+  NOTICIAS_CACHE = Array.isArray(list) ? list : [];
+  renderNoticiasList(NOTICIAS_CACHE);
+  refreshNoticiasBadge();
+
+  playSoundOnce(SOUNDS.login);
+  showView('view-inicio');
+})();
+
+// Quitar recarga innecesaria en botón COMUNICADOS:
+// Ubicación: listener de go-comunicados
+// Elimina la línea: try{ await loadNoticias(); }catch(_){}
+// Deja así:
+document.getElementById('go-comunicados')?.addEventListener('click', ()=>{
+  overlay.classList.remove('open');
+  showView('view-comunicados'); // usa NOTICIAS_CACHE
+});
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text:e.message });
   }
