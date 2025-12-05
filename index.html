@@ -216,9 +216,9 @@
           <img alt="banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763930524/menu_t9xli7.gif" style="max-width:180px;border-radius:10px;" />
         </div>
         <h3>Selecciona una opción</h3>
-        <button class="menu-btn" id="go-noticias">VER NOTICIAS</button>
-        <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO</button>
-        <button class="menu-btn" id="go-personales">DATOS PERSONALES</button>
+        <button class="menu-btn" id="go-noticias">COMUNICADOS 📅</button>
+        <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO 📄</button>
+        <button class="menu-btn" id="go-personales">DATOS PERSONALES 👤</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -253,7 +253,7 @@
           <option>AHORROS</option><option>CORRIENTE</option>
         </select>
 
-        <label>Numero de cuenta</label>
+        <label>Número de cuenta</label>
         <input id="reg-numeroCuenta" type="tel" inputmode="numeric" placeholder="Ingresa número de cuenta">
 
         <label>Banco</label>
@@ -276,7 +276,37 @@
         <img id="reg-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
         <label>Fecha de nacimiento</label>
-        <input id="reg-cumple" type="date" placeholder="dd/mm/aaaa">
+        <input
+          id="reg-cumple"
+          type="text"
+          placeholder="dd/mm/aaaa"
+          readonly
+          onclick="abrirPickerCumple()" />
+
+        <!-- Modal Fecha (ruleta) para Cumple: años 1936..2008 -->
+        <div id="cumpleModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
+          <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
+            <h3 style="margin:0 0 8px 0;">Selecciona la fecha</h3>
+            <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+              <div>
+                <small>Día</small>
+                <select id="cumpleDia" size="10"></select>
+              </div>
+              <div>
+                <small>Mes</small>
+                <select id="cumpleMes" size="12"></select>
+              </div>
+              <div>
+                <small>Año</small>
+                <select id="cumpleAnio" size="10"></select>
+              </div>
+            </div>
+            <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+              <button type="button" class="btn btn-cancel" onclick="cancelarPickerCumple()">Cancelar</button>
+              <button type="button" class="btn btn-ok" onclick="confirmarPickerCumple()">Ok</button>
+            </div>
+          </div>
+        </div>
 
         <div class="btn-row spaced">
           <button class="btn-primary" id="reg-guardar">Guardar</button>
@@ -298,15 +328,43 @@
         </div>
 
         <div id="contrato-form" class="hidden" style="margin-top:10px;">
+          <!-- Fecha Inicio (ruleta año fijo 2026) -->
           <label>Fecha de Inicio</label>
-          <input id="c-fechaInicio" type="date" placeholder="dd/mm/aaaa">
+          <input id="c-fechaInicio" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerContrato('inicio')">
           <input id="c-diaInicio" type="text" readonly style="display:none;">
           <input id="c-mesInicio" type="text" readonly style="display:none;">
 
           <label>Fecha de Terminación</label>
-          <input id="c-fechaTermino" type="date" placeholder="dd/mm/aaaa">
+          <input id="c-fechaTermino" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerContrato('termino')">
           <input id="c-diaTermino" type="text" readonly style="display:none;">
           <input id="c-mesTermino" type="text" readonly style="display:none;">
+
+          <!-- Modal Picker (año fijo 2026) -->
+          <div id="contratoFechaModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
+            <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
+              <h3 style="margin:0 0 8px 0;">Selecciona la fecha</h3>
+              <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+                <div>
+                  <small>Día</small>
+                  <select id="contratoDia" size="10"></select>
+                </div>
+                <div>
+                  <small>Mes</small>
+                  <select id="contratoMes" size="12"></select>
+                </div>
+                <div>
+                  <small>Año</small>
+                  <select id="contratoAnio" size="3" disabled>
+                    <option selected>2026</option>
+                  </select>
+                </div>
+              </div>
+              <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn btn-cancel" onclick="cancelarPickerContrato()">Cancelar</button>
+                <button type="button" class="btn btn-ok" onclick="confirmarPickerContrato()">Ok</button>
+              </div>
+            </div>
+          </div>
 
           <label>Meses de contrato</label>
           <input id="c-meses" type="tel" inputmode="numeric" placeholder="Automático; puedes editar">
@@ -318,11 +376,11 @@
           <label>Registro Presupuestal (RP)</label>
           <input id="c-rp" type="tel" inputmode="numeric" placeholder="N° de RP" maxlength="10" style="border:1.5px solid #ccc;">
 
-          <label>¿Régimen SIMPLE?</label>
+          <label>¿Te encuentras bajo el régimen simple de tributación (SIMPLE)?</label>
           <select id="c-costos">
             <option value="" disabled selected>Selecciona</option>
-            <option>SI tomaré costos o deducciones.</option>
-            <option>NO tomaré costos o deducciones.</option>
+            <option value="SI tomaré costos o deducciones.">SI</option>
+            <option value="NO tomaré costos o deducciones.">NO</option>
           </select>
           <input id="c-regimen" type="text" readonly style="display:none;">
 
@@ -370,7 +428,7 @@
             <option>AHORROS</option><option>CORRIENTE</option>
           </select>
 
-          <label>Numero de cuenta</label>
+          <label>Número de cuenta</label>
           <input id="p-numeroCuenta" type="tel" inputmode="numeric" placeholder="Ingresa número de cuenta">
 
           <label>Banco</label>
@@ -390,7 +448,7 @@
           <img id="p-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
           <label>Fecha de nacimiento</label>
-          <input id="p-cumple" type="date" placeholder="dd/mm/aaaa">
+          <input id="p-cumple" type="text" placeholder="dd/mm/aaaa" readonly onclick="abrirPickerCumple()">
 
           <div class="btn-row spaced" style="margin-top:12px;">
             <button id="p-guardar" class="btn-primary">Guardar Cambios</button>
@@ -400,10 +458,10 @@
       </div>
     </section>
 
-    <!-- VISTA VER NOTICIAS (lista) -->
+    <!-- VISTA COMUNICADOS (lista) -->
     <section id="view-noticias" class="view">
       <div class="card narrow">
-        <h2 style="color:var(--primary)">¡VER NOTICIAS!</h2>
+        <h2 style="color:var(--primary)">¡COMUNICADOS!</h2>
         <div id="feed-list" style="display:flex; flex-direction:column; gap:12px;"></div>
         <div class="btn-row spaced">
           <button id="feed-volver" class="danger">Regresar</button>
@@ -411,7 +469,7 @@
       </div>
     </section>
 
-    <!-- VISTA DETALLE NOTICIA -->
+    <!-- VISTA DETALLE COMUNICADO -->
     <section id="view-noticia-detalle" class="view">
       <div class="card narrow" style="text-align:center;">
         <img id="fd-thumb" src="" alt="" style="width:180px; height:180px; object-fit:cover; border-radius:12px; border:1px solid #ddd; background:#eee; display:block; margin: 0 auto 10px;">
@@ -428,7 +486,7 @@
 
 <script>
 /* ================== CONFIGURACIÓN ================== */
-const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec'; // Reemplaza por tu despliegue GS-Contratista
+const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec';
 
 /* ================== SONIDOS ================== */
 const SOUNDS = {
@@ -507,11 +565,44 @@ async function apiPost(action, body = {}){
 let currentUser = null;
 
 /* ================== VISTAS ================== */
+function resetVistas(){
+  // Ocultar formularios de edición y limpiar datalists y campos según vistas
+  document.getElementById('contrato-form')?.classList.add('hidden');
+  document.getElementById('personales-form')?.classList.add('hidden');
+
+  // Limpiar datalists (evita acumulación)
+  ['dl-expedida','dl-municipio','dl-expedida2','dl-municipio2'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.innerHTML='';
+  });
+
+  // Limpiar previews
+  const pf = document.getElementById('p-firma-preview'); if(pf){ pf.src=''; pf.style.display='none'; }
+  const rf = document.getElementById('reg-firma-preview'); if(rf){ rf.src=''; rf.style.display='none'; }
+
+  // Campos de contrato
+  ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-costos','c-regimen'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.value=''; }
+  });
+
+  // Campos personales edición
+  ['p-expedida','p-telefono','p-direccion','p-municipio','p-correo','p-tipoCuenta','p-numeroCuenta','p-banco','p-eps','p-pension','p-arl','p-cumple'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.value=''; }
+  });
+
+  // Campos registro
+  ['reg-expedida','reg-telefono','reg-direccion','reg-municipio','reg-correo','reg-tipoCuenta','reg-numeroCuenta','reg-banco','reg-eps','reg-pension','reg-arl','reg-cumple'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.value=''; }
+  });
+
+  // Limpiar caches locales del feed visual (no borra leído)
+  const wrap = document.getElementById('feed-list'); if(wrap) wrap.innerHTML='';
+}
 function showView(id){
   for(const el of document.querySelectorAll('.view')) el.classList.remove('active');
   document.getElementById(id)?.classList.add('active');
   overlay.classList.remove('open');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  resetVistas();
 }
 
 /* ================== INPUT SANITIZERS ================== */
@@ -710,7 +801,7 @@ bindQuery('reg-municipio','dl-municipio');
 document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
-  const correoRegex = /^[^\s@]+@(example\.org|nomedominio\.net|dominio\.edu\.co|examplo\.edu\.co|empresa\.com|nombreempresa\.org|correo\.es|dominio\.es|outlook\.com|hotmail\.com|live\.com|gmail\.com|icloud\.com|me\.com|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
+  const correoRegex = /^[^\s@]+@(example\.org|nomedominio\.net|dominio\.edu\.co|examplo\.edu\.co|empresa\.com|nombreempresa\.org|correo\.es|dominio\.es|outlook\.com|hotmail\.com|live\.com|gmail\.com|icloud\.com|me\.com)$/; // solo dominios explícitos
   const numeroCuentaRaw = (document.getElementById('reg-numeroCuenta').value||'').replace(/\D/g,'');
   const body = {
     documento: currentUser.documento,
@@ -726,7 +817,7 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
     pension: document.getElementById('reg-pension').value,
     arl: document.getElementById('reg-arl').value,
     firmaDataUrl: regFirmaDataUrl || '',
-    cumpleISO: document.getElementById('reg-cumple').value || ''
+    cumpleISO: __cumpleISO || '' // se llena desde el modal
   };
   // Requeridos
   const requiredOk = body.expedida && body.telefono && body.direccion && body.municipio && body.correo && body.tipoCuenta && body.numeroCuenta && body.banco && body.eps && body.pension && body.arl && body.firmaDataUrl && body.cumpleISO;
@@ -735,18 +826,26 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
   if(!(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
 
-  const resumenHtml = `
-    <b>Expedida:</b> ${body.expedida}<br>
-    <b>Whatsapp:</b> ${body.telefono}<br>
-    <b>Dirección:</b> ${body.direccion}<br>
-    <b>Municipio:</b> ${body.municipio}<br>
-    <b>Correo:</b> ${body.correo}<br>
-    <b>Cuenta:</b> ${body.numeroCuenta} ${body.tipoCuenta} ${body.banco}<br>
-    <b>EPS:</b> ${body.eps}<br>
-    <b>AFP:</b> ${body.pension}<br>
-    <b>ARL:</b> ${body.arl}<br><br>
-    <img class="brand" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" alt="">
-  `;
+  // Validación exacta de municipios (expedida/municipio) en GS también, pero aplicamos verificación previa
+  const exactExp = await apiGet('validateMunicipioExact', { nombre: body.expedida });
+  const exactMup = await apiGet('validateMunicipioExact', { nombre: body.municipio });
+  if(!exactExp || !exactMup){
+    Swal.fire({icon:'warning', title:'Municipio inválido', text:'Debe coincidir exactamente con la lista.'});
+    return;
+  }
+
+  const resumenHtml = [
+    body.expedida && `<b>Expedida:</b> ${body.expedida}`,
+    body.telefono && `<b>Whatsapp:</b> ${body.telefono}`,
+    body.direccion && `<b>Dirección:</b> ${body.direccion}`,
+    body.municipio && `<b>Municipio:</b> ${body.municipio}`,
+    body.correo && `<b>Correo:</b> ${body.correo}`,
+    `<b>Cuenta:</b> ${body.numeroCuenta} ${body.tipoCuenta} ${body.banco}`,
+    `<b>EPS:</b> ${body.eps}`,
+    `<b>AFP:</b> ${body.pension}`,
+    `<b>ARL:</b> ${body.arl}`
+  ].filter(Boolean).join('<br>') + `<br><br><img class="brand" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" alt="">`;
+
   const rs = await Swal.fire({
     icon:'info', title:'Resumen de Registro', html:resumenHtml,
     showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar', soundTag:'resumen'
@@ -780,67 +879,76 @@ bindNumericSanitizer('c-rp', 10);
 
 document.getElementById('c-costos').addEventListener('change', function(){
   const simple = document.getElementById('c-regimen');
-  if (this.value === 'SI tomaré costos o deducciones.') {
-    simple.value = 'Si pertenezco al Régimen Simple, por lo que se adjunta el RUT vigente, actualizado con la responsabilidad 47.';
-  } else if (this.value === 'NO tomaré costos o deducciones.') {
-    simple.value = 'NO pertenezco al Régimen Simple';
+  if (this.value === 'SI tomaré costos o deducciones.'){
+    simple.value = 'SI';
+  } else if (this.value === 'NO tomaré costos o deducciones.'){
+    simple.value = 'NO';
+  } else {
+    simple.value = '';
   }
 });
 
-function actualizarCamposFecha(fechaISO, idDia, idMes){
-  if(!fechaISO){ document.getElementById(idDia).value=''; document.getElementById(idMes).value=''; return; }
-  const dObj = new Date(fechaISO + 'T00:00:00');
-  if(isNaN(dObj)) { document.getElementById(idDia).value=''; document.getElementById(idMes).value=''; return; }
-  const dd = String(dObj.getUTCDate()).padStart(2,'0');
-  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const mm = dObj.getUTCMonth();
-  document.getElementById(idDia).value = dd;
-  document.getElementById(idMes).value = meses[mm];
+function convertirNumeroATexto(n){
+  // Conversor en español MAYÚSCULAS (unidades a millones)
+  const unidades=["","UN","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE"];
+  const especiales=["DIEZ","ONCE","DOCE","TRECE","CATORCE","QUINCE","DIECISEIS","DIECISIETE","DIECIOCHO","DIECINUEVE"];
+  const decenas=["","DIEZ","VEINTE","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
+  const centenas=["","CIENTO","DOSCIENTOS","TRESCIENTOS","CUATROCIENTOS","QUINIENTOS","SEISCIENTOS","SETECIENTOS","OCHOCIENTOS","NOVECIENTOS"];
+  function cDec(n){ if(n<10) return unidades[n]; if(n<20) return especiales[n-10];
+    if(n===20) return "VEINTE"; if(n<30) return "VEINTI"+unidades[n%10];
+    return decenas[Math.floor(n/10)] + (n%10 ? " Y " + unidades[n%10] : "");
+  }
+  function cCent(n){ if(n===100) return "CIEN"; if(n>100) return (centenas[Math.floor(n/100)]+" "+cDec(n%100)).trim(); return cDec(n); }
+  function cMiles(n){ if(n<1000) return cCent(n);
+    if(n<1000000){ const miles=Math.floor(n/1000), resto=n%1000;
+      if(miles===1) return ("MIL "+(resto?cCent(resto):"")).trim();
+      return (cCent(miles)+" MIL "+(resto?cCent(resto):"")).trim();
+    }
+    const millones=Math.floor(n/1000000), resto=n%1000000;
+    if(millones===1) return ("UN MILLÓN "+(resto?cMiles(resto):"")).trim();
+    return (cCent(millones)+" MILLONES "+(resto?cMiles(resto):"")).trim();
+  }
+  let t=cMiles(parseInt(n||0,10)); if(t.endsWith(" UNO")) t=t.slice(0,-4)+" UN"; return t;
 }
-
-document.getElementById('c-fechaInicio').addEventListener('change', ()=>{
-  actualizarCamposFecha(document.getElementById('c-fechaInicio').value, 'c-diaInicio', 'c-mesInicio');
-  calcularPlazo();
-});
-document.getElementById('c-fechaTermino').addEventListener('change', ()=>{
-  actualizarCamposFecha(document.getElementById('c-fechaTermino').value, 'c-diaTermino', 'c-mesTermino');
-  calcularPlazo();
-});
-
-function getDaysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
-function convertirNumeroATexto(n){ return String(n); } // simple
 function actualizarEjecucion(){
   const meses = parseInt(document.getElementById('c-meses').value)||0;
   const dias = parseInt(document.getElementById('c-dias').value)||0;
   let txt = '';
-  if(meses>0){ txt += `${meses===1?'un':convertirNumeroATexto(meses)} (${meses}) ${meses===1?'mes':'meses'}`; }
-  if(dias>0){ if(txt!=='') txt += ' y '; txt += `${dias===1?'un':convertirNumeroATexto(dias)} (${dias}) ${dias===1?'día':'días'}`; }
+  if(meses>0){ txt += `${convertirNumeroATexto(meses)} (${meses}) ${meses===1?'MES':'MESES'}`; }
+  if(dias>0){ if(txt!=='') txt += ' Y '; txt += `${convertirNumeroATexto(dias)} (${dias}) ${dias===1?'DIA':'DIAS'}`; }
   document.getElementById('c-ejecucion').value = txt;
 }
 document.getElementById('c-meses').addEventListener('input', actualizarEjecucion);
 document.getElementById('c-dias').addEventListener('input', actualizarEjecucion);
 
+function getDaysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
 function calcularPlazo(){
-  const fi = document.getElementById('c-fechaInicio').value;
-  const ft = document.getElementById('c-fechaTermino').value;
-  if(!fi || !ft) { document.getElementById('c-meses').value=0; document.getElementById('c-dias').value=0; actualizarEjecucion(); return; }
-  let fechaInicio = new Date(fi);
-  let fechaTermino = new Date(ft);
-  if(isNaN(fechaInicio)||isNaN(fechaTermino)||fechaTermino<fechaInicio){
-    document.getElementById('c-meses').value=0; document.getElementById('c-dias').value=0; actualizarEjecucion(); return;
+  const fi = __fechaInicioISO; // desde picker ruleta
+  const ft = __fechaTerminoISO; // desde picker ruleta
+  const mesesEl = document.getElementById('c-meses');
+  const diasEl = document.getElementById('c-dias');
+  if(!fi || !ft){
+    mesesEl.value=0; diasEl.value=0; actualizarEjecucion(); return;
   }
-  // Contar ambos extremos
+  const [di,mi,yi] = fi.split('/').map(x=>parseInt(x,10));
+  const [dt,mt,yt] = ft.split('/').map(x=>parseInt(x,10));
+  let fechaInicio = new Date(yi, mi-1, di);
+  let fechaTermino = new Date(yt, mt-1, dt);
+  if(isNaN(fechaInicio)||isNaN(fechaTermino)||fechaTermino<fechaInicio){
+    mesesEl.value=0; diasEl.value=0; actualizarEjecucion(); return;
+  }
+  // Contar ambos extremos (incluye día final)
   let diffTime = Math.abs(fechaTermino - fechaInicio) + (1000*60*60*24);
   let diffDays = Math.ceil(diffTime / (1000*60*60*24));
   let meses=0, dias=0;
   while(diffDays>0){
-    const daysInMonth = getDaysInMonth(fechaInicio.getFullYear(), fechaInicio.getMonth());
-    if(diffDays >= daysInMonth){
-      meses++; diffDays -= daysInMonth; fechaInicio.setMonth(fechaInicio.getMonth()+1);
+    const dim = getDaysInMonth(fechaInicio.getFullYear(), fechaInicio.getMonth());
+    if(diffDays >= dim){
+      meses++; diffDays -= dim; fechaInicio.setMonth(fechaInicio.getMonth()+1);
     }else{ dias = diffDays; diffDays = 0; }
   }
-  document.getElementById('c-meses').value = meses;
-  document.getElementById('c-dias').value = dias;
+  mesesEl.value = meses;
+  diasEl.value = dias;
   actualizarEjecucion();
 }
 
@@ -858,10 +966,10 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const body = {
     documento: currentUser.documento,
-    fechaInicioISO: document.getElementById('c-fechaInicio').value||'',
+    fechaInicioISO: __fechaInicioISO || '',
     diaInicio: document.getElementById('c-diaInicio').value||'',
     mesInicio: document.getElementById('c-mesInicio').value||'',
-    fechaTerminoISO: document.getElementById('c-fechaTermino').value||'',
+    fechaTerminoISO: __fechaTerminoISO || '',
     diaTermino: document.getElementById('c-diaTermino').value||'',
     mesTermino: document.getElementById('c-mesTermino').value||'',
     meses: document.getElementById('c-meses').value||'0',
@@ -871,17 +979,19 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
     costos: document.getElementById('c-costos').value||'',
     regimen: document.getElementById('c-regimen').value||''
   };
-  const resumenHtml = `
-    <b>Inicio:</b> ${body.fechaInicioISO}<br>
-    <b>Terminación:</b> ${body.fechaTerminoISO}<br>
-    <b>Meses/Días:</b> ${body.meses} / ${body.dias}<br>
-    <b>Ejecución:</b> ${body.ejecucion}<br>
-    <b>RP:</b> ${body.rp}<br>
-    <b>Costos:</b> ${body.costos}<br>
-    <b>Régimen:</b> ${body.regimen}<br>
-  `;
+
+  // Resumen: solo campos editados (no vacíos)
+  const resumen = [];
+  if(body.fechaInicioISO) resumen.push(`<b>Inicio:</b> ${body.fechaInicioISO}`);
+  if(body.fechaTerminoISO) resumen.push(`<b>Terminación:</b> ${body.fechaTerminoISO}`);
+  if(body.meses || body.dias) resumen.push(`<b>Meses/Días:</b> ${body.meses||'0'} / ${body.dias||'0'}`);
+  if(body.ejecucion) resumen.push(`<b>Ejecución:</b> ${body.ejecucion}`);
+  if(body.rp) resumen.push(`<b>RP:</b> ${body.rp}`);
+  if(body.costos) resumen.push(`<b>Costos:</b> ${body.costos}`);
+  if(body.regimen) resumen.push(`<b>Régimen:</b> ${body.regimen}`);
+
   const rs = await Swal.fire({
-    icon:'info', title:'Resumen de Cambios', html:resumenHtml,
+    icon:'info', title:'Resumen de Cambios', html:resumen.join('<br>'),
     showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar', soundTag:'resumen'
   });
   if(!rs.isConfirmed) return;
@@ -935,7 +1045,7 @@ document.getElementById('p-cancelar').addEventListener('click', ()=>{
 document.getElementById('p-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
-  const correoRegex = /^[^\s@]+@(example\.org|nomedominio\.net|dominio\.edu\.co|examplo\.edu\.co|empresa\.com|nombreempresa\.org|correo\.es|dominio\.es|outlook\.com|hotmail\.com|live\.com|gmail\.com|icloud\.com|me\.com|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
+  const correoRegex = /^[^\s@]+@(example\.org|nomedominio\.net|dominio\.edu\.co|examplo\.edu\.co|empresa\.com|nombreempresa\.org|correo\.es|dominio\.es|outlook\.com|hotmail\.com|live\.com|gmail\.com|icloud\.com|me\.com)$/;
 
   const body = {
     documento: currentUser.documento,
@@ -951,18 +1061,30 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
     pension: document.getElementById('p-pension').value,
     arl: document.getElementById('p-arl').value,
     firmaDataUrl: pFirmaDataUrl || '',
-    cumpleISO: document.getElementById('p-cumple').value || ''
+    cumpleISO: __cumpleISO || ''
   };
 
+  // Validación exacta (expedida/municipio) si vienen
+  if(body.expedida){
+    const ok = await apiGet('validateMunicipioExact', { nombre: body.expedida });
+    if(!ok){ Swal.fire({icon:'warning', title:'Expedida inválida', text:'Debe coincidir exactamente con la lista.'}); return; }
+  }
+  if(body.municipio){
+    const ok = await apiGet('validateMunicipioExact', { nombre: body.municipio });
+    if(!ok){ Swal.fire({icon:'warning', title:'Municipio inválido', text:'Debe coincidir exactamente con la lista.'}); return; }
+  }
+
+  // Resumen solo campos editados
   const resumen = [];
-  Object.entries(body).forEach(([k,v])=>{ if(k!=='documento' && v) resumen.push(`<b>${k}:</b> ${v}`); });
+  Object.entries(body).forEach(([k,v])=>{
+    if(k!=='documento' && v){ resumen.push(`<b>${k}:</b> ${k==='numeroCuenta' ? v : v}`); }
+  });
   const rs = await Swal.fire({
     icon:'info', title:'Resumen de Cambios', html:resumen.join('<br>'),
     showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar', soundTag:'resumen'
   });
   if(!rs.isConfirmed) return;
 
-  // Validaciones suaves: si viene, valida; se guardan solo campos con valor
   if(body.telefono && !telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
   if(body.correo && !correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
   if(body.numeroCuenta && !(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
@@ -1016,7 +1138,7 @@ async function cargarNoticias(){
   const wrap = document.getElementById('feed-list');
   wrap.innerHTML='';
   if(!FEED_CACHE.length){
-    const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay noticias disponibles.'; wrap.appendChild(p); return;
+    const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay comunicados disponibles.'; wrap.appendChild(p); return;
   }
   FEED_CACHE.forEach(it=>{
     const item = document.createElement('div');
@@ -1032,6 +1154,7 @@ async function cargarNoticias(){
     const ct = document.createElement('div'); ct.style.flex='1'; ct.style.minWidth='0';
     const h = document.createElement('h4'); h.style.margin='0 0 4px 0'; h.style.fontWeight='800'; h.textContent = String(it.titulo||'');
     const p = document.createElement('p'); p.style.margin='0'; p.style.color='#333'; p.textContent = String(it.subtitulo||'');
+
     ct.appendChild(h); ct.appendChild(p);
 
     item.appendChild(img); item.appendChild(ct);
@@ -1039,7 +1162,6 @@ async function cargarNoticias(){
       const dot = document.createElement('span');
       dot.style.cssText='width:12px;height:12px;background:#e11;border-radius:999px;flex-shrink:0;margin-left:6px;margin-top:4px;box-shadow:0 0 0 2px #fff;';
       item.appendChild(dot);
-      // sonido de notificación cuando hay no leídas
       playSoundOnce(SOUNDS.notify);
     }
     item.addEventListener('click', ()=> abrirNoticia(it));
@@ -1092,24 +1214,24 @@ async function cargarPersonalesLectura(){
   const lines = [
     `<b>NOMBRE:</b> ${d.nombre||''}`,
     `<b>CC:</b> ${d.documento||''}`,
-    `<b>Expedida:</b> ${d.expedida||''}`,
-    `<b>Whatsapp:</b> ${d.telefono||''}`,
-    `<b>Dirección:</b> ${d.direccion||''}`,
-    `<b>Municipio:</b> ${d.municipio||''}`,
-    `<b>Correo:</b> ${d.correo||''}`,
-    `<b>Cuenta:</b> ${d.cuenta||''} ${d.tipoCuenta||''} ${d.banco||''}`,
+    `<b>EXPEDIDA:</b> ${d.expedida||''}`,
+    `<b>WHATSAPP:</b> ${d.telefono||''}`,
+    `<b>DIRECCIÓN:</b> ${d.direccion||''}`,
+    `<b>MUNICIPIO:</b> ${d.municipio||''}`,
+    `<b>CORREO:</b> ${d.correo||''}`,
+    `<b>CUENTA:</b> ${d.cuenta||''} ${d.tipoCuenta||''} ${d.banco||''}`,
     `<b>EPS:</b> ${d.eps||''}`,
     `<b>AFP:</b> ${d.pension||''}`,
     `<b>ARL:</b> ${d.arl||''}`,
-    `<b>Cumpleaños:</b> ${d.cumple||''}`
+    `<b>FECHA DE NACIMIENTO:</b> ${d.cumple||''}`
   ];
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
 }
 
-/* ================== PWA AVANZADO ================== */
+/* ================== PWA AVANZADO (copia del index original) ================== */
 let deferredPrompt = null;
-let __installStartShown = false;    // bandera: ya mostramos "App instalándose"
-let __installSuccessShown = false;  // bandera: ya mostramos "Instalación exitosa"
+let __installStartShown = false;
+let __installSuccessShown = false;
 
 function isStandalone(){
   const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -1117,18 +1239,10 @@ function isStandalone(){
   const iosStandalone = (window.navigator.standalone === true);
   return dmStandalone || dmInstalled || iosStandalone;
 }
-function isIOS(){
-  return /(iphone|ipad|ipod)/i.test(navigator.userAgent || '');
-}
-function isMarkedInstalled(){
-  try{ return localStorage.getItem('pwaInstalledFlag') === '1'; }catch(_){ return false; }
-}
-function markInstalled(){
-  try{ localStorage.setItem('pwaInstalledFlag', '1'); }catch(_){}
-}
-function clearInstalledMark(){
-  try{ localStorage.removeItem('pwaInstalledFlag'); }catch(_){}
-}
+function isIOS(){ return /(iphone|ipad|ipod)/i.test(navigator.userAgent || ''); }
+function isMarkedInstalled(){ try{ return localStorage.getItem('pwaInstalledFlag') === '1'; }catch(_){ return false; } }
+function markInstalled(){ try{ localStorage.setItem('pwaInstalledFlag', '1'); }catch(_){ } }
+function clearInstalledMark(){ try{ localStorage.removeItem('pwaInstalledFlag'); }catch(_){ } }
 async function detectInstalled(){
   if (isStandalone()) return true;
   if (typeof navigator.getInstalledRelatedApps === 'function'){
@@ -1170,7 +1284,6 @@ window.addEventListener('appinstalled', ()=>{
 });
 
 document.getElementById('btn-instalar').addEventListener('click', async ()=>{
-  // Flujo iOS: se respeta exactamente tu alerta e instrucciones
   if(isIOS()){
     Swal.fire({
       icon:'info',
@@ -1179,40 +1292,37 @@ document.getElementById('btn-instalar').addEventListener('click', async ()=>{
     });
     return;
   }
-  // Android: requiere beforeinstallprompt (deferredPrompt)
   if(!deferredPrompt){
     Swal.fire({icon:'info',title:'Instalación no disponible todavía'});
     return;
   }
-
   const dp = deferredPrompt;
-  dp.prompt();                           // muestra diálogo nativo de instalación
-  const choice = await dp.userChoice;    // espera la elección del usuario
-  deferredPrompt = null;                 // limpia el prompt (solo se usa una vez)
+  dp.prompt();
+  const choice = await dp.userChoice;
+  deferredPrompt = null;
 
   if (choice.outcome === 'accepted'){
-    // Primera alerta (Android): confirma inicio de instalación por 6 segundos
     markInstalled();
     __installStartShown = true;
     Swal.fire({
-  icon: 'success',
-  title: '¡App instalándose!',
-  html: `
-    <div style="text-align:center; margin-top:8px;">
-      <img
-        src="https://res.cloudinary.com/dqqeavica/image/upload/v1764209976/Robot_c2vtua.gif"
-        alt="Instalando app"
-        style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
-      >
-      <div>Debes esperar unos segundos mientras el sistema instala la App.</div>
-      <div style="margin-top:10px;">
-        <b>Ya puedes salir de esta vista, aparecerá en la pantalla principal de este dispositivo.</b>
-      </div>
-    </div>
-  `,
-  timer: 12000,
-  showConfirmButton: false
-});
+      icon: 'success',
+      title: '¡App instalándose!',
+      html: `
+        <div style="text-align:center; margin-top:8px;">
+          <img
+            src="https://res.cloudinary.com/dqqeavica/image/upload/v1764209976/Robot_c2vtua.gif"
+            alt="Instalando app"
+            style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
+          >
+          <div>Debes esperar unos segundos mientras el sistema instala la App.</div>
+          <div style="margin-top:10px;">
+            <b>Ya puedes salir de esta vista, aparecerá en la pantalla principal de este dispositivo.</b>
+          </div>
+        </div>
+      `,
+      timer: 12000,
+      showConfirmButton: false
+    });
   } else {
     Swal.fire({icon:'info',title:'Instalación cancelada'});
   }
@@ -1235,6 +1345,75 @@ if ('serviceWorker' in navigator){
   });
 }
 window.addEventListener('load', initPWAVista);
+
+/* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
+let __cumpleISO = ''; // dd/mm/yyyy
+
+(function initCumplePicker(){
+  const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y);
+  const dSel = document.getElementById('cumpleDia');
+  const mSel = document.getElementById('cumpleMes');
+  const aSel = document.getElementById('cumpleAnio');
+  if(dSel && !dSel.childElementCount){
+    for(let d=1; d<=31; d++){ const opt=document.createElement('option'); opt.value=String(d).padStart(2,'0'); opt.textContent=opt.value; dSel.appendChild(opt); }
+  }
+  if(mSel && !mSel.childElementCount){
+    const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    for(let i=0;i<12;i++){ const opt=document.createElement('option'); opt.value=String(i+1).padStart(2,'0'); opt.textContent=mesesNombres[i]; mSel.appendChild(opt); }
+  }
+  if(aSel && !aSel.childElementCount){
+    ys.forEach(y=>{ const opt=document.createElement('option'); opt.value=String(y); opt.textContent=String(y); aSel.appendChild(opt); });
+  }
+})();
+
+function abrirPickerCumple(){
+  const m=document.getElementById('cumpleModal'); if(m) m.style.display='flex';
+}
+function cancelarPickerCumple(){
+  const m=document.getElementById('cumpleModal'); if(m) m.style.display='none';
+}
+function confirmarPickerCumple(){
+  const dSel=document.getElementById('cumpleDia')?.value||'01';
+  const mSel=document.getElementById('cumpleMes')?.value||'01';
+  const aSel=document.getElementById('cumpleAnio')?.value||'2000';
+  const val = `${dSel}/${mSel}/${aSel}`;
+  __cumpleISO = val;
+  const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
+  const p   = document.getElementById('p-cumple');  if(p)  p.value = val;
+  cancelarPickerCumple();
+}
+// Contrato: año fijo 2026; reutilizable para inicio/termino
+(function(){ initPickerBase('contratoDia','contratoMes',null,[]); })();
+let __pickerContratoTarget = null; // 'inicio'|'termino'
+let __fechaInicioISO = ''; // dd/mm/2026
+let __fechaTerminoISO = '';
+function abrirPickerContrato(target){
+  __pickerContratoTarget = target;
+  const m=document.getElementById('contratoFechaModal'); if(m) m.style.display='flex';
+}
+function cancelarPickerContrato(){ const m=document.getElementById('contratoFechaModal'); if(m) m.style.display='none'; }
+function confirmarPickerContrato(){
+  const dSel=document.getElementById('contratoDia')?.value||'01';
+  const mSel=document.getElementById('contratoMes')?.value||'01';
+  const anio='2026';
+  const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const idx=Math.max(1,Math.min(12,parseInt(mSel,10)))-1;
+  const mesNombre = mesesNombres[idx];
+
+  if(__pickerContratoTarget==='inicio'){
+    document.getElementById('c-fechaInicio').value = `${dSel}/${mSel}/${anio}`;
+    document.getElementById('c-diaInicio').value   = dSel;
+    document.getElementById('c-mesInicio').value   = mesNombre;
+    __fechaInicioISO = `${dSel}/${mSel}/${anio}`;
+  }else if(__pickerContratoTarget==='termino'){
+    document.getElementById('c-fechaTermino').value = `${dSel}/${mSel}/${anio}`;
+    document.getElementById('c-diaTermino').value   = dSel;
+    document.getElementById('c-mesTermino').value   = mesNombre;
+    __fechaTerminoISO = `${dSel}/${mSel}/${anio}`;
+  }
+  cancelarPickerContrato();
+  calcularPlazo();
+}
 
 /* ================== FIN ================== */
 </script>
