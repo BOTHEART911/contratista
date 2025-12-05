@@ -447,8 +447,15 @@
           <input type="file" id="p-firma" accept="image/*" />
           <img id="p-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
-          <label>Fecha de nacimiento</label>
-          <input id="p-cumple" type="text" placeholder="dd/mm/aaaa" readonly onclick="abrirPickerCumple()">
+           <label>Fecha de nacimiento</label>
+        <input
+          id="p-cumple"
+          type="text"
+          placeholder="dd/mm/aaaa"
+          readonly
+          onclick="abrirPickerCumple()" />
+
+          
 
           <div class="btn-row spaced" style="margin-top:12px;">
             <button id="p-guardar" class="btn-primary">Guardar Cambios</button>
@@ -1200,7 +1207,11 @@ async function cargarContratoLectura(){
     `<b>Supervisor:</b> ${d.supervisor||''}`,
     `<b>Contrato N°:</b> ${d.contrato||''} de ${d.fechaContrato||''}`,
     `<b>Tipo de Contrato:</b> ${d.tipoContrato||''}`,
-    `<b>Objeto:</b> ${d.objeto||''}`
+    `<b>Objeto:</b> ${d.objeto||''}`,
+    `<b>Fecha de Inicio:</b> ${d.fechaInicio||''}`,
+    `<b>Fecha de Terminación:</b> ${d.fechaTermino||''}`,
+    `<b>RP:</b> ${d.rp||''}`,
+    `<b>Regimen Simple:</b> ${d.costos||''}`
   ];
   (d.obligaciones||[]).forEach((o,i)=>{ lines.push(`<b>Obligación ${i+1}:</b> ${o}`); });
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
