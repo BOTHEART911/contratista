@@ -832,6 +832,7 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
 
 // Botón COMUNICADOS (sin recarga innecesaria)
 document.getElementById('go-comunicados')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
   showView('view-comunicados'); // usa NOTICIAS_CACHE ya cargado al iniciar sesión
 });
@@ -1020,15 +1021,25 @@ document.getElementById('go-comunicados')?.addEventListener('click', async ()=>{
   overlay.classList.remove('open');
   showView('view-comunicados');
 });
-document.getElementById('com-volver')?.addEventListener('click', ()=>{ showView('view-inicio'); });
-document.getElementById('com-det-volver')?.addEventListener('click', ()=>{ showView('view-comunicados'); });
+document.getElementById('com-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);         
+  showView('view-inicio');
+});
+document.getElementById('com-det-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);          
+  showView('view-comunicados');
+});
 
 /* Click en etiqueta “Ver Noticias” abre COMUNICADOS */
 document.addEventListener('DOMContentLoaded', ()=>{
   const label = document.getElementById('notif-label');
   const btn   = document.getElementById('go-comunicados');
   if(!label || !btn) return;
-  const openList = ()=> btn.click();
+  const openList = ()=>{
+    playSoundOnce(SOUNDS.login);         // <-- INSERTA ESTA LÍNEA
+    btn.click();
+  };
+  // Click con mouse
   label.addEventListener('click', openList);
   label.setAttribute('role','button');
   label.setAttribute('tabindex','0');
