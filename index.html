@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>CONTRATISTAS</title>
+  <title>CONTRATISTA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -251,7 +251,7 @@
         <datalist id="dl-expedida"></datalist>
 
         <label>Teléfono Línea WhatsApp</label>
-        <input id="reg-telefono" type="tel" inputmode="numeric" placeholder="sin puntos ni espacios">
+        <input id="reg-telefono" type="tel" inputmode="numeric" placeholder="Teléfono Personal">
 
         <label>Dirección de Residencia</label>
         <textarea id="reg-direccion" rows="2" placeholder="Usa abreviaciones. No escribas el municipio. Ej: Mz 5 Casa 16 B/ Orquídeas II."></textarea>
@@ -819,7 +819,7 @@ function bindQuery(inputId, datalistId){
           list.appendChild(o);
         });
       }catch(_){ /* silencio */ }
-    }, 120); // debounce corto
+    }, 80); // debounce corto
   });
 }
 
@@ -1117,11 +1117,11 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
   // Validación exacta (expedida/municipio) si vienen
   if(body.expedida){
     const ok = await apiGet('validateMunicipioExact', { nombre: body.expedida });
-    if(!ok){ Swal.fire({icon:'warning', title:'Expedida inválida', text:'Debe coincidir exactamente con la lista.'}); return; }
+    if(!ok){ Swal.fire({icon:'warning', title:'Municipio de Expedición inválido', text:'Debe coincidir exactamente con la lista.'}); return; }
   }
   if(body.municipio){
     const ok = await apiGet('validateMunicipioExact', { nombre: body.municipio });
-    if(!ok){ Swal.fire({icon:'warning', title:'Municipio inválido', text:'Debe coincidir exactamente con la lista.'}); return; }
+    if(!ok){ Swal.fire({icon:'warning', title:'Municipio de Residencia inválido', text:'Debe coincidir exactamente con la lista.'}); return; }
   }
 
   // Resumen solo campos editados
