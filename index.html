@@ -929,18 +929,36 @@ function unreadNoticiasCount(items){
   let n=0; for(const it of items){ if(!isRead(it.id)) n++; }
   return n;
 }
+// Clave de sesión para controlar el sonido (una vez por sesión)
+const NOTICIAS_SOUND_KEY = 'noticiasNotifyPlayed@session';
+
 function refreshNoticiasBadge(){
   const count = unreadNoticiasCount(NOTICIAS_CACHE);
   const bell  = document.getElementById('notif-bell');
   const label = document.getElementById('notif-label');
   const badge = document.getElementById('notif-count');
 
-  if(badge){ badge.textContent = String(count); badge.classList.toggle('active', count>0); }
-  const active = count>0;
+  if(badge){
+    badge.textContent = String(count);
+    badge.classList.toggle('active', count > 0);
+  }
+
+  const active = count > 0;
   if(bell)  bell.classList.toggle('active', active);
   if(label) label.classList.toggle('active', active);
-}
 
+  // Sonar "notify" solo una vez por sesión mientras existan no leídas
+  try{
+    const played = sessionStorage.getItem(NOTICIAS_SOUND_KEY) === '1';
+    if(active && !played){
+      playSoundOnce(SOUNDS.notify);
+      sessionStorage.setItem(NOTICIAS_SOUND_KEY, '1');
+    }
+    if(!active){
+      sessionStorage.removeItem(NOTICIAS_SOUND_KEY);
+    }
+  }catch(_){}
+}
 /* Lista de comunicados */
 function renderNoticiasList(items){
   const wrap = document.getElementById('com-list');
