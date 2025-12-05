@@ -233,7 +233,6 @@
           <img alt="banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763930524/menu_t9xli7.gif" style="max-width:180px;border-radius:10px;" />
         </div>
         <h3>Selecciona una opción</h3>
-        <button class="menu-btn" id="go-noticias">COMUNICADOS 📅</button>
         <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO 📄</button>
         <button class="menu-btn" id="go-personales">DATOS PERSONALES 👤</button>
         <div style="height:24px"></div>
@@ -470,9 +469,33 @@
           type="text"
           placeholder="dd/mm/aaaa"
           readonly
-          onclick="abrirPickerCumple()" />
+          onclick="abrirPickerCumplePersonales()" />
 
-          
+          <!-- Modal Cumple (Personales) Independiente -->
+<div id="pCumpleModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
+  <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
+    <h3 style="margin:0 0 8px 0;">Selecciona tu fecha de nacimiento</h3>
+    <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+      <div>
+        <small>Día</small>
+        <select id="pCumpleDia" size="10"></select>
+      </div>
+      <div>
+        <small>Mes</small>
+        <select id="pCumpleMes" size="12"></select>
+      </div>
+      <div>
+        <small>Año</small>
+        <select id="pCumpleAnio" size="10"></select>
+      </div>
+    </div>
+    <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+      <button type="button" class="btn btn-cancel" onclick="cancelarPickerCumplePersonales()">Cancelar</button>
+      <button type="button" class="btn btn-ok" onclick="confirmarPickerCumplePersonales()">Ok</button>
+    </div>
+  </div>
+</div>
+
 
           <div class="btn-row spaced" style="margin-top:12px;">
             <button id="p-guardar" class="btn-primary">Guardar Cambios</button>
@@ -482,31 +505,6 @@
       </div>
     </section>
 
-    <!-- VISTA COMUNICADOS (lista) -->
-    <section id="view-noticias" class="view">
-      <div class="card narrow">
-        <h2 style="color:var(--primary)">¡COMUNICADOS!</h2>
-        <div id="feed-list" style="display:flex; flex-direction:column; gap:12px;"></div>
-        <div class="btn-row spaced">
-          <button id="feed-volver" class="danger">Regresar</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- VISTA DETALLE COMUNICADO -->
-    <section id="view-noticia-detalle" class="view">
-      <div class="card narrow" style="text-align:center;">
-        <img id="fd-thumb" src="" alt="" style="width:180px; height:180px; object-fit:cover; border-radius:12px; border:1px solid #ddd; background:#eee; display:block; margin: 0 auto 10px;">
-        <h3 id="fd-title" style="margin:6px 0 10px; color:#111; font-weight:900;">Título</h3>
-        <p id="fd-sub" class="muted" style="margin: 0 0 8px;"></p>
-        <p id="fd-desc" style="text-align:justify; color:#222; white-space:pre-line;"></p>
-        <div class="btn-row spaced" style="margin-top:12px;">
-          <a id="fd-link" class="chip" href="#" target="_blank" rel="noopener" style="display:none;">Abrir Vínculo</a>
-          <button id="fd-volver" class="danger">Regresar</button>
-        </div>
-      </div>
-    </section>
-  </div>
 
 <script>
 /* ================== CONFIGURACIÓN ================== */
@@ -704,12 +702,6 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
   }
 });
 
-  // Dentro del handler de btn-login, tras showView('view-inicio') (caso ACTIVO y completo) añade:
-setTimeout(()=>{ try{ cargarNoticias(/*prefetchOnly=*/true); }catch(_){} }, 0);
-
-// En el caso INCOMPLETO (showView('view-registro')), no es necesario, pero si quieres precargar:
-setTimeout(()=>{ try{ cargarNoticias(/*prefetchOnly=*/true); }catch(_){} }, 0);
-
 document.getElementById('btn-logout').addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.logout);
   currentUser = null;
@@ -732,11 +724,7 @@ document.getElementById('ovlClose').addEventListener('click', ()=>{
   overlay.classList.remove('open');
 });
 
-document.getElementById('go-noticias').addEventListener('click', async ()=>{
-  overlay.classList.remove('open');
-  await cargarNoticias();
-  showView('view-noticias');
-});
+
 document.getElementById('go-contrato').addEventListener('click', async ()=>{
   overlay.classList.remove('open');
   await cargarContratoLectura();
@@ -1155,168 +1143,6 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
   }
 });
 
-/* ================== NOTICIAS ================== */
-let FEED_CACHE = [];
-const FEED_READ_KEY_PREFIX = 'feedReadIds@contr:'; // por documento
-function feedReadKey(){ return FEED_READ_KEY_PREFIX + (currentUser?.documento || 'anon'); }
-function getReadMap(){ try{ const raw=localStorage.getItem(feedReadKey()); return raw?JSON.parse(raw):{}; }catch(_){ return {}; } }
-function setReadMap(m){ try{ localStorage.setItem(feedReadKey(), JSON.stringify(m||{})); }catch(_){} }
-function isRead(id){ return !!getReadMap()[id]; }
-function markRead(id){ const m=getReadMap(); m[id]=true; setReadMap(m); }
-function extractFirstUrl(text){
-  if(!text) return null;
-  const m = String(text).match(/(https?:\/\/[^\s'"<>]+|www\.[^\s'"<>]+)/i);
-  if(!m) return null;
-  let u = m[0];
-  if(u.startsWith('www.')) u = 'https://' + u;
-  return u;
-}
-function fallbackThumbFor(url){
-  const u = String(url||'').toLowerCase();
-  if(u.includes('facebook'))  return 'https://res.cloudinary.com/dqqeavica/image/upload/v1759166342/facebook_nezbkz.webp';
-  if(u.includes('instagram')) return 'https://res.cloudinary.com/dqqeavica/image/upload/v1759166342/instragram_uft2wl.webp';
-  if(u.includes('tiktok'))    return 'https://res.cloudinary.com/dqqeavica/image/upload/v1759166342/tiktok_tdvc2x.webp';
-  return 'https://res.cloudinary.com/dqqeavica/image/upload/v1759798601/noticias_dax8sd.jpg';
-}
-function firstLinkThumb(url){
-  const placeholder = 'https://res.cloudinary.com/dqqeavica/image/upload/v1759798601/noticias_dax8sd.jpg';
-  if(!url) return placeholder;
-  if(/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(url)) return url;
-  return 'https://image.thum.io/get/og/' + encodeURIComponent(url);
-}
-function thumbById(id){ return id ? ('https://drive.google.com/thumbnail?sz=w1000&id='+id) : ''; }
-function extractFirstUrl(text){
-  if(!text) return null;
-  const m = String(text).match(/(https?:\/\/[^\s'"<>]+|www\.[^\s'"<>]+)/i);
-  if(!m) return null;
-  let u = m[0];
-  if(u.startsWith('www.')) u = 'https://' + u;
-  return u;
-}
-function fallbackThumbFor(url){
-  // Fallback a avatar emoji de inicio si no hay imagen
-  return 'https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png';
-}
-function firstLinkThumb(url){
-  // Si hay un link y es imagen directa, úsala; de lo contrario, avatar
-  if(!url) return fallbackThumbFor(url);
-  if(/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(url)) return url;
-  return fallbackThumbFor(url);
-}
-
-async function cargarNoticias(prefetchOnly = false){
-  // Sin loader para que se sienta "rápido" y usable en segundo plano
-  const url = new URL(API_BASE);
-  url.search = new URLSearchParams({ action: 'listComunicados' }).toString();
-  const r = await fetch(url.toString(), { method: 'GET' });
-  const j = await r.json();
-  if(!j.ok) throw new Error(j.error || 'Error');
-
-  // 20 últimos desde abajo hacia arriba: el backend ya retorna ordenado por row desc y slice(0,20)
-  FEED_CACHE = Array.isArray(j.data) ? j.data.slice(0,20) : [];
-
-  if(prefetchOnly) return; // solo precarga para rapidez de UX
-
-  const wrap = document.getElementById('feed-list');
-  wrap.innerHTML='';
-  if(!FEED_CACHE.length){
-    const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay comunicados disponibles.'; wrap.appendChild(p); return;
-  }
-
-  FEED_CACHE.forEach(it=>{
-    const item = document.createElement('div');
-    item.className = 'feed-item';
-    item.dataset.id = it.id;
-
-    // Miniatura circular
-    const img = document.createElement('img');
-    img.className = 'feed-thumb';
-    img.alt = '';
-    img.style.borderRadius = '50%'; // circular
-    img.style.border = '1px solid #ddd';
-    img.loading = 'lazy';
-    img.width = 64; img.height = 64;
-    const thumbUrl = it.imagenId ? thumbById(it.imagenId) : firstLinkThumb(it.first_link);
-    img.src = thumbUrl;
-    img.onerror = ()=>{ img.src = fallbackThumbFor(it.first_link); };
-
-    // Contenido (título + subtítulo)
-    const ct = document.createElement('div');
-    ct.className = 'feed-content';
-
-    const h = document.createElement('h4');
-    h.className = 'feed-title';
-    h.textContent = String(it.titulo||'');
-
-    const p = document.createElement('p');
-    p.className = 'feed-desc';
-    p.textContent = String(it.subtitulo||''); // subtítulo en lista
-
-    ct.appendChild(h);
-    ct.appendChild(p);
-
-    item.appendChild(img);
-    item.appendChild(ct);
-
-    // Puntico rojo en no leídas
-    if(!isRead(it.id)){
-      const dot = document.createElement('span');
-      dot.className = 'feed-dot';
-      item.appendChild(dot);
-    }
-
-    item.addEventListener('click', ()=> abrirNoticia(it));
-    wrap.appendChild(item);
-  });
-
-  // Asegura título de la vista
-  const tituloVista = document.querySelector('#view-noticias h2');
-  if (tituloVista) tituloVista.textContent = '¡COMUNICADOS!';
-}
-
-function abrirNoticia(it){
-  // Imagen circular (mismas condiciones)
-  const thumb = document.getElementById('fd-thumb');
-  if (thumb){
-    const url = it.imagenId ? thumbById(it.imagenId) : fallbackThumbFor(it.first_link);
-    thumb.src = url;
-    thumb.style.borderRadius = '50%'; // circular
-    thumb.style.border = '1.5px solid #d8e4ff';
-  }
-
-  // Título, Subtítulo, Contenido
-  const title = document.getElementById('fd-title');
-  const sub   = document.getElementById('fd-sub');
-  const desc  = document.getElementById('fd-desc');
-  const link  = document.getElementById('fd-link');
-
-  if (title) title.textContent = String(it.titulo||'');
-  if (sub)   sub.textContent   = String(it.subtitulo||'');
-  if (desc)  desc.textContent  = String(it.contenido||'');
-
-  // Botón “Abrir Vínculo” solo si hay URL en contenido
-  if (link){
-    const firstUrl = extractFirstUrl(it.contenido);
-    if(firstUrl){
-      link.href = firstUrl;
-      link.textContent = 'Abrir Vínculo';
-      link.style.display = '';
-    }else{
-      link.href = '#';
-      link.style.display = 'none';
-    }
-  }
-
-  // Marcar como leído y navegar
-  markRead(it.id);
-  showView('view-noticia-detalle');
-}
-// Lista -> Regresar a INICIO
-document.getElementById('feed-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
-
-// Detalle -> Regresar a COMUNICADOS
-document.getElementById('fd-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-noticias'); });
-
 /* ================== CONTRATO: cargar lectura ================== */
 async function cargarContratoLectura(){
   if(!currentUser) return;
@@ -1484,6 +1310,63 @@ if ('serviceWorker' in navigator){
 window.addEventListener('load', initPWAVista);
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
+  // Estado exclusivo para personales
+let __cumpleISO_personales = ''; // dd/mm/yyyy
+
+// Inicializador selectores básicos (puedes reutilizar si ya está initPickerBase)
+(function initPickerCumplePersonales(){
+  const dSel = document.getElementById('pCumpleDia');
+  const mSel = document.getElementById('pCumpleMes');
+  const aSel = document.getElementById('pCumpleAnio');
+  if(dSel && !dSel.childElementCount){
+    for(let d=1; d<=31; d++){
+      const opt=document.createElement('option');
+      opt.value=String(d).padStart(2,'0');
+      opt.textContent=opt.value;
+      dSel.appendChild(opt);
+    }
+  }
+  if(mSel && !mSel.childElementCount){
+    const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    for(let i=0;i<12;i++){
+      const opt=document.createElement('option');
+      opt.value=String(i+1).padStart(2,'0');
+      opt.textContent=mesesNombres[i];
+      mSel.appendChild(opt);
+    }
+  }
+  if(aSel && !aSel.childElementCount){
+    // Mismo rango que registro: 1936..2008 (ajústalo si deseas)
+    for(let y=1936;y<=2008;y++){
+      const opt=document.createElement('option');
+      opt.value=String(y);
+      opt.textContent=String(y);
+      aSel.appendChild(opt);
+    }
+  }
+})();
+
+function abrirPickerCumplePersonales(){
+  const m=document.getElementById('pCumpleModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
+}
+function cancelarPickerCumplePersonales(){
+  const m=document.getElementById('pCumpleModal');
+  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
+}
+function confirmarPickerCumplePersonales(){
+  const dSel=document.getElementById('pCumpleDia')?.value||'01';
+  const mSel=document.getElementById('pCumpleMes')?.value||'01';
+  const aSel=document.getElementById('pCumpleAnio')?.value||'2000';
+  const val = `${dSel}/${mSel}/${aSel}`;
+  __cumpleISO_personales = val;
+  const p  = document.getElementById('p-cumple'); if(p) p.value = val;
+  cancelarPickerCumplePersonales();
+}
+
+// En el guardado de personales, asegúrate de usar __cumpleISO_personales:
+/// body.cumpleISO: __cumpleISO_personales || ''
+  
 let __cumpleISO = ''; // dd/mm/yyyy
 function initPickerBase(dSelId, mSelId, aSelId, years){
   const dSel = document.getElementById(dSelId);
