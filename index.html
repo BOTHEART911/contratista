@@ -984,7 +984,6 @@ function openComunicadoDetalle(it){
 /* Navegación y eventos */
 document.getElementById('go-comunicados')?.addEventListener('click', async ()=>{
   overlay.classList.remove('open');
-  try{ await loadNoticias(); }catch(_){}
   showView('view-comunicados');
 });
 document.getElementById('com-volver')?.addEventListener('click', ()=>{ showView('view-inicio'); });
