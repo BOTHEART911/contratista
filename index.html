@@ -631,48 +631,62 @@ bindNumericSanitizer('login-doc', 10);
 document.getElementById('btn-login').addEventListener('click', async ()=>{
   const documento = (loginDoc.value||'').trim();
   if(documento === ''){
-    Swal.fire({ icon:'question', title:'¿Deseas comenzar?', text:'Ingresa un Documento para validar.', timer:1800, showConfirmButton:false });
+    Swal.fire({ icon:'question', title:'¿Deseas comenzar?', text:'Ingresa un Documento para validar.', timer:3000 });
     return;
   }
   if(!/^\d{6,10}$/.test(documento)){
-    Swal.fire({ icon:'error', title:'CONTRASEÑA INCORRECTA', text:'La contraseña contiene entre 6 y 10 digitos numéricos.', timer:1800, showConfirmButton:false });
+    Swal.fire({
+      icon:'error',
+      title:'CONTRASEÑA INCORRECTA',
+      text:'La contraseña contiene entre 6 y 10 digitos numéricos.',
+      timer:3000,
+      showConfirmButton:false
+    });
     return;
   }
   try{
-    // Llamada rápida (sin loader artificial) y sin post-procesos costosos
-    const url = new URL(API_BASE);
-    url.search = new URLSearchParams({ action: 'loginContratista', documento }).toString();
-    const r = await fetch(url.toString(), { method: 'GET' });
-    const j = await r.json();
-    if(!j.ok || !j.data){ throw new Error(j.error || 'Error'); }
-    const res = j.data;
-
-    if(!res?.existe || String(res.estado||'').toUpperCase()==='INACTIVO'){
+    const res = await apiGet('loginContratista', { documento });
+    if(!res?.existe){
       await Swal.fire({
         icon:'info',
         title:'NO TIENES ACCESO AÚN',
         text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-        timer:3000,
+        timer:6000,
         showConfirmButton:false
       });
       return;
     }
-
-    // ACTIVO: entra de inmediato; carga datos en paralelo
+    if(String(res.estado||'').toUpperCase()==='INACTIVO'){
+      await Swal.fire({
+        icon:'info',
+        title:'NO TIENES ACCESO AÚN',
+        text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
+        timer:6000,
+        showConfirmButton:false
+      });
+      return;
+    }
+    // ACTIVO
     currentUser = { documento: res.documento };
-    playSoundOnce(SOUNDS.login);
-
-    if(res.incompleto){
+    if(res.incompleto){ // H..S vacías
       showView('view-registro');
     }else{
-      showView('view-inicio');        // navega primero
-      // carga en paralelo sin bloquear navegación
-      cargarInicio().catch(()=>{});
+      await cargarInicio();
+      playSoundOnce(SOUNDS.login);
+      showView('view-inicio');
     }
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text:e.message });
   }
 });
+
+document.getElementById('btn-logout').addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.logout);
+  currentUser = null;
+  loginDoc.value = '';
+  showView('view-login');
+});
+
 
 /* ================== MENÚ ================== */
 const overlay = document.getElementById('overlay');
