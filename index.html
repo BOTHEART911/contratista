@@ -125,6 +125,23 @@
     }
 
     @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
+
+    /* Centrado consistente de todos los modales de fecha */
+.picker-modal{
+  display: none;           /* por defecto oculto */
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 9999;
+  align-items: center;     /* centrado vertical */
+  justify-content: center; /* centrado horizontal */
+}
+.picker-modal[aria-hidden="false"]{
+  display: flex;           /* visible y centrado */
+}
+.picker-box{
+  margin: 0;               /* quita desplazamientos por margen */
+}
   </style>
 </head>
 <body>
@@ -687,6 +704,12 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
   }
 });
 
+  // Dentro del handler de btn-login, tras showView('view-inicio') (caso ACTIVO y completo) añade:
+setTimeout(()=>{ try{ cargarNoticias(/*prefetchOnly=*/true); }catch(_){} }, 0);
+
+// En el caso INCOMPLETO (showView('view-registro')), no es necesario, pero si quieres precargar:
+setTimeout(()=>{ try{ cargarNoticias(/*prefetchOnly=*/true); }catch(_){} }, 0);
+
 document.getElementById('btn-logout').addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.logout);
   currentUser = null;
@@ -764,23 +787,45 @@ function bindQuery(inputId, datalistId){
   const input = document.getElementById(inputId);
   const list = document.getElementById(datalistId);
   if(!input || !list) return;
-  input.addEventListener('input', async ()=>{
+
+  let t = null;
+  let abortCtrl = null;
+  const cache = new Map(); // cache por término
+
+  input.addEventListener('input', ()=>{
     const q = input.value.trim();
     list.innerHTML = '';
-    if(q.length === 0) return;
-    // Llamada directa sin startLoading/stopLoading (no usar loader en query)
-    try{
-      const url = new URL(API_BASE);
-      url.search = new URLSearchParams({ action: 'getFilteredResidencias', query: q }).toString();
-      const r = await fetch(url.toString(), { method: 'GET' });
-      const j = await r.json();
-      const opts = (j && j.ok && Array.isArray(j.data)) ? j.data : [];
-      opts.forEach(opt=>{
-        const o = document.createElement('option');
-        o.value = opt;
-        list.appendChild(o);
-      });
-    }catch(_){ /* silencio */ }
+    if (t) clearTimeout(t);
+    if (!q){ if (abortCtrl) abortCtrl.abort(); return; }
+
+    t = setTimeout(async ()=>{
+      // Cache-hit
+      if(cache.has(q)){
+        const opts = cache.get(q);
+        opts.forEach(opt=>{
+          const o = document.createElement('option');
+          o.value = opt;
+          list.appendChild(o);
+        });
+        return;
+      }
+      // Cancelar petición anterior
+      if (abortCtrl) abortCtrl.abort();
+      abortCtrl = new AbortController();
+      try{
+        const url = new URL(API_BASE);
+        url.search = new URLSearchParams({ action: 'getFilteredResidencias', query: q }).toString();
+        const r = await fetch(url.toString(), { method: 'GET', signal: abortCtrl.signal });
+        const j = await r.json();
+        const opts = (j && j.ok && Array.isArray(j.data)) ? j.data : [];
+        cache.set(q, opts);
+        opts.forEach(opt=>{
+          const o = document.createElement('option');
+          o.value = opt;
+          list.appendChild(o);
+        });
+      }catch(_){ /* silencio */ }
+    }, 120); // debounce corto
   });
 }
 
@@ -1139,63 +1184,138 @@ function firstLinkThumb(url){
   if(/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(url)) return url;
   return 'https://image.thum.io/get/og/' + encodeURIComponent(url);
 }
-async function cargarNoticias(){
-  const list = await apiGet('listComunicados');
-  FEED_CACHE = Array.isArray(list) ? list.slice(0,20) : [];
+function thumbById(id){ return id ? ('https://drive.google.com/thumbnail?sz=w1000&id='+id) : ''; }
+function extractFirstUrl(text){
+  if(!text) return null;
+  const m = String(text).match(/(https?:\/\/[^\s'"<>]+|www\.[^\s'"<>]+)/i);
+  if(!m) return null;
+  let u = m[0];
+  if(u.startsWith('www.')) u = 'https://' + u;
+  return u;
+}
+function fallbackThumbFor(url){
+  // Fallback a avatar emoji de inicio si no hay imagen
+  return 'https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png';
+}
+function firstLinkThumb(url){
+  // Si hay un link y es imagen directa, úsala; de lo contrario, avatar
+  if(!url) return fallbackThumbFor(url);
+  if(/\.(png|jpe?g|webp|gif|bmp|svg)(\?.*)?$/i.test(url)) return url;
+  return fallbackThumbFor(url);
+}
+
+async function cargarNoticias(prefetchOnly = false){
+  // Sin loader para que se sienta "rápido" y usable en segundo plano
+  const url = new URL(API_BASE);
+  url.search = new URLSearchParams({ action: 'listComunicados' }).toString();
+  const r = await fetch(url.toString(), { method: 'GET' });
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error || 'Error');
+
+  // 20 últimos desde abajo hacia arriba: el backend ya retorna ordenado por row desc y slice(0,20)
+  FEED_CACHE = Array.isArray(j.data) ? j.data.slice(0,20) : [];
+
+  if(prefetchOnly) return; // solo precarga para rapidez de UX
+
   const wrap = document.getElementById('feed-list');
   wrap.innerHTML='';
   if(!FEED_CACHE.length){
     const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay comunicados disponibles.'; wrap.appendChild(p); return;
   }
+
   FEED_CACHE.forEach(it=>{
     const item = document.createElement('div');
-    item.style.cssText = 'display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.9);border:2px solid #ddd;border-radius:16px;padding:10px;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer;';
+    item.className = 'feed-item';
     item.dataset.id = it.id;
+
+    // Miniatura circular
     const img = document.createElement('img');
-    img.style.cssText='width:64px;height:64px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#eee;border:1px solid #ddd;';
-    img.alt='';
+    img.className = 'feed-thumb';
+    img.alt = '';
+    img.style.borderRadius = '50%'; // circular
+    img.style.border = '1px solid #ddd';
+    img.loading = 'lazy';
+    img.width = 64; img.height = 64;
     const thumbUrl = it.imagenId ? thumbById(it.imagenId) : firstLinkThumb(it.first_link);
     img.src = thumbUrl;
     img.onerror = ()=>{ img.src = fallbackThumbFor(it.first_link); };
 
-    const ct = document.createElement('div'); ct.style.flex='1'; ct.style.minWidth='0';
-    const h = document.createElement('h4'); h.style.margin='0 0 4px 0'; h.style.fontWeight='800'; h.textContent = String(it.titulo||'');
-    const p = document.createElement('p'); p.style.margin='0'; p.style.color='#333'; p.textContent = String(it.subtitulo||'');
+    // Contenido (título + subtítulo)
+    const ct = document.createElement('div');
+    ct.className = 'feed-content';
 
-    ct.appendChild(h); ct.appendChild(p);
+    const h = document.createElement('h4');
+    h.className = 'feed-title';
+    h.textContent = String(it.titulo||'');
 
-    item.appendChild(img); item.appendChild(ct);
+    const p = document.createElement('p');
+    p.className = 'feed-desc';
+    p.textContent = String(it.subtitulo||''); // subtítulo en lista
+
+    ct.appendChild(h);
+    ct.appendChild(p);
+
+    item.appendChild(img);
+    item.appendChild(ct);
+
+    // Puntico rojo en no leídas
     if(!isRead(it.id)){
       const dot = document.createElement('span');
-      dot.style.cssText='width:12px;height:12px;background:#e11;border-radius:999px;flex-shrink:0;margin-left:6px;margin-top:4px;box-shadow:0 0 0 2px #fff;';
+      dot.className = 'feed-dot';
       item.appendChild(dot);
-      playSoundOnce(SOUNDS.notify);
     }
+
     item.addEventListener('click', ()=> abrirNoticia(it));
     wrap.appendChild(item);
   });
+
+  // Asegura título de la vista
+  const tituloVista = document.querySelector('#view-noticias h2');
+  if (tituloVista) tituloVista.textContent = '¡COMUNICADOS!';
 }
+
 function abrirNoticia(it){
+  // Imagen circular (mismas condiciones)
   const thumb = document.getElementById('fd-thumb');
+  if (thumb){
+    const url = it.imagenId ? thumbById(it.imagenId) : fallbackThumbFor(it.first_link);
+    thumb.src = url;
+    thumb.style.borderRadius = '50%'; // circular
+    thumb.style.border = '1.5px solid #d8e4ff';
+  }
+
+  // Título, Subtítulo, Contenido
   const title = document.getElementById('fd-title');
   const sub   = document.getElementById('fd-sub');
   const desc  = document.getElementById('fd-desc');
   const link  = document.getElementById('fd-link');
 
-  thumb.src = it.imagenId ? thumbById(it.imagenId) : fallbackThumbFor(it.first_link);
-  title.textContent = String(it.titulo||'');
-  sub.textContent   = String(it.subtitulo||'');
-  desc.textContent  = String(it.contenido||'');
+  if (title) title.textContent = String(it.titulo||'');
+  if (sub)   sub.textContent   = String(it.subtitulo||'');
+  if (desc)  desc.textContent  = String(it.contenido||'');
 
-  const urlFromDesc = extractFirstUrl(it.contenido);
-  const firstUrl = urlFromDesc || it.first_link || '';
-  if(firstUrl){ link.href = firstUrl; link.style.display=''; } else { link.href='#'; link.style.display='none'; }
+  // Botón “Abrir Vínculo” solo si hay URL en contenido
+  if (link){
+    const firstUrl = extractFirstUrl(it.contenido);
+    if(firstUrl){
+      link.href = firstUrl;
+      link.textContent = 'Abrir Vínculo';
+      link.style.display = '';
+    }else{
+      link.href = '#';
+      link.style.display = 'none';
+    }
+  }
 
+  // Marcar como leído y navegar
   markRead(it.id);
   showView('view-noticia-detalle');
 }
-document.getElementById('fd-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-noticias'); });
+// Lista -> Regresar a INICIO
 document.getElementById('feed-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
+
+// Detalle -> Regresar a COMUNICADOS
+document.getElementById('fd-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-noticias'); });
 
 /* ================== CONTRATO: cargar lectura ================== */
 async function cargarContratoLectura(){
@@ -1382,8 +1502,14 @@ function initPickerBase(dSelId, mSelId, aSelId, years){
 }
 // Cumple: años 1936..2008
 (function(){ const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y); initPickerBase('cumpleDia','cumpleMes','cumpleAnio', ys); })();
-function abrirPickerCumple(){ const m=document.getElementById('cumpleModal'); if(m) m.style.display='flex'; }
-function cancelarPickerCumple(){ const m=document.getElementById('cumpleModal'); if(m) m.style.display='none'; }
+function abrirPickerCumple(){
+  const m=document.getElementById('cumpleModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
+}
+function cancelarPickerCumple(){
+  const m=document.getElementById('cumpleModal');
+  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
+}
 function confirmarPickerCumple(){
   const dSel=document.getElementById('cumpleDia')?.value||'01';
   const mSel=document.getElementById('cumpleMes')?.value||'01';
@@ -1401,9 +1527,13 @@ let __fechaInicioISO = ''; // dd/mm/2026
 let __fechaTerminoISO = '';
 function abrirPickerContrato(target){
   __pickerContratoTarget = target;
-  const m=document.getElementById('contratoFechaModal'); if(m) m.style.display='flex';
+  const m=document.getElementById('contratoFechaModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
-function cancelarPickerContrato(){ const m=document.getElementById('contratoFechaModal'); if(m) m.style.display='none'; }
+function cancelarPickerContrato(){
+  const m=document.getElementById('contratoFechaModal');
+  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
+}
 function confirmarPickerContrato(){
   const dSel=document.getElementById('contratoDia')?.value||'01';
   const mSel=document.getElementById('contratoMes')?.value||'01';
