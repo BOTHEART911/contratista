@@ -1210,8 +1210,14 @@ async function cargarContratoLectura(){
     `<b>Objeto:</b> ${d.objeto||''}`,
     `<b>Fecha de Inicio:</b> ${d.fechaInicio||''}`,
     `<b>Fecha de Terminación:</b> ${d.fechaTermino||''}`,
+    `<b>Valor Inicial:</b> ${d.valor||''}`,
+    `<b>MRA:</b> ${d.mar||''}`,
+    `<b>Valor Final:</b> ${d.valorFinal||''}`,
+    `<b>CDP:</b> ${d.cdp||''}`,
     `<b>RP:</b> ${d.rp||''}`,
-    `<b>Regimen Simple:</b> ${d.costos||''}`
+    `<b>CDP ADICIÓN:</b> ${d.cdpAdicion||''}`,
+    `<b>RP ADICIÓN:</b> ${d.rpAdicion||''}`,
+    `<b>Regimen Simple:</b> ${d.regimen||''}`
   ];
   (d.obligaciones||[]).forEach((o,i)=>{ lines.push(`<b>Obligación ${i+1}:</b> ${o}`); });
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
