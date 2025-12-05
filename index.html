@@ -1348,12 +1348,10 @@ window.addEventListener('load', initPWAVista);
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
 let __cumpleISO = ''; // dd/mm/yyyy
-
-(function initCumplePicker(){
-  const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y);
-  const dSel = document.getElementById('cumpleDia');
-  const mSel = document.getElementById('cumpleMes');
-  const aSel = document.getElementById('cumpleAnio');
+function initPickerBase(dSelId, mSelId, aSelId, years){
+  const dSel = document.getElementById(dSelId);
+  const mSel = document.getElementById(mSelId);
+  const aSel = aSelId ? document.getElementById(aSelId) : null;
   if(dSel && !dSel.childElementCount){
     for(let d=1; d<=31; d++){ const opt=document.createElement('option'); opt.value=String(d).padStart(2,'0'); opt.textContent=opt.value; dSel.appendChild(opt); }
   }
@@ -1362,16 +1360,13 @@ let __cumpleISO = ''; // dd/mm/yyyy
     for(let i=0;i<12;i++){ const opt=document.createElement('option'); opt.value=String(i+1).padStart(2,'0'); opt.textContent=mesesNombres[i]; mSel.appendChild(opt); }
   }
   if(aSel && !aSel.childElementCount){
-    ys.forEach(y=>{ const opt=document.createElement('option'); opt.value=String(y); opt.textContent=String(y); aSel.appendChild(opt); });
+    years.forEach(y=>{ const opt=document.createElement('option'); opt.value=String(y); opt.textContent=String(y); aSel.appendChild(opt); });
   }
-})();
-
-function abrirPickerCumple(){
-  const m=document.getElementById('cumpleModal'); if(m) m.style.display='flex';
 }
-function cancelarPickerCumple(){
-  const m=document.getElementById('cumpleModal'); if(m) m.style.display='none';
-}
+// Cumple: años 1936..2008
+(function(){ const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y); initPickerBase('cumpleDia','cumpleMes','cumpleAnio', ys); })();
+function abrirPickerCumple(){ const m=document.getElementById('cumpleModal'); if(m) m.style.display='flex'; }
+function cancelarPickerCumple(){ const m=document.getElementById('cumpleModal'); if(m) m.style.display='none'; }
 function confirmarPickerCumple(){
   const dSel=document.getElementById('cumpleDia')?.value||'01';
   const mSel=document.getElementById('cumpleMes')?.value||'01';
@@ -1379,7 +1374,7 @@ function confirmarPickerCumple(){
   const val = `${dSel}/${mSel}/${aSel}`;
   __cumpleISO = val;
   const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
-  const p   = document.getElementById('p-cumple');  if(p)  p.value = val;
+  const p  = document.getElementById('p-cumple');    if(p)  p.value = val;
   cancelarPickerCumple();
 }
 // Contrato: año fijo 2026; reutilizable para inicio/termino
