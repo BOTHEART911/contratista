@@ -819,7 +819,7 @@ function bindQuery(inputId, datalistId){
           list.appendChild(o);
         });
       }catch(_){ /* silencio */ }
-    }, 80); // debounce corto
+    }, 40); // debounce corto
   });
 }
 
@@ -1013,6 +1013,16 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const body = {
     documento: currentUser.documento,
+    const hayCambiosContrato =
+  !!(body.fechaInicioISO || body.fechaTerminoISO || body.rp || body.costos || body.regimen) ||
+  (String(body.meses) !== '0') ||
+  (String(body.dias) !== '0') ||
+  !!body.ejecucion;
+
+if (!hayCambiosContrato) {
+  Swal.fire({ icon:'info', title:'Sin cambios', text:'No hay campos editados para guardar.' });
+  return;
+}
     fechaInicioISO: __fechaInicioISO || '',
     diaInicio: document.getElementById('c-diaInicio').value||'',
     mesInicio: document.getElementById('c-mesInicio').value||'',
@@ -1099,6 +1109,19 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
 
   const body = {
     documento: currentUser.documento,
+    const hayCambiosPersonales = [
+  'expedida','telefono','direccion','municipio','correo',
+  'tipoCuenta','numeroCuenta','banco','eps','pension','arl',
+  'firmaDataUrl','cumpleISO'
+].some(k => {
+  const v = body[k];
+  return v !== undefined && v !== null && String(v).trim() !== '';
+});
+
+if (!hayCambiosPersonales) {
+  Swal.fire({ icon:'info', title:'Sin cambios', text:'No hay campos editados para guardar.' });
+  return;
+}
     expedida: document.getElementById('p-expedida').value.trim(),
     telefono: document.getElementById('p-telefono').value.trim(),
     direccion: document.getElementById('p-direccion').value.trim(),
