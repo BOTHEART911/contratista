@@ -1207,14 +1207,20 @@ async function cargarNoticias(prefetchOnly = false){
   const j = await r.json();
   if(!j.ok) throw new Error(j.error || 'Error');
 
+  // El backend ya devuelve 20 últimas, ordenadas abajo->arriba
   FEED_CACHE = Array.isArray(j.data) ? j.data.slice(0,20) : [];
 
   if(prefetchOnly) return;
 
   const wrap = document.getElementById('feed-list');
-  wrap.innerHTML='';
+  wrap.innerHTML = '';
+
   if(!FEED_CACHE.length){
-    const p = document.createElement('p'); p.className='muted center'; p.textContent='No hay comunicados disponibles.'; wrap.appendChild(p); return;
+    const p = document.createElement('p');
+    p.className = 'muted center';
+    p.textContent = 'No hay comunicados disponibles.';
+    wrap.appendChild(p);
+    return;
   }
 
   FEED_CACHE.forEach(it=>{
@@ -1222,23 +1228,23 @@ async function cargarNoticias(prefetchOnly = false){
     item.className = 'feed-item';
     item.dataset.id = it.id;
 
+    // Miniatura circular: imagenId (E) o avatar de inicio si está vacío
     const img = document.createElement('img');
     img.className = 'feed-thumb';
     img.alt = '';
+    img.loading = 'lazy';
     img.style.borderRadius = '50%';
     img.style.border = '1px solid #ddd';
-    img.loading = 'lazy';
     img.width = 64; img.height = 64;
     const thumbUrl = it.imagenId ? thumbById(it.imagenId) : 'https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png';
     img.src = thumbUrl;
 
+    // Contenido: Título (B) y Subtítulo (C)
     const ct = document.createElement('div');
     ct.className = 'feed-content';
-
     const h = document.createElement('h4');
     h.className = 'feed-title';
     h.textContent = String(it.titulo||'');
-
     const p = document.createElement('p');
     p.className = 'feed-desc';
     p.textContent = String(it.subtitulo||'');
@@ -1249,6 +1255,7 @@ async function cargarNoticias(prefetchOnly = false){
     item.appendChild(img);
     item.appendChild(ct);
 
+    // Puntico rojo en no leídas
     if(!isRead(it.id)){
       const dot = document.createElement('span');
       dot.className = 'feed-dot';
@@ -1259,10 +1266,10 @@ async function cargarNoticias(prefetchOnly = false){
     wrap.appendChild(item);
   });
 
+  // Asegura el título de la vista
   const tituloVista = document.querySelector('#view-noticias h2');
   if (tituloVista) tituloVista.textContent = '¡COMUNICADOS!';
 }
-
 function abrirNoticia(it){
   const thumb = document.getElementById('fd-thumb');
   if (thumb){
@@ -1281,6 +1288,7 @@ function abrirNoticia(it){
   if (sub)   sub.textContent   = String(it.subtitulo||'');
   if (desc)  desc.textContent  = String(it.contenido||'');
 
+  // Solo si el contenido (Col D) tiene URL
   if (link){
     const firstUrl = extractFirstUrl(it.contenido);
     if(firstUrl){
@@ -1469,23 +1477,9 @@ if ('serviceWorker' in navigator){
 window.addEventListener('load', initPWAVista);
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
-let __cumpleISO = '';
-function initPickerBase(dSelId, mSelId, aSelId, years){
-  const dSel = document.getElementById(dSelId);
-  const mSel = document.getElementById(mSelId);
-  const aSel = aSelId ? document.getElementById(aSelId) : null;
-  if(dSel && !dSel.childElementCount){
-    for(let d=1; d<=31; d++){ const opt=document.createElement('option'); opt.value=String(d).padStart(2,'0'); opt.textContent=opt.value; dSel.appendChild(opt); }
-  }
-  if(mSel && !mSel.childElementCount){
-    const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    for(let i=0;i<12;i++){ const opt=document.createElement('option'); opt.value=String(i+1).padStart(2,'0'); opt.textContent=mesesNombres[i]; mSel.appendChild(opt); }
-  }
-  if(aSel && !aSel.childElementCount){
-    years.forEach(y=>{ const opt=document.createElement('option'); opt.value=String(y); opt.textContent=String(y); aSel.appendChild(opt); });
-  }
-}
+let __cumpleISO = ''; // dd/mm/yyyy
 (function(){ const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y); initPickerBase('cumpleDia','cumpleMes','cumpleAnio', ys); })();
+
 function abrirPickerCumple(){
   const m=document.getElementById('cumpleModal');
   if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
@@ -1500,8 +1494,8 @@ function confirmarPickerCumple(){
   const aSel=document.getElementById('cumpleAnio')?.value||'2000';
   const val = `${dSel}/${mSel}/${aSel}`;
   __cumpleISO = val;
-  const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
-  const p  = document.getElementById('p-cumple');    if(p)  p.value = val;
+  const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val; // Registro
+  const p  = document.getElementById('p-cumple');    if(p)  p.value = val;    // Actualizar Datos Personales
   cancelarPickerCumple();
 }
 // Contrato: año fijo 2026; reutilizable para inicio/termino
