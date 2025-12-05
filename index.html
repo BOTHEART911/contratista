@@ -142,6 +142,69 @@
 .picker-box{
   margin: 0;               /* quita desplazamientos por margen */
 }
+    /* INSERT: Badge “Ver Noticias” en Inicio (igual efecto que referencia) */
+    .notif-wrap{ position:relative; display:inline-block; }
+    .notif-bell{
+      position:absolute; right:-6px; top:-6px; width:28px; height:28px; display:none;
+      animation:heartbeat 1.2s infinite;
+    }
+    .notif-bell.active{ display:block; }
+    .notif-count{
+      position:absolute; right:-2px; top:-2px;
+      background:#e11; color:#fff; border-radius:999px; min-width:18px; height:18px; line-height:18px;
+      text-align:center; padding:0 4px; font-size:12px; font-weight:800; display:none;
+      box-shadow: 0 0 0 2px #fff;
+    }
+    .notif-count.active{ display:inline-block; }
+    .notif-label{
+      position:absolute; left:calc(100% + 6px); top:-6px;
+      height:28px; line-height:28px; padding:0 10px;
+      background:#7de3ef; color:#000; border-radius:999px;
+      font-weight:800; font-size:14px; white-space:nowrap; display:none;
+      animation:heartbeat 1.2s infinite;
+    }
+    .notif-label.active{ display:inline-block; }
+    @keyframes heartbeat{
+      0%{ transform: scale(1); }
+      20%{ transform: scale(1.15); }
+      40%{ transform: scale(1); }
+      60%{ transform: scale(1.15); }
+      100%{ transform: scale(1); }
+    }
+
+    /* INSERT: Lista y detalle de COMUNICADOS */
+    .feed-list{ display:flex; flex-direction:column; gap:12px; }
+    .feed-item{
+      display:flex; gap:12px; align-items:center;
+      background: rgba(255,255,255,.9);
+      border:2px solid #ddd; border-radius:16px; padding:10px;
+      box-shadow: 0 6px 14px rgba(0,0,0,.12);
+      cursor:pointer;
+    }
+    .feed-thumb{
+      width:64px; height:64px; border-radius:50%; object-fit:cover; flex-shrink:0;
+      background:#eee; border:1px solid #ddd;
+    }
+    .feed-content{ flex:1; min-width:0; }
+    .feed-title{ font-weight:800; color:#111; margin:0 0 2px 0; }
+    .feed-sub{ color:#333; margin:0; font-size:.9rem; }
+    .feed-dot{
+      width:12px; height:12px; background:#e11; border-radius:999px; flex-shrink:0; margin-left:6px;
+      box-shadow:0 0 0 2px #fff;
+    }
+    .feed-detail-card{
+      background: rgba(255,255,255,.9);
+      border:2px solid #ddd; border-radius:16px; padding:16px;
+      box-shadow:0 8px 18px rgba(0,0,0,.15);
+      max-width: 560px; margin: 12px auto; text-align:center;
+    }
+    .feed-detail-thumb{
+      width:160px; height:160px; object-fit:cover; border-radius:50%;
+      border:2px solid #ddd; background:#eee; display:block; margin:0 auto 10px;
+    }
+    .feed-detail-title{ margin:6px 0 4px; color:#111; font-weight:900; }
+    .feed-detail-sub{ margin:0 0 8px; color:#333; font-weight:700; }
+    .feed-detail-desc{ text-align:justify; color:#222; overflow-wrap:anywhere; }
   </style>
 </head>
 <body>
@@ -198,7 +261,25 @@
           <button class="chip" id="btn-open-menu">MENÚ</button>
         </div>
 
-        <img class="avatar-emoji" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
+        <section id="view-inicio" class="view">
+    <div class="card narrow">
+      <div class="btn-row" style="margin-bottom:12px;">
+        <button class="chip danger" id="btn-logout">Cerrar Sesión</button>
+        <button class="chip" id="btn-open-menu">MENÚ</button>
+      </div>
+
+      <div class="image-center">
+        <div class="notif-wrap">
+          <img class="avatar-emoji" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
+          <img id="notif-bell" class="notif-bell" src="https://res.cloudinary.com/dqqeavica/image/upload/v1759767447/Notificaci%C3%B3n_jtptyw.webp" alt="">
+          <span id="notif-count" class="notif-count">0</span>
+          <span id="notif-label" class="notif-label">Ver Noticias</span>
+        </div>
+      </div>
+
+      <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
+      <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
+
 
         <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
         <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
@@ -233,6 +314,7 @@
           <img alt="banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763930524/menu_t9xli7.gif" style="max-width:180px;border-radius:10px;" />
         </div>
         <h3>Selecciona una opción</h3>
+        <button class="menu-btn" id="go-comunicados">COMUNICADOS</button>
         <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO</button>
         <button class="menu-btn" id="go-personales">DATOS PERSONALES</button>
         <div style="height:24px"></div>
@@ -509,6 +591,30 @@
       </div>
     </section>
 
+    <!-- VISTA DATOS COMUNICADOS -->
+        <section id="view-comunicados" class="view">
+    <div class="card narrow" style="padding-top:12px;">
+      <h2 style="color:var(--primary); text-shadow: 0 2px 2px #031732; margin-bottom:10px;">¡COMUNICADOS!</h2>
+      <div id="com-list" class="feed-list"></div>
+      <div class="btn-row spaced">
+        <button id="com-volver">Regresar</button>
+      </div>
+    </div>
+  </section>
+
+        <!-- VISTA DETALLES DATOS COMUNICADOS -->
+        <section id="view-comunicado-detalle" class="view">
+    <div class="feed-detail-card">
+      <img id="com-det-thumb" class="feed-detail-thumb" src="" alt="">
+      <h3 id="com-det-title" class="feed-detail-title">Título</h3>
+      <p id="com-det-sub" class="feed-detail-sub">Subtítulo</p>
+      <p id="com-det-desc" class="feed-detail-desc">Contenido</p>
+      <div class="btn-row spaced">
+        <a id="com-det-link" class="chip" href="#" target="_blank" rel="noopener" style="display:none;">Abrir Vínculo</a>
+        <button id="com-det-volver">Regresar</button>
+      </div>
+    </div>
+  </section>
 
 <script>
 /* ================== CONFIGURACIÓN ================== */
@@ -822,6 +928,171 @@ function bindQuery(inputId, datalistId){
     }, 10); // debounce corto
   });
 }
+
+  /* ================== COMUNICADOS (NOTICIAS) ================== */
+
+let NOTICIAS_CACHE = [];
+const READ_KEY_PREFIX = 'noticiasRead@v1:';
+function readKey(){
+  return READ_KEY_PREFIX + (currentUser?.documento || 'anon');
+}
+function getReadMap(){
+  try{ const raw = localStorage.getItem(readKey()); return raw ? JSON.parse(raw) : {}; }catch(_){ return {}; }
+}
+function setReadMap(map){
+  try{ localStorage.setItem(readKey(), JSON.stringify(map||{})); }catch(_){}
+}
+function isRead(id){ const m = getReadMap(); return !!m[id]; }
+function markRead(id){ const m = getReadMap(); m[id] = true; setReadMap(m); }
+
+function thumbById(id){ return id ? ('https://drive.google.com/thumbnail?sz=w1000&id='+id) : 'https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png'; }
+
+/* Cargar lista desde backend (20 últimas) */
+async function loadNoticias(){
+  const list = await apiGet('listNoticias');
+  NOTICIAS_CACHE = Array.isArray(list) ? list : [];
+  renderNoticiasList(NOTICIAS_CACHE);
+  refreshNoticiasBadge();
+}
+
+/* Badge en Inicio: campana + contador + “Ver Noticias” */
+function unreadNoticiasCount(items){
+  if(!Array.isArray(items) || !items.length) return 0;
+  let n=0; for(const it of items){ if(!isRead(it.id)) n++; }
+  return n;
+}
+function refreshNoticiasBadge(){
+  const count = unreadNoticiasCount(NOTICIAS_CACHE);
+  const bell  = document.getElementById('notif-bell');
+  const label = document.getElementById('notif-label');
+  const badge = document.getElementById('notif-count');
+
+  if(badge){ badge.textContent = String(count); badge.classList.toggle('active', count>0); }
+  const active = count>0;
+  if(bell)  bell.classList.toggle('active', active);
+  if(label) label.classList.toggle('active', active);
+}
+
+/* Lista de comunicados */
+function renderNoticiasList(items){
+  const wrap = document.getElementById('com-list');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  if(!items.length){
+    const p = document.createElement('p');
+    p.className = 'muted center';
+    p.textContent = 'No hay comunicados disponibles.';
+    wrap.appendChild(p);
+    return;
+  }
+
+  for(const it of items){
+    const item = document.createElement('div');
+    item.className = 'feed-item';
+    item.dataset.id = it.id;
+
+    const img = document.createElement('img');
+    img.className = 'feed-thumb';
+    img.alt = '';
+    img.src = thumbById(it.imagenId);
+
+    const ct = document.createElement('div');
+    ct.className = 'feed-content';
+    const h = document.createElement('h4');
+    h.className = 'feed-title';
+    h.textContent = it.titulo || '';
+    const s = document.createElement('p');
+    s.className = 'feed-sub';
+    s.textContent = it.subtitulo || '';
+
+    ct.appendChild(h);
+    ct.appendChild(s);
+
+    item.appendChild(img);
+    item.appendChild(ct);
+
+    if(!isRead(it.id)){
+      const dot = document.createElement('span');
+      dot.className = 'feed-dot';
+      item.appendChild(dot);
+    }
+
+    item.addEventListener('click', ()=> openComunicadoDetalle(it));
+    wrap.appendChild(item);
+  }
+}
+
+/* Detalle de comunicado */
+function openComunicadoDetalle(it){
+  const thumb = document.getElementById('com-det-thumb');
+  const title = document.getElementById('com-det-title');
+  const sub   = document.getElementById('com-det-sub');
+  const desc  = document.getElementById('com-det-desc');
+  const link  = document.getElementById('com-det-link');
+
+  if(thumb){ thumb.src = thumbById(it.imagenId); }
+  if(title) title.textContent = it.titulo || '';
+  if(sub)   sub.textContent   = it.subtitulo || '';
+  if(desc)  desc.textContent  = it.contenido || '';
+
+  const first = String(it.first_link||'').trim();
+  if(link){
+    if(first){ link.href = first; link.style.display=''; }
+    else { link.href='#'; link.style.display='none'; }
+  }
+
+  markRead(it.id);
+  renderNoticiasList(NOTICIAS_CACHE);
+  refreshNoticiasBadge();
+  showView('view-comunicado-detalle');
+}
+
+/* Navegación y eventos */
+document.getElementById('go-comunicados')?.addEventListener('click', async ()=>{
+  overlay.classList.remove('open');
+  try{ await loadNoticias(); }catch(_){}
+  showView('view-comunicados');
+});
+document.getElementById('com-volver')?.addEventListener('click', ()=>{ showView('view-inicio'); });
+document.getElementById('com-det-volver')?.addEventListener('click', ()=>{ showView('view-comunicados'); });
+
+/* Click en etiqueta “Ver Noticias” abre COMUNICADOS */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const label = document.getElementById('notif-label');
+  const btn   = document.getElementById('go-comunicados');
+  if(!label || !btn) return;
+  const openList = ()=> btn.click();
+  label.addEventListener('click', openList);
+  label.setAttribute('role','button');
+  label.setAttribute('tabindex','0');
+  label.setAttribute('aria-label','Abrir comunicados');
+  label.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openList(); } });
+});
+
+/* Al iniciar sesión: cargar Inicio y luego noticias para badge */
+async function cargarInicio(){
+  if(!currentUser) return;
+  const d = await apiGet('getInicio', { documento: currentUser.documento });
+  document.getElementById('inicio-nombre').textContent = d.nombre || '';
+  document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
+  document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' de ' + d.expedida) : '');
+  document.getElementById('inicio-contacto').textContent = d.telefono || '';
+  document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
+  document.getElementById('inicio-correo').textContent = d.correo || '';
+  document.getElementById('inicio-cuenta').textContent = ((d.cuenta||'') + ' ' + (d.tipoCuenta||'') + ' ' + (d.banco||'')).trim();
+  document.getElementById('inicio-eps').textContent = d.eps || '';
+  document.getElementById('inicio-afp').textContent = d.pension || '';
+  document.getElementById('inicio-arl').textContent = d.arl || '';
+  document.getElementById('inicio-supervisor').textContent = d.supervisor || '';
+  const firmaEl = document.getElementById('inicio-firma');
+  if(d.firmaId){ firmaEl.src = thumbById(d.firmaId); firmaEl.style.display=''; } else { firmaEl.style.display='none'; }
+
+  // INSERT: cargar noticias para mostrar badge
+  try{ await loadNoticias(); }catch(_){}
+}
+
+/* ================== FIN COMUNICADOS ================== */
 
 /* ================== REGISTRO ================== */
 let regFirmaDataUrl = '';
