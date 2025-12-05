@@ -704,10 +704,6 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
   }
 });
 
-  // Dentro del handler de btn-login, tras showView('view-inicio') (caso ACTIVO y completo) añade:
-setTimeout(()=>{ try{ cargarNoticias(/*prefetchOnly=*/true); }catch(_){} }, 0);
-
-// En el caso INCOMPLETO (showView('view-registro')), no es necesario, pero si quieres precargar:
 setTimeout(()=>{ try{ cargarNoticias(/*prefetchOnly=*/true); }catch(_){} }, 0);
 
 document.getElementById('btn-logout').addEventListener('click', ()=>{
@@ -1205,17 +1201,15 @@ function firstLinkThumb(url){
 }
 
 async function cargarNoticias(prefetchOnly = false){
-  // Sin loader para que se sienta "rápido" y usable en segundo plano
   const url = new URL(API_BASE);
   url.search = new URLSearchParams({ action: 'listComunicados' }).toString();
   const r = await fetch(url.toString(), { method: 'GET' });
   const j = await r.json();
   if(!j.ok) throw new Error(j.error || 'Error');
 
-  // 20 últimos desde abajo hacia arriba: el backend ya retorna ordenado por row desc y slice(0,20)
   FEED_CACHE = Array.isArray(j.data) ? j.data.slice(0,20) : [];
 
-  if(prefetchOnly) return; // solo precarga para rapidez de UX
+  if(prefetchOnly) return;
 
   const wrap = document.getElementById('feed-list');
   wrap.innerHTML='';
@@ -1228,19 +1222,16 @@ async function cargarNoticias(prefetchOnly = false){
     item.className = 'feed-item';
     item.dataset.id = it.id;
 
-    // Miniatura circular
     const img = document.createElement('img');
     img.className = 'feed-thumb';
     img.alt = '';
-    img.style.borderRadius = '50%'; // circular
+    img.style.borderRadius = '50%';
     img.style.border = '1px solid #ddd';
     img.loading = 'lazy';
     img.width = 64; img.height = 64;
-    const thumbUrl = it.imagenId ? thumbById(it.imagenId) : firstLinkThumb(it.first_link);
+    const thumbUrl = it.imagenId ? thumbById(it.imagenId) : 'https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png';
     img.src = thumbUrl;
-    img.onerror = ()=>{ img.src = fallbackThumbFor(it.first_link); };
 
-    // Contenido (título + subtítulo)
     const ct = document.createElement('div');
     ct.className = 'feed-content';
 
@@ -1250,7 +1241,7 @@ async function cargarNoticias(prefetchOnly = false){
 
     const p = document.createElement('p');
     p.className = 'feed-desc';
-    p.textContent = String(it.subtitulo||''); // subtítulo en lista
+    p.textContent = String(it.subtitulo||'');
 
     ct.appendChild(h);
     ct.appendChild(p);
@@ -1258,7 +1249,6 @@ async function cargarNoticias(prefetchOnly = false){
     item.appendChild(img);
     item.appendChild(ct);
 
-    // Puntico rojo en no leídas
     if(!isRead(it.id)){
       const dot = document.createElement('span');
       dot.className = 'feed-dot';
@@ -1269,22 +1259,19 @@ async function cargarNoticias(prefetchOnly = false){
     wrap.appendChild(item);
   });
 
-  // Asegura título de la vista
   const tituloVista = document.querySelector('#view-noticias h2');
   if (tituloVista) tituloVista.textContent = '¡COMUNICADOS!';
 }
 
 function abrirNoticia(it){
-  // Imagen circular (mismas condiciones)
   const thumb = document.getElementById('fd-thumb');
   if (thumb){
-    const url = it.imagenId ? thumbById(it.imagenId) : fallbackThumbFor(it.first_link);
+    const url = it.imagenId ? thumbById(it.imagenId) : 'https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png';
     thumb.src = url;
-    thumb.style.borderRadius = '50%'; // circular
+    thumb.style.borderRadius = '50%';
     thumb.style.border = '1.5px solid #d8e4ff';
   }
 
-  // Título, Subtítulo, Contenido
   const title = document.getElementById('fd-title');
   const sub   = document.getElementById('fd-sub');
   const desc  = document.getElementById('fd-desc');
@@ -1294,7 +1281,6 @@ function abrirNoticia(it){
   if (sub)   sub.textContent   = String(it.subtitulo||'');
   if (desc)  desc.textContent  = String(it.contenido||'');
 
-  // Botón “Abrir Vínculo” solo si hay URL en contenido
   if (link){
     const firstUrl = extractFirstUrl(it.contenido);
     if(firstUrl){
@@ -1307,7 +1293,6 @@ function abrirNoticia(it){
     }
   }
 
-  // Marcar como leído y navegar
   markRead(it.id);
   showView('view-noticia-detalle');
 }
@@ -1484,7 +1469,7 @@ if ('serviceWorker' in navigator){
 window.addEventListener('load', initPWAVista);
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
-let __cumpleISO = ''; // dd/mm/yyyy
+let __cumpleISO = '';
 function initPickerBase(dSelId, mSelId, aSelId, years){
   const dSel = document.getElementById(dSelId);
   const mSel = document.getElementById(mSelId);
@@ -1500,7 +1485,6 @@ function initPickerBase(dSelId, mSelId, aSelId, years){
     years.forEach(y=>{ const opt=document.createElement('option'); opt.value=String(y); opt.textContent=String(y); aSel.appendChild(opt); });
   }
 }
-// Cumple: años 1936..2008
 (function(){ const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y); initPickerBase('cumpleDia','cumpleMes','cumpleAnio', ys); })();
 function abrirPickerCumple(){
   const m=document.getElementById('cumpleModal');
