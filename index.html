@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>CONTRATISTA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="https://res.cloudinary.com/dqqeavica/image/upload/v1763928947/Logo_lt365u.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
@@ -101,6 +102,11 @@
     .hidden{ display:none !important; }
     .narrow{ max-width: 560px; margin: 0 auto; }
     .spaced{ margin-top:12px; }
+
+    .oblig-block{
+  background:#f8f8f8; border:1.5px solid #ccc; border-radius:12px;
+  padding:10px 12px; margin:10px 0; display:flex; flex-direction:column; gap:6px;
+}
 
     /* Overlay Menú */
     .overlay{ position: fixed; inset: 0; pointer-events:none; }
@@ -306,6 +312,7 @@
         <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO</button>
         <button class="menu-btn" id="go-personales">DATOS PERSONALES</button>
         <button class="menu-btn" id="go-comunicados">COMUNICADOS</button>
+        <button class="menu-btn" id="go-borrador">BORRADOR ACTIVIDADES</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -605,7 +612,21 @@
       </div>
     </section>
 
+ <!-- VISTA BORRADOR DE ACTIVIDADES -->
+<section id="view-borrador" class="view">
+  <div class="card narrow">
+    <h2 style="color:var(--primary)">TU BORRADOR DE ACTIVIDADES</h2>
+    <p class="helper">N° DE INFORME: <span id="ba-informe" class="chip">1</span></p>
 
+    <div id="ba-list" class="narrow"></div>
+
+    <div class="btn-row spaced">
+      <button id="ba-guardar" class="btn-primary">Guardar</button>
+      <button id="ba-volver" class="danger">Regresar</button>
+    </div>
+  </div>
+</section>
+    
 <script>
 /* ================== CONFIGURACIÓN ================== */
 const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec';
@@ -1065,6 +1086,108 @@ document.addEventListener('DOMContentLoaded', ()=>{
   label.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openList(); } });
 });
 
+  /* ================== BORRADOR ACTIVIDADES ================== */
+let BA_STATE = { informe:1, obligaciones:[], actividades:[], cuentaExiste:false, activo:false, nombre:'' };
+
+document.getElementById('go-borrador')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'}); return;
+  }
+  try{
+    const data = await apiGet('getBorradorActividades', { documento: currentUser.documento });
+    if(data.blocked){
+      await Swal.fire({
+        icon:'info',
+        title:'AÚN NO PUEDES CREAR BORRADOR',
+        text:'Tienes una cuenta pendiente por Revisión y Aprobación',
+        timer:5000,
+        showConfirmButton:false
+      });
+      showView('view-inicio');
+      return;
+    }
+    if(data.activo === false){
+      await Swal.fire({
+        icon:'info',
+        title:'Estado INACTIVO',
+        text:'Tu contrato no está ACTIVO actualmente.',
+        timer:4000,
+        showConfirmButton:false
+      });
+    }
+    BA_STATE = data || BA_STATE;
+    renderBorradorActividades();
+    showView('view-borrador');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+
+function renderBorradorActividades(){
+  const badge = document.getElementById('ba-informe');
+  if(badge) badge.textContent = String(BA_STATE.informe||1);
+
+  const wrap = document.getElementById('ba-list');
+  wrap.innerHTML = '';
+  const n = Math.max(1, (BA_STATE.obligaciones||[]).length);
+  for(let i=0;i<n && i<26;i++){
+    const idx = i+1;
+    const oblig = (BA_STATE.obligaciones[i]||'').toString();
+    const act   = (BA_STATE.actividades && BA_STATE.actividades[i]) ? BA_STATE.actividades[i] : '';
+
+    const block = document.createElement('div');
+    block.className = 'oblig-block';
+
+    const p = document.createElement('p');
+    p.innerHTML = `<b>Obligación ${idx}:</b> ${oblig || '-'}`;
+
+    const lab = document.createElement('label');
+    lab.textContent = 'Actividades por Obligación ' + idx + ':';
+
+    const ta = document.createElement('textarea');
+    ta.id = 'ba-act-'+idx;
+    ta.rows = 4;
+    ta.placeholder = 'Describe la(s) actividad(es) que quieres guardar, recuerda todo el esquema explicado en la parte superior.';
+    ta.value = act || '';
+
+    block.appendChild(p);
+    block.appendChild(lab);
+    block.appendChild(ta);
+    wrap.appendChild(block);
+  }
+}
+
+document.getElementById('ba-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
+document.getElementById('ba-guardar')?.addEventListener('click', async ()=>{
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'}); return;
+  }
+  const n = Math.max(1, (BA_STATE.obligaciones||[]).length);
+  const actividades = [];
+  for(let i=1;i<=Math.min(26,n);i++){
+    const el = document.getElementById('ba-act-'+i);
+    actividades.push((el && el.value) ? el.value.trim() : '');
+  }
+  try{
+    await apiPost('saveBorradorActividades', {
+      documento: currentUser.documento,
+      nombre: BA_STATE.nombre || '',
+      informe: BA_STATE.informe || 1,
+      actividades
+    });
+    await Swal.fire({icon:'success', title:'Borrador guardado', timer:1800, showConfirmButton:false});
+    showView('view-inicio');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+  
 /* ================== SELECTS (banco/eps/afp/arl) ================== */
 const BANKS = [
 "BANCOLOMBIA","DAVIVIENDA","BANCO DE BOGOTÁ","BANCO CAJA SOCIAL","BANCO POPULAR","BANCO BBVA COLOMBIA S.A.","BANCO AV VILLAS","BANCO DE OCCIDENTE","BANCO AGRARIO DE COLOMBIA","BANCAMIA S.A.","BANCO SANTANDER COLOMBIA","BANCO FALABELLA","BANCO MUNDO MUJER S.A.","NEQUI","DAVIPLATA","DALE","NU","BANCOOMEVA S.A.","BANCO PICHINCHA S.A.","BANCO ITAU","CITIBANK COLOMBIA","BANCO COOPERATIVO COOPCENTRAL","DING","GLOBAL66","IRIS","JFK COOPERATIVA FINANCIERA","FINANCIERA JURISCOOP SA COMPAÑIA DE FINANCIAMIENTO","ALIANZA FIDUCIARIA","BAN100","BANCO SERFINANZA","BOLD CF","COINK SA","COTRAFA","CREZCAMOS","COLTEFINANCIERA","CONFIAR COOPERATIVA FINANCIERA","CFA COOPERATIVA FINANCIERA","BANCO UNION","SCOTIABANK COLPATRIA","BANCO GNB SUDAMERIS","BANCO J.P. MORGAN COLOMBIA S.A.","BANCO FINANDINA S.A. BIC"
