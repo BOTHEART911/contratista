@@ -133,20 +133,22 @@
     @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
 
     /* Centrado consistente de todos los modales de fecha */
+/* Centrado horizontal y pegado a la parte inferior de la vista */
 .picker-modal{
-  display: none;           /* por defecto oculto */
+  display: none;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.5);
   z-index: 9999;
-  align-items: center;     /* centrado vertical */
+  align-items: flex-end;   /* alinea al fondo verticalmente */
   justify-content: center; /* centrado horizontal */
+  padding-bottom: 24px;    /* separación del borde inferior */
 }
 .picker-modal[aria-hidden="false"]{
-  display: flex;           /* visible y centrado */
+  display: flex;
 }
 .picker-box{
-  margin: 0;               /* quita desplazamientos por margen */
+  margin: 0;
 }
 
     /* INSERT: Badge “Ver Noticias” + estilos de lista/detalle de COMUNICADOS */
