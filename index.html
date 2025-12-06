@@ -1806,49 +1806,49 @@ window.addEventListener('load', initPWAVista);
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
 
-  function openModalNearField(fieldEl, modalEl){
+  function openModalCenteredOnField(fieldEl, modalEl){
   if(!fieldEl || !modalEl) return;
-  // Mostrar modal y scrim primero
+
+  // Mostrar el modal primero para que tenga dimensiones reales
   modalEl.style.display = 'flex';
   modalEl.setAttribute('aria-hidden','false');
+
+  // Quitar el centrado por flex; vamos a posicionar manualmente la caja
+  modalEl.style.alignItems = 'flex-start';
+  modalEl.style.justifyContent = 'flex-start';
 
   const box = modalEl.querySelector('.picker-box');
   if(!box) return;
 
-  // Reinicia estilos de centrado para permitir posicionamiento manual
-  modalEl.style.alignItems = 'flex-start';
-  modalEl.style.justifyContent = 'flex-start';
-
-  // Ubicación relativa al viewport del campo
-  const rect = fieldEl.getBoundingClientRect();
-
-  // Margen y límites
-  const margin = 8;
+  // Posicionar la caja en fixed y medir
+  box.style.position = 'fixed';
+  box.style.margin = '0';
+  // Forzar un layout para obtener tamaños correctos
+  const fieldRect = fieldEl.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  const margin = 8;
 
-  // Dimensiones de la caja (si aún no están calculadas, forzar un layout)
-  box.style.position = 'absolute';
-  box.style.maxWidth = '520px'; // ya está en tu CSS inline
-  // Estimar tamaño
+  // Medir tras estar visible
   const boxRect = box.getBoundingClientRect();
-  let targetTop = rect.bottom + margin; // debajo del input
-  let targetLeft = rect.left;
 
-  // Si se sale por abajo del viewport, intenta arriba del input
-  if(targetTop + boxRect.height > vh){
-    targetTop = Math.max(margin, rect.top - boxRect.height - margin);
-  }
+  // Centro del input en viewport
+  const cx = fieldRect.left + fieldRect.width / 2;
+  const cy = fieldRect.top  + fieldRect.height / 2;
 
-  // Limitar horizontales
-  if(targetLeft + boxRect.width > vw){
-    targetLeft = Math.max(margin, vw - boxRect.width - margin);
-  }
-  if(targetLeft < margin) targetLeft = margin;
+  // Calcular top/left para centrar la caja sobre el input
+  let left = Math.round(cx - boxRect.width / 2);
+  let top  = Math.round(cy - boxRect.height / 2);
 
-  // Aplicar posición
-  box.style.top = `${Math.max(margin, targetTop)}px`;
-  box.style.left = `${targetLeft}px`;
+  // Limitar para que no se salga del viewport
+  if (left < margin) left = margin;
+  if (top  < margin) top  = margin;
+  if (left + boxRect.width > vw - margin) left = vw - margin - boxRect.width;
+  if (top  + boxRect.height > vh - margin) top = vh - margin - boxRect.height;
+
+  // Aplicar posición final
+  box.style.left = `${left}px`;
+  box.style.top  = `${top}px`;
 }
   
   // Estado exclusivo para personales
@@ -1890,7 +1890,7 @@ let __cumpleISO_personales = ''; // dd/mm/yyyy
 function abrirPickerCumplePersonales(){
   const modal = document.getElementById('pCumpleModal');
   const field = document.getElementById('p-cumple');
-  openModalNearField(field, modal);
+  openModalCenteredOnField(field, modal);
 }
 function cancelarPickerCumplePersonales(){
   const m=document.getElementById('pCumpleModal');
@@ -1929,8 +1929,8 @@ function initPickerBase(dSelId, mSelId, aSelId, years){
 (function(){ const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y); initPickerBase('cumpleDia','cumpleMes','cumpleAnio', ys); })();
 function abrirPickerCumple(){
   const modal = document.getElementById('cumpleModal');
-  const field = document.getElementById('reg-cumple'); // input que dispara
-  openModalNearField(field, modal);
+  const field = document.getElementById('reg-cumple');
+  openModalCenteredOnField(field, modal);
 }
 function cancelarPickerCumple(){
   const m=document.getElementById('cumpleModal');
@@ -1954,10 +1954,8 @@ let __fechaTerminoISO = '';
 function abrirPickerContrato(target){
   __pickerContratoTarget = target;
   const modal = document.getElementById('contratoFechaModal');
-  const field = document.getElementById(
-    target === 'inicio' ? 'c-fechaInicio' : 'c-fechaTermino'
-  );
-  openModalNearField(field, modal);
+  const field = document.getElementById(target === 'inicio' ? 'c-fechaInicio' : 'c-fechaTermino');
+  openModalCenteredOnField(field, modal);
 }
 function cancelarPickerContrato(){
   const m=document.getElementById('contratoFechaModal');
