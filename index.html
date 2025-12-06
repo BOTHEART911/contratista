@@ -211,19 +211,6 @@
     .feed-detail-title{ margin:6px 0 4px; color:#111; font-weight:900; }
     .feed-detail-sub{ margin:0 0 8px; color:#333; font-weight:700; }
     .feed-detail-desc{ text-align:justify; color:#222; overflow-wrap:anywhere; }
-
-    /* Anclaje del modal al input que lo invoca */
-.picker-modal[data-anchored="true"]{
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-.picker-modal[data-anchored="true"] .picker-box{
-  position: fixed;           /* relativo al viewport */
-  left: var(--picker-x, 0);  /* coordenada calculada */
-  top: var(--picker-y, 0);   /* coordenada calculada */
-  margin: 0;
-}
-    
   </style>
 </head>
 <body>
@@ -1818,40 +1805,6 @@ window.addEventListener('load', initPWAVista);
   
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
-
- /* Utilidad para anclar el modal al input llamador */
-function anchorPickerToInput(modalId, inputId){
-  const modal = typeof modalId==='string' ? document.getElementById(modalId) : modalId;
-  const input = typeof inputId==='string' ? document.getElementById(inputId) : inputId;
-  if(!modal || !input) return;
-
-  modal.setAttribute('data-anchored','true');
-  modal.style.display = 'flex';
-  modal.setAttribute('aria-hidden','false');
-
-  requestAnimationFrame(()=>{
-    const box = modal.querySelector('.picker-box');
-    if(!box) return;
-    const rect = input.getBoundingClientRect();
-    const vw = document.documentElement.clientWidth;
-    const vh = document.documentElement.clientHeight;
-    const pad = 8;
-
-    let x = rect.left;
-    let y = rect.bottom + pad;
-
-    const bw = box.offsetWidth;
-    const bh = box.offsetHeight;
-
-    // Evitar desbordes del viewport
-    if (x + bw > vw - pad) x = vw - bw - pad;
-    if (y + bh > vh - pad) y = rect.top - bh - pad;
-
-    modal.style.setProperty('--picker-x', x + 'px');
-    modal.style.setProperty('--picker-y', y + 'px');
-  });
-}
-  
   // Estado exclusivo para personales
 let __cumpleISO_personales = ''; // dd/mm/yyyy
 
@@ -1889,17 +1842,12 @@ let __cumpleISO_personales = ''; // dd/mm/yyyy
 })();
 
 function abrirPickerCumplePersonales(){
-  anchorPickerToInput('pCumpleModal', 'p-cumple');
+  const m=document.getElementById('pCumpleModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
 function cancelarPickerCumplePersonales(){
-  const m = document.getElementById('pCumpleModal');
-  if(m){
-    m.style.display = 'none';
-    m.setAttribute('aria-hidden','true');
-    m.removeAttribute('data-anchored');
-    m.style.removeProperty('--picker-x');
-    m.style.removeProperty('--picker-y');
-  }
+  const m=document.getElementById('pCumpleModal');
+  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
 }
 function confirmarPickerCumplePersonales(){
   const dSel=document.getElementById('pCumpleDia')?.value||'01';
@@ -1933,18 +1881,12 @@ function initPickerBase(dSelId, mSelId, aSelId, years){
 // Cumple: años 1936..2008
 (function(){ const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y); initPickerBase('cumpleDia','cumpleMes','cumpleAnio', ys); })();
 function abrirPickerCumple(){
-  anchorPickerToInput('cumpleModal', 'reg-cumple');
+  const m=document.getElementById('cumpleModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
-
 function cancelarPickerCumple(){
-  const m = document.getElementById('cumpleModal');
-  if(m){
-    m.style.display = 'none';
-    m.setAttribute('aria-hidden','true');
-    m.removeAttribute('data-anchored');
-    m.style.removeProperty('--picker-x');
-    m.style.removeProperty('--picker-y');
-  }
+  const m=document.getElementById('cumpleModal');
+  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
 }
 function confirmarPickerCumple(){
   const dSel=document.getElementById('cumpleDia')?.value||'01';
@@ -1963,18 +1905,12 @@ let __fechaInicioISO = ''; // dd/mm/2026
 let __fechaTerminoISO = '';
 function abrirPickerContrato(target){
   __pickerContratoTarget = target;
-  const inputId = target === 'inicio' ? 'c-fechaInicio' : 'c-fechaTermino';
-  anchorPickerToInput('contratoFechaModal', inputId);
+  const m=document.getElementById('contratoFechaModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
 function cancelarPickerContrato(){
-  const m = document.getElementById('contratoFechaModal');
-  if(m){
-    m.style.display = 'none';
-    m.setAttribute('aria-hidden','true');
-    m.removeAttribute('data-anchored');
-    m.style.removeProperty('--picker-x');
-    m.style.removeProperty('--picker-y');
-  }
+  const m=document.getElementById('contratoFechaModal');
+  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
 }
 function confirmarPickerContrato(){
   const dSel=document.getElementById('contratoDia')?.value||'01';
