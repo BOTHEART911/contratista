@@ -240,7 +240,7 @@
     <section id="view-login" class="view active">
       <div class="card narrow">
         <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">CONTRATISTA</h1>
-        <p class="helper"><b>Acceso exclusivo para Contratistas activos.</b></p>
+        <p class="helper"><b>Acceso exclusivo para para CONTRATISTAS activos de la Alcaldía de Flandes.</b></p>
 
         <label>Contraseña</label>
         <div class="pwd-wrapper" style="position:relative;">
@@ -901,7 +901,7 @@ async function cargarInicio(){
   const d = await apiGet('getInicio', { documento: currentUser.documento });
   document.getElementById('inicio-nombre').textContent = d.nombre || '';
   document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
-  document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' de ' + d.expedida) : '');
+  document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' *DE* ' + d.expedida) : '');
   document.getElementById('inicio-contacto').textContent = d.telefono || '';
   document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
   document.getElementById('inicio-correo').textContent = d.correo || '';
@@ -1666,10 +1666,10 @@ async function cargarPersonalesLectura(){
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
 }
 
-/* ================== PWA AVANZADO (copia del index original) ================== */
+/* ================== PWA AVANZADO ================== */
 let deferredPrompt = null;
-let __installStartShown = false;
-let __installSuccessShown = false;
+let __installStartShown = false;    // bandera: ya mostramos "App instalándose"
+let __installSuccessShown = false;  // bandera: ya mostramos "Instalación exitosa"
 
 function isStandalone(){
   const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -1677,10 +1677,18 @@ function isStandalone(){
   const iosStandalone = (window.navigator.standalone === true);
   return dmStandalone || dmInstalled || iosStandalone;
 }
-function isIOS(){ return /(iphone|ipad|ipod)/i.test(navigator.userAgent || ''); }
-function isMarkedInstalled(){ try{ return localStorage.getItem('pwaInstalledFlag') === '1'; }catch(_){ return false; } }
-function markInstalled(){ try{ localStorage.setItem('pwaInstalledFlag', '1'); }catch(_){ } }
-function clearInstalledMark(){ try{ localStorage.removeItem('pwaInstalledFlag'); }catch(_){ } }
+function isIOS(){
+  return /(iphone|ipad|ipod)/i.test(navigator.userAgent || '');
+}
+function isMarkedInstalled(){
+  try{ return localStorage.getItem('pwaInstalledFlag') === '1'; }catch(_){ return false; }
+}
+function markInstalled(){
+  try{ localStorage.setItem('pwaInstalledFlag', '1'); }catch(_){}
+}
+function clearInstalledMark(){
+  try{ localStorage.removeItem('pwaInstalledFlag'); }catch(_){}
+}
 async function detectInstalled(){
   if (isStandalone()) return true;
   if (typeof navigator.getInstalledRelatedApps === 'function'){
@@ -1722,6 +1730,7 @@ window.addEventListener('appinstalled', ()=>{
 });
 
 document.getElementById('btn-instalar').addEventListener('click', async ()=>{
+  // Flujo iOS: se respeta exactamente tu alerta e instrucciones
   if(isIOS()){
     Swal.fire({
       icon:'info',
@@ -1730,37 +1739,40 @@ document.getElementById('btn-instalar').addEventListener('click', async ()=>{
     });
     return;
   }
+  // Android: requiere beforeinstallprompt (deferredPrompt)
   if(!deferredPrompt){
     Swal.fire({icon:'info',title:'Instalación no disponible todavía'});
     return;
   }
+
   const dp = deferredPrompt;
-  dp.prompt();
-  const choice = await dp.userChoice;
-  deferredPrompt = null;
+  dp.prompt();                           // muestra diálogo nativo de instalación
+  const choice = await dp.userChoice;    // espera la elección del usuario
+  deferredPrompt = null;                 // limpia el prompt (solo se usa una vez)
 
   if (choice.outcome === 'accepted'){
+    // Primera alerta (Android): confirma inicio de instalación por 6 segundos
     markInstalled();
     __installStartShown = true;
     Swal.fire({
-      icon: 'success',
-      title: '¡App instalándose!',
-      html: `
-        <div style="text-align:center; margin-top:8px;">
-          <img
-            src="https://res.cloudinary.com/dqqeavica/image/upload/v1764209976/Robot_c2vtua.gif"
-            alt="Instalando app"
-            style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
-          >
-          <div>Debes esperar unos segundos mientras el sistema instala la App.</div>
-          <div style="margin-top:10px;">
-            <b>Ya puedes salir de esta vista, aparecerá en la pantalla principal de este dispositivo.</b>
-          </div>
-        </div>
-      `,
-      timer: 12000,
-      showConfirmButton: false
-    });
+  icon: 'success',
+  title: '¡App instalándose!',
+  html: `
+    <div style="text-align:center; margin-top:8px;">
+      <img
+        src="https://res.cloudinary.com/dqqeavica/image/upload/v1764209976/Robot_c2vtua.gif"
+        alt="Instalando app"
+        style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
+      >
+      <div>Debes esperar unos segundos mientras el sistema instala la App.</div>
+      <div style="margin-top:10px;">
+        <b>Ya puedes salir de esta vista, aparecerá en la pantalla principal de este dispositivo.</b>
+      </div>
+    </div>
+  `,
+  timer: 12000,
+  showConfirmButton: false
+});
   } else {
     Swal.fire({icon:'info',title:'Instalación cancelada'});
   }
@@ -1783,6 +1795,7 @@ if ('serviceWorker' in navigator){
   });
 }
 window.addEventListener('load', initPWAVista);
+  
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
   // Estado exclusivo para personales
