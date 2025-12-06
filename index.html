@@ -628,7 +628,7 @@
 
 
     
-    <p class="helper">N° DE INFORME: <span id="ba-informe" class="chip">1</span></p>
+    <p class="helper">INFORME: <span id="ba-informe" class="chip">1</span> &nbsp; DE: <span id="ba-total" class="chip">0</span></p>
 
     <div id="ba-list" class="narrow"></div>
 
@@ -1112,7 +1112,7 @@ document.getElementById('go-borrador')?.addEventListener('click', async ()=>{
   await Swal.fire({
     icon:'info',
     title:'AÚN NO PUEDES CREAR BORRADOR',
-    text:'Tienes una cuenta pendiente por Revisión y Aprobación',
+    text:'Tienes una cuenta pendiente por Terminar etapas del proceso',
     timer:5000,
     showConfirmButton:false
   });
@@ -1153,6 +1153,9 @@ if (String(data.estado||'').toUpperCase() === 'DEVUELTA'){
 function renderBorradorActividades(){
   const badge = document.getElementById('ba-informe');
   if(badge) badge.textContent = String(BA_STATE.informe||1);
+
+  const tot = document.getElementById('ba-total');
+  if(tot) tot.textContent = String(BA_STATE.total||'');
 
   const wrap = document.getElementById('ba-list');
   wrap.innerHTML = '';
@@ -1201,11 +1204,12 @@ document.getElementById('ba-guardar')?.addEventListener('click', async ()=>{
   }
   try{
     await apiPost('saveBorradorActividades', {
-      documento: currentUser.documento,
-      nombre: BA_STATE.nombre || '',
-      informe: BA_STATE.informe || 1,
-      actividades
-    });
+  documento: currentUser.documento,
+  nombre: BA_STATE.nombre || '',
+  informe: BA_STATE.informe || 1,
+  total: BA_STATE.total || '',
+  actividades
+});
     await Swal.fire({icon:'success', title:'Borrador guardado', timer:1800, showConfirmButton:false});
     showView('view-inicio');
   }catch(e){
