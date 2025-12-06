@@ -132,23 +132,26 @@
 
     @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
 
-    /* Centrado consistente de todos los modales de fecha */
-/* Centrado horizontal y pegado a la parte inferior de la vista */
+/* Fuerza que TODOS los modales de fecha queden centrados horizontal y pegados abajo,
+   incluso si el inline style pone align-items:center/justify-content:center */
 .picker-modal{
   display: none;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.5);
   z-index: 9999;
-  align-items: flex-end;   /* alinea al fondo verticalmente */
-  justify-content: center; /* centrado horizontal */
-  padding-bottom: 24px;    /* separación del borde inferior */
+  align-items: flex-end !important;  /* sobrescribe inline */
+  justify-content: center !important;/* sobrescribe inline */
+  padding-bottom: 16px;              /* separa del borde inferior */
 }
 .picker-modal[aria-hidden="false"]{
   display: flex;
 }
 .picker-box{
   margin: 0;
+  /* opcional: limitar ancho para que no tape el botón inferior completamente */
+  width: 90%;
+  max-width: 520px;
 }
 
     /* INSERT: Badge “Ver Noticias” + estilos de lista/detalle de COMUNICADOS */
