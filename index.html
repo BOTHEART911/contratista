@@ -1805,58 +1805,6 @@ window.addEventListener('load', initPWAVista);
   
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
-
-  field.scrollIntoView({ block: 'center', behavior: 'smooth' });
-setTimeout(()=> openModalCenteredOnField(field, modal), 160); // dar tiempo al re-layout
-
-  function openModalCenteredOnField(fieldEl, modalEl){
-  if(!fieldEl || !modalEl) return;
-
-  // Mostrar el modal para medir dimensiones reales
-  modalEl.style.display = 'flex';
-  modalEl.setAttribute('aria-hidden','false');
-
-  // Vamos a posicionar la caja manualmente (no centrado por flex)
-  modalEl.style.alignItems = 'flex-start';
-  modalEl.style.justifyContent = 'flex-start';
-
-  const box = modalEl.querySelector('.picker-box');
-  if(!box) return;
-
-  // Posicionar la caja en fixed y medir
-  box.style.position = 'fixed';
-  box.style.margin = '0';
-
-  // Opcional: llevar el campo al centro del viewport antes de abrir
-  // fieldEl.scrollIntoView({ block: 'center', behavior: 'instant' });
-
-  const fieldRect = fieldEl.getBoundingClientRect();
-  // Medir la caja después de estar visible
-  const boxRect = box.getBoundingClientRect();
-
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const margin = 8;
-
-  // Centro del input (en coordenadas del viewport)
-  const cx = fieldRect.left + fieldRect.width / 2;
-  const cy = fieldRect.top  + fieldRect.height / 2;
-
-  // Calcular la posición para centrar la caja sobre el input
-  let left = Math.round(cx - boxRect.width / 2);
-  let top  = Math.round(cy - boxRect.height / 2);
-
-  // Limitar para que no se corte
-  if (left < margin) left = margin;
-  if (top  < margin) top  = margin;
-  if (left + boxRect.width > vw - margin) left = vw - margin - boxRect.width;
-  if (top  + boxRect.height > vh - margin) top = vh - margin - boxRect.height;
-
-  // Aplicar
-  box.style.left = `${left}px`;
-  box.style.top  = `${top}px`;
-}
-  
   // Estado exclusivo para personales
 let __cumpleISO_personales = ''; // dd/mm/yyyy
 
@@ -1894,9 +1842,8 @@ let __cumpleISO_personales = ''; // dd/mm/yyyy
 })();
 
 function abrirPickerCumplePersonales(){
-  const modal = document.getElementById('pCumpleModal');
-  const field = document.getElementById('p-cumple');
-  openModalCenteredOnField(field, modal);
+  const m=document.getElementById('pCumpleModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
 function cancelarPickerCumplePersonales(){
   const m=document.getElementById('pCumpleModal');
@@ -1934,9 +1881,8 @@ function initPickerBase(dSelId, mSelId, aSelId, years){
 // Cumple: años 1936..2008
 (function(){ const ys=[]; for(let y=1936;y<=2008;y++) ys.push(y); initPickerBase('cumpleDia','cumpleMes','cumpleAnio', ys); })();
 function abrirPickerCumple(){
-  const modal = document.getElementById('cumpleModal');
-  const field = document.getElementById('reg-cumple');
-  openModalCenteredOnField(field, modal);
+  const m=document.getElementById('cumpleModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
 function cancelarPickerCumple(){
   const m=document.getElementById('cumpleModal');
@@ -1959,9 +1905,8 @@ let __fechaInicioISO = ''; // dd/mm/2026
 let __fechaTerminoISO = '';
 function abrirPickerContrato(target){
   __pickerContratoTarget = target;
-  const modal = document.getElementById('contratoFechaModal');
-  const field = document.getElementById(target === 'inicio' ? 'c-fechaInicio' : 'c-fechaTermino');
-  openModalCenteredOnField(field, modal);
+  const m=document.getElementById('contratoFechaModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
 function cancelarPickerContrato(){
   const m=document.getElementById('contratoFechaModal');
