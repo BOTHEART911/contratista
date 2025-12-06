@@ -930,7 +930,6 @@ async function cargarInicio(){
 }
 
 /* ================== COMUNICADOS (NOTICIAS) ================== */
-/* UBICACIÓN EXACTA: colocar este bloque JS después de las funciones de “INICIO” y antes de “REGISTRO” para tener helpers disponibles */
 
 let NOTICIAS_CACHE = [];
 const READ_KEY_PREFIX = 'noticiasRead@v1:';
@@ -1087,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const btn   = document.getElementById('go-comunicados');
   if(!label || !btn) return;
   const openList = ()=>{
-    playSoundOnce(SOUNDS.login);         // <-- INSERTA ESTA LÍNEA
+    playSoundOnce(SOUNDS.login);         
     btn.click();
   };
   // Click con mouse
@@ -1174,7 +1173,7 @@ function renderBorradorActividades(){
 
     const ta = document.createElement('textarea');
     ta.id = 'ba-act-'+idx;
-    ta.rows = 4;
+    ta.rows = 5;
     ta.placeholder = 'Describe la(s) actividad(es) que quieres guardar, recuerda todo el esquema explicado en la parte superior.';
     ta.value = act || '';
 
@@ -1271,7 +1270,7 @@ function bindQuery(inputId, datalistId){
           list.appendChild(o);
         });
       }catch(_){ /* silencio */ }
-    }, 10); // debounce corto
+    }, 5); // debounce corto
   });
 }
 
@@ -1333,10 +1332,10 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   }
 
   const resumenHtml = [
-    body.expedida && `<b>Expedida:</b> ${body.expedida}`,
+    body.expedida && `<b>Municipio de Expedición:</b> ${body.expedida}`,
     body.telefono && `<b>Whatsapp:</b> ${body.telefono}`,
     body.direccion && `<b>Dirección:</b> ${body.direccion}`,
-    body.municipio && `<b>Municipio:</b> ${body.municipio}`,
+    body.municipio && `<b>Municipio de Residencia:</b> ${body.municipio}`,
     body.correo && `<b>Correo:</b> ${body.correo}`,
     `<b>Cuenta:</b> ${body.numeroCuenta} ${body.tipoCuenta} ${body.banco}`,
     `<b>EPS:</b> ${body.eps}`,
@@ -1492,13 +1491,13 @@ if (!hayCambiosContrato) {
 
   // Resumen: solo campos editados (no vacíos)
   const resumen = [];
-  if(body.fechaInicioISO) resumen.push(`<b>Inicio:</b> ${body.fechaInicioISO}`);
-  if(body.fechaTerminoISO) resumen.push(`<b>Terminación:</b> ${body.fechaTerminoISO}`);
+  if(body.fechaInicioISO) resumen.push(`<b>Fecha de Inicio:</b> ${body.fechaInicioISO}`);
+  if(body.fechaTerminoISO) resumen.push(`<b>Fecha de Terminación:</b> ${body.fechaTerminoISO}`);
   if(body.meses || body.dias) resumen.push(`<b>Meses/Días:</b> ${body.meses||'0'} / ${body.dias||'0'}`);
-  if(body.ejecucion) resumen.push(`<b>Ejecución:</b> ${body.ejecucion}`);
+  if(body.ejecucion) resumen.push(`<b>Tiempo de Ejecución:</b> ${body.ejecucion}`);
   if(body.rp) resumen.push(`<b>RP:</b> ${body.rp}`);
-  if(body.costos) resumen.push(`<b>Costos:</b> ${body.costos}`);
-  if(body.regimen) resumen.push(`<b>Régimen:</b> ${body.regimen}`);
+  if(body.costos) resumen.push(`<b>Regimen Simple:</b> ${body.costos}`);
+  if(body.regimen) resumen.push(`<b>Costos Adicionales:</b> ${body.regimen}`);
 
   const rs = await Swal.fire({
     icon:'info', title:'Resumen de Cambios', html:resumen.join('<br>'),
@@ -1638,7 +1637,7 @@ async function cargarContratoLectura(){
   const lines = [
     `<b>Secretaría:</b> ${d.secretaria||''}`,
     `<b>Supervisor:</b> ${d.supervisor||''}`,
-    `<b>Contrato N°:</b> ${d.contrato||''} <b>de</b> ${d.fechaContrato||''}`,
+    `<b>Contrato N°:</b> ${d.contrato||''} <b>de:</b> ${d.fechaContrato||''}`,
     `<b>Tipo de Contrato:</b> ${d.tipoContrato||''}`,
     `<b>Objeto:</b> ${d.objeto||''}`,
     `<b>Fecha de Inicio:</b> ${d.fechaInicio||''}`,
@@ -1648,8 +1647,8 @@ async function cargarContratoLectura(){
     `<b>Valor Final:</b> ${d.valorFinal||''}`,
     `<b>CDP:</b> ${d.cdp||''}`,
     `<b>RP:</b> ${d.rp||''}`,
-    `<b>CDP ADICIÓN:</b> ${d.cdpAdicion||''}`,
-    `<b>RP ADICIÓN:</b> ${d.rpAdicion||''}`,
+    `<b>CDP Adición:</b> ${d.cdpAdicion||''}`,
+    `<b>RP Adición:</b> ${d.rpAdicion||''}`,
     `<b>Regimen Simple:</b> ${d.regimen||''}`
   ];
   (d.obligaciones||[]).forEach((o,i)=>{ lines.push(`<b>Obligación ${i+1}:</b> ${o}`); });
