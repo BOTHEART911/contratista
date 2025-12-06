@@ -1097,17 +1097,31 @@ document.getElementById('go-borrador')?.addEventListener('click', async ()=>{
   }
   try{
     const data = await apiGet('getBorradorActividades', { documento: currentUser.documento });
-    if(data.blocked){
-      await Swal.fire({
-        icon:'info',
-        title:'AÚN NO PUEDES CREAR BORRADOR',
-        text:'Tienes una cuenta pendiente por Revisión y Aprobación',
-        timer:5000,
-        showConfirmButton:false
-      });
-      showView('view-inicio');
-      return;
-    }
+  if (data.blocked && String(data.estado||'').toUpperCase() !== 'DEVUELTA'){
+  await Swal.fire({
+    icon:'info',
+    title:'AÚN NO PUEDES CREAR BORRADOR',
+    text:'Tienes una cuenta pendiente por Revisión y Aprobación',
+    timer:5000,
+    showConfirmButton:false
+  });
+  showView('view-inicio');
+  return;
+}
+
+// 3) Si BJ es DEVUELTA: alerta 5s y regreso a inicio con mensaje especial
+if (String(data.estado||'').toUpperCase() === 'DEVUELTA'){
+  await Swal.fire({
+    icon:'info',
+    title:'OPCIÓN NO VÁLIDA POR AHORA',
+    text:'Toma la opción CORREGIR CUENTA',
+    timer:5000,
+    showConfirmButton:false
+  });
+  showView('view-inicio');
+  return;
+}
+
     if(data.activo === false){
       await Swal.fire({
         icon:'info',
