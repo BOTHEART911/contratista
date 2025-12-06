@@ -1806,14 +1806,17 @@ window.addEventListener('load', initPWAVista);
 
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
 
+  field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+setTimeout(()=> openModalCenteredOnField(field, modal), 160); // dar tiempo al re-layout
+
   function openModalCenteredOnField(fieldEl, modalEl){
   if(!fieldEl || !modalEl) return;
 
-  // Mostrar el modal primero para que tenga dimensiones reales
+  // Mostrar el modal para medir dimensiones reales
   modalEl.style.display = 'flex';
   modalEl.setAttribute('aria-hidden','false');
 
-  // Quitar el centrado por flex; vamos a posicionar manualmente la caja
+  // Vamos a posicionar la caja manualmente (no centrado por flex)
   modalEl.style.alignItems = 'flex-start';
   modalEl.style.justifyContent = 'flex-start';
 
@@ -1823,30 +1826,33 @@ window.addEventListener('load', initPWAVista);
   // Posicionar la caja en fixed y medir
   box.style.position = 'fixed';
   box.style.margin = '0';
-  // Forzar un layout para obtener tamaños correctos
+
+  // Opcional: llevar el campo al centro del viewport antes de abrir
+  // fieldEl.scrollIntoView({ block: 'center', behavior: 'instant' });
+
   const fieldRect = fieldEl.getBoundingClientRect();
+  // Medir la caja después de estar visible
+  const boxRect = box.getBoundingClientRect();
+
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const margin = 8;
 
-  // Medir tras estar visible
-  const boxRect = box.getBoundingClientRect();
-
-  // Centro del input en viewport
+  // Centro del input (en coordenadas del viewport)
   const cx = fieldRect.left + fieldRect.width / 2;
   const cy = fieldRect.top  + fieldRect.height / 2;
 
-  // Calcular top/left para centrar la caja sobre el input
+  // Calcular la posición para centrar la caja sobre el input
   let left = Math.round(cx - boxRect.width / 2);
   let top  = Math.round(cy - boxRect.height / 2);
 
-  // Limitar para que no se salga del viewport
+  // Limitar para que no se corte
   if (left < margin) left = margin;
   if (top  < margin) top  = margin;
   if (left + boxRect.width > vw - margin) left = vw - margin - boxRect.width;
   if (top  + boxRect.height > vh - margin) top = vh - margin - boxRect.height;
 
-  // Aplicar posición final
+  // Aplicar
   box.style.left = `${left}px`;
   box.style.top  = `${top}px`;
 }
