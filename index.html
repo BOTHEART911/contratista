@@ -616,6 +616,13 @@
 <section id="view-borrador" class="view">
   <div class="card narrow">
     <h2 style="color:var(--primary)">TU BORRADOR DE ACTIVIDADES</h2>
+     <div class="muted" style="margin:6px 0 8px;">
+          <div class="muted" style="margin:6px 0 8px;">
+          <b>DESCRIPCIÓN DETALLADA CON LOS CASOS QUE APLIQUE:</b><br><b>1.</b> En tus Activudades relaciona metas del Plan de Desarrollo (Si Aplica)<br><b>2.</b> Lugares de realización de actividades (barrios, veredas, conjuntos, oficina, etc.)<br><b>3.</b> Relación de Cantidades (Atención al Público, Revisiones, limpiezas, estudios, creación de archivos, recepción y envío de Documentos, visitas, reuniones, suministros entregados, trabajos realizados, etc.)<br><b>4.</b> Personas Impactadas por la Actividad<br><b>5.</b> Medios de Corroboración de la Información (Link Fanpage, Link Drive con permiso, descripción de archivos, etc.)<br><br>Esta información debe evidenciarse en el anexo fotográfico y estar relacionada en algún archivo entregado al supervisor.<br><br><b>PRE-AVISOS:</b><br><b>1.</b> No copies las mismas actividades en cada cuenta (están bajo seguimiento)<br><b>2.</b> Las cuentas que no cumplan los parámetros según los casos, serán devueltas.<br><b>3. Un informe de cuenta tiene el mismo valor que un Informe de Gestión, por tal razón, los supervisores no pueden aprobar cuentas que no cumplan con los críterios.</b>
+        </div>
+
+
+    
     <p class="helper">N° DE INFORME: <span id="ba-informe" class="chip">1</span></p>
 
     <div id="ba-list" class="narrow"></div>
@@ -825,7 +832,7 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
         // Pintar INICIO
         document.getElementById('inicio-nombre').textContent = d.nombre || '';
         document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
-        document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' de ' + d.expedida) : '');
+        document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' <b>DE</b> ' + d.expedida) : '');
         document.getElementById('inicio-contacto').textContent = d.telefono || '';
         document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
         document.getElementById('inicio-correo').textContent = d.correo || '';
@@ -901,7 +908,7 @@ async function cargarInicio(){
   const d = await apiGet('getInicio', { documento: currentUser.documento });
   document.getElementById('inicio-nombre').textContent = d.nombre || '';
   document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
-  document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' *DE* ' + d.expedida) : '');
+  document.getElementById('inicio-cc').textContent = (d.documento || '') + (d.expedida ? (' <b>DE</b> ' + d.expedida) : '');
   document.getElementById('inicio-contacto').textContent = d.telefono || '';
   document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
   document.getElementById('inicio-correo').textContent = d.correo || '';
