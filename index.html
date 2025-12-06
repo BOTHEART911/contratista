@@ -707,8 +707,6 @@ async function apiPost(action, body = {}){
 /* ================== ESTADO ================== */
 let currentUser = null;
 
-  let __loginBusy = false; // evita múltiples clics en "Iniciar Sesión"
-
 /* ================== VISTAS ================== */
 function resetVistas(){
   // Ocultar formularios de edición y limpiar datalists y campos según vistas
@@ -774,7 +772,6 @@ document.getElementById('toggle-doc').addEventListener('click', ()=>{
 bindNumericSanitizer('login-doc', 10);
 
 document.getElementById('btn-login').addEventListener('click', async ()=>{
-  if(__loginBusy) return; // evita múltiples clics
   const documento = (loginDoc.value||'').trim();
   if(documento === ''){
     Swal.fire({ icon:'question', title:'¿Deseas comenzar?', text:'Ingresa un Documento para validar.', timer:3000 });
@@ -791,11 +788,7 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     return;
   }
 
-  const btn = document.getElementById('btn-login');
   try{
-    __loginBusy = true;
-    if(btn){ btn.disabled = true; btn.setAttribute('aria-busy','true'); }
-
     const res = await apiGet('loginContratista', { documento });
     if(!res?.existe){
       await Swal.fire({
@@ -855,9 +848,6 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     }
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text:e.message });
-  }finally{
-    __loginBusy = false;
-    if(btn){ btn.disabled = false; btn.removeAttribute('aria-busy'); }
   }
 });
 
