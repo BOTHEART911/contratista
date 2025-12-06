@@ -628,7 +628,10 @@
 
 
     
-    <p class="helper">INFORME: <span id="ba-informe" class="chip">1</span> &nbsp; DE: <span id="ba-total" class="chip">0</span></p>
+    <p class="helper">INFORME: <span id="ba-informe" class="chip">1</span>
+  &nbsp; DE:
+  <input id="ba-total-input" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
+</p>
 
     <div id="ba-list" class="narrow"></div>
 
@@ -1151,11 +1154,11 @@ if (String(data.estado||'').toUpperCase() === 'DEVUELTA'){
 });
 
 function renderBorradorActividades(){
-  const badge = document.getElementById('ba-informe');
+ const badge = document.getElementById('ba-informe');
   if(badge) badge.textContent = String(BA_STATE.informe||1);
 
-  const tot = document.getElementById('ba-total');
-  if(tot) tot.textContent = String(BA_STATE.total||'');
+  const totInput = document.getElementById('ba-total-input');
+  if(totInput) totInput.value = BA_STATE.total ? String(BA_STATE.total) : '';
 
   const wrap = document.getElementById('ba-list');
   wrap.innerHTML = '';
@@ -1202,14 +1205,18 @@ document.getElementById('ba-guardar')?.addEventListener('click', async ()=>{
     const el = document.getElementById('ba-act-'+i);
     actividades.push((el && el.value) ? el.value.trim() : '');
   }
-  try{
+  
+  const totalInput = document.getElementById('ba-total-input');
+  const totalVal = totalInput ? totalInput.value : '';
+  
+try{
     await apiPost('saveBorradorActividades', {
-  documento: currentUser.documento,
-  nombre: BA_STATE.nombre || '',
-  informe: BA_STATE.informe || 1,
-  total: BA_STATE.total || '',
-  actividades
-});
+      documento: currentUser.documento,
+      nombre: BA_STATE.nombre || '',
+      informe: BA_STATE.informe || 1,
+      total: totalVal, // se guarda en columna E
+      actividades
+    });
     await Swal.fire({icon:'success', title:'Borrador guardado', timer:1800, showConfirmButton:false});
     showView('view-inicio');
   }catch(e){
