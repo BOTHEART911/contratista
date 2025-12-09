@@ -1504,6 +1504,12 @@ function monthNameDMY(dmy){
   const m = (String(dmy).split('/')[1]||'01'); const idx = Math.max(1,Math.min(12,parseInt(m,10))) - 1;
   return MESES_LIT[idx];
 }
+
+  function emptyIfZero(n){
+  const x = Number(String(n||'').replace(/\D/g,''))||0;
+  return x === 0 ? '' : String(x);
+}
+  
 function pad2(n){ return String(n).padStart(2,'0'); }
 
 /* Estado local */
@@ -1898,13 +1904,14 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     riesgos: String(numPure(document.getElementById('ic-riesgos').value)),
     solidario: String(solidario),
     aporte: aporte,
-    planilla2: String(numPure(document.getElementById('ic-planilla2').value||'')),
+    // Planilla anexa: enviar '' si el campo está vacío
+    planilla2: emptyIfZero(document.getElementById('ic-planilla2').value||''),
     mesPlanilla2: document.getElementById('ic-mesPlanilla2').value || '',
-    base2: String(base2||''),
-    salud2: String(numPure(document.getElementById('ic-salud2').value||'')),
-    fondo2: String(numPure(document.getElementById('ic-fondo2').value||'')),
-    riesgos2: String(numPure(document.getElementById('ic-riesgos2').value||'')),
-    solidario2: String(solidario2),
+    base2: emptyIfZero(document.getElementById('ic-base2').value||''),
+    salud2: emptyIfZero(document.getElementById('ic-salud2').value||''),
+    fondo2: emptyIfZero(document.getElementById('ic-fondo2').value||''),
+    riesgos2: emptyIfZero(document.getElementById('ic-riesgos2').value||''),
+    solidario2: emptyIfZero(document.getElementById('ic-solidario2').value||''),
     aporte2: aporte2,
     actividades,
     evidenciasData,
