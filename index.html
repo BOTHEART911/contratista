@@ -660,7 +660,7 @@
     <!-- Fechas: inicio/fin periodo y radicación -->
     <div class="narrow">
       <label>Inicio de Periodo Relacionado</label>
-      <input id="ic-inicio" type="text" placeholder="dd/mm/aaaa" readonly onclick="abrirPickerIC('inicio')" />
+      <input id="ic-inicio" type="text" placeholder="dd/mm/aaaa" readonly onclick="icAbrirInicio()" />
       <input id="ic-diaRat1" type="text" readonly style="display:none;">
       <input id="ic-mesRat1" type="text" readonly style="display:none;">
 
@@ -691,7 +691,7 @@
 </div>
 
       <label>Fin de Periodo Relacionado</label>
-      <input id="ic-fin" type="text" placeholder="dd/mm/aaaa" readonly onclick="abrirPickerIC('fin')" />
+      <input id="ic-fin" type="text" placeholder="dd/mm/aaaa" readonly onclick="icAbrirFin()" />
       <input id="ic-diaRat2" type="text" readonly style="display:none;">
       <input id="ic-mesRat2" type="text" readonly style="display:none;">
 
@@ -722,7 +722,7 @@
 </div>
 
       <label>Fecha de Radicación</label>
-      <input id="ic-radicado" type="text" placeholder="dd/mm/aaaa (hoy o próximos 2 días hábiles)" readonly onclick="abrirPickerRadicadoLimitado()" />
+      <input id="ic-radicado" type="text" placeholder="dd/mm/aaaa (hoy o próximos 2 días hábiles)" readonly onclick="icAbrirRadicado()" />
       <input id="ic-diaRad" type="text" readonly style="display:none;">
       <input id="ic-mesRad" type="text" readonly style="display:none;">
     </div>
