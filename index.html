@@ -1462,6 +1462,21 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     IC_STATE.contrato      = String(dCont?.contrato||'').trim();
     // IC_STATE.carpetaContratista se obtendrá en backend por seguridad; aquí lo dejamos vacío
 
+    const saldoPrev = await apiGet('getSaldoActualCuenta', { documento: currentUser.documento });
+const saldoEl = document.getElementById('ic-saldo');
+if(saldoEl){
+  if(String(saldoPrev||'').trim()){
+    // Poner el número puro (editable)
+    saldoEl.value = String(saldoPrev);
+    // Actualizar "Nuevo Saldo" visual si ya hay cobro digitado
+    const cobro = numPure(document.getElementById('ic-cobro').value||'');
+    document.getElementById('ic-nuevoSaldo').value = formatCOPView(numPure(saldoPrev) - cobro);
+  }else{
+    // Si no hay Q previa, dejar tu placeholder
+    saldoEl.placeholder = 'Primera cuenta: valor del contrato';
+  }
+}
+
     // Pintar vista
     renderIngresarCuenta();
     showView('view-ingresar-cuenta');
@@ -1581,17 +1596,57 @@ function renderIngresarCuenta(){
 
 /* Fechas: picker reutilizando tu base con targets distintos */
 let __icPickerTarget = null; // 'inicio'|'fin'
+
+// Garantiza que el modal de Cumple tenga opciones (si aún no están cargadas)
+function ensureCumpleModalOptions(){
+  const dSel = document.getElementById('cumpleDia');
+  const mSel = document.getElementById('cumpleMes');
+  const aSel = document.getElementById('cumpleAnio');
+
+  if (dSel && !dSel.childElementCount){
+    for(let d=1; d<=31; d++){
+      const opt=document.createElement('option');
+      opt.value=String(d).padStart(2,'0');
+      opt.textContent=opt.value;
+      dSel.appendChild(opt);
+    }
+  }
+  if (mSel && !mSel.childElementCount){
+    const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    for(let i=0;i<12;i++){
+      const opt=document.createElement('option');
+      opt.value=String(i+1).padStart(2,'0');
+      opt.textContent=mesesNombres[i];
+      mSel.appendChild(opt);
+    }
+  }
+  if (aSel && !aSel.childElementCount){
+    // Rango amplio para periodos (ajústalo si deseas)
+    for(let y=1936;y<=2035;y++){
+      const opt=document.createElement('option');
+      opt.value=String(y);
+      opt.textContent=String(y);
+      aSel.appendChild(opt);
+    }
+  }
+}
+
 function abrirPickerIC(target){
   __icPickerTarget = target;
-  // Reutiliza el modal 'cumpleModal' existente para base (o crea uno paralelo si prefieres).
-  abrirPickerCumple(); // abre modal general
+  ensureCumpleModalOptions();
+  // Abre el modal de "cumple" que ya tienes
+  const m=document.getElementById('cumpleModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
-function confirmarPickerCumple(){ // extendemos para llenar ic-inicio/ic-fin también
+
+// SUSTITUIR TU confirmarPickerCumple por esta versión (respeta tu comportamiento original)
+function confirmarPickerCumple(){
   const dSel=document.getElementById('cumpleDia')?.value||'01';
   const mSel=document.getElementById('cumpleMes')?.value||'01';
   const aSel=document.getElementById('cumpleAnio')?.value||'2000';
   const val = `${dSel}/${mSel}/${aSel}`;
 
+  // Si estamos llenando Inicio/Fin de Periodo (vista INGRESAR CUENTA)
   if(__icPickerTarget==='inicio'){
     const el = document.getElementById('ic-inicio'); if(el) el.value = val;
     document.getElementById('ic-diaRat1').value = pad2(parseInt(dSel,10));
@@ -1601,14 +1656,14 @@ function confirmarPickerCumple(){ // extendemos para llenar ic-inicio/ic-fin tam
     document.getElementById('ic-diaRat2').value = pad2(parseInt(dSel,10));
     document.getElementById('ic-mesRat2').value = monthNameDMY(val);
   }else{
-    // comportamiento original de registro/personales
+    // Comportamiento original de REGISTRO/PERSONALES
     __cumpleISO = val;
     const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
     const p  = document.getElementById('p-cumple');    if(p)  p.value = val;
   }
   cancelarPickerCumple();
 }
-
+  
 /* Fecha de Radicación: modal limitado (hoy y siguientes 2 días hábiles; fin de semana/festivos 2026) */
 const FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026']);
 function esHabil(d){ // d = Date
@@ -1624,20 +1679,23 @@ function esHabil(d){ // d = Date
   return true;
 }
 function abrirPickerRadicadoLimitado(){
-  // Abrimos el mismo modal 'contratoFechaModal' pero llenamos opciones de días limitadas.
   const m = document.getElementById('contratoFechaModal');
-  if(!m) return;
   const dSel = document.getElementById('contratoDia');
   const mSel = document.getElementById('contratoMes');
   const aSel = document.getElementById('contratoAnio');
-  if(!dSel || !mSel || !aSel) return;
+  if(!m || !dSel || !mSel || !aSel) return;
 
-  // Limpiar días
+  // Limpiar y recomponer selects
   dSel.innerHTML = '';
+  mSel.innerHTML = '';
+  aSel.innerHTML = '';
+
   const hoy = new Date();
   const opciones = [];
   let count = 0;
   let cursor = new Date(hoy);
+
+  // Junta hoy + 2 próximos días hábiles (regla especial para diciembre/festivos 2026)
   while(count<3){
     if(esHabil(cursor)){
       opciones.push(new Date(cursor));
@@ -1645,17 +1703,23 @@ function abrirPickerRadicadoLimitado(){
     }
     cursor.setDate(cursor.getDate()+1);
   }
-  // Cargar mes/año de la primera opción
+
+  // Configura Mes/Año según la primera opción
   const d0 = opciones[0];
   const anio = String(d0.getFullYear());
   const mesIdx = d0.getMonth(); // 0..11
-  mSel.innerHTML = '';
   const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  // Fijamos el mes actual
-  const optM = document.createElement('option'); optM.value = pad2(mesIdx+1); optM.textContent = mesesNombres[mesIdx]; mSel.appendChild(optM);
-  aSel.innerHTML = ''; const optY = document.createElement('option'); optY.value = anio; optY.textContent = anio; aSel.appendChild(optY);
+  const optM = document.createElement('option');
+  optM.value = pad2(mesIdx+1);
+  optM.textContent = mesesNombres[mesIdx];
+  mSel.appendChild(optM);
 
-  // Cargar días habilitados
+  const optY = document.createElement('option');
+  optY.value = anio;
+  optY.textContent = anio;
+  aSel.appendChild(optY);
+
+  // Días habilitados
   opciones.forEach(d=>{
     const opt = document.createElement('option');
     opt.value = pad2(d.getDate());
@@ -1663,9 +1727,8 @@ function abrirPickerRadicadoLimitado(){
     dSel.appendChild(opt);
   });
 
+  // Abrir modal y configurar target
   m.style.display='flex'; m.setAttribute('aria-hidden','false');
-
-  // Confirmar: reutilizamos confirmarPickerContrato pero detectamos target radicado
   __pickerContratoTarget = 'radicado';
 }
 function confirmarPickerContrato(){
