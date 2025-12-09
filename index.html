@@ -1433,8 +1433,8 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     Swal.fire({icon:'warning',title:'Sesión inválida'}); return;
   }
   try{
-    // Consolidar datos en UNA sola llamada optimizada
-    const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento });
+    // Reutiliza backend de borrador para decidir flujo (D+1, BORRADOR, bloqueos)
+    const base = await apiGet('getBorradorActividades', { documento: currentUser.documento });
 
     // Bloqueos por BJ
     const bj = String(base.estado||'').toUpperCase();
@@ -1447,7 +1447,12 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
       showView('view-inicio'); return;
     }
 
-    // Estado local desde base
+    // Necesitamos contrato (col T) y carpetaContratista (col G) del contratista
+    const dPers = await apiGet('getDatosPersonales', { documento: currentUser.documento });
+    const dCont = await apiGet('getDatosContrato', { documento: currentUser.documento });
+    // Nota: getDatosContrato devuelve 'contrato' (col T) y no carpetaContratista; la carpetaContratista se lee mejor vía getInicio (devuelve firmaId, no carpeta)
+    // Usamos un pequeño fetch directo de CONTRATISTAS necesario en backend saveNuevaCuenta; en frontend guardamos placeholders si faltan.
+
     IC_STATE.informe       = Number(base.informe||1);
     IC_STATE.total         = String(base.total||'');
     IC_STATE.saldoQ        = String(base.saldoQ||'');
@@ -1455,8 +1460,23 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     IC_STATE.actividades   = Array.isArray(base.actividades) ? base.actividades : [];
     IC_STATE.cuentaExiste  = !!base.cuentaExiste;
     IC_STATE.nextMode      = !!base.nextMode;
-    IC_STATE.contrato      = String(base.contrato||'').trim();
-    IC_STATE.carpetaContratista = String(base.carpetaContratista||'').trim();
+    IC_STATE.contrato      = String(dCont?.contrato||'').trim();
+    // IC_STATE.carpetaContratista se obtendrá en backend por seguridad; aquí lo dejamos vacío
+
+    const saldoPrev = await apiGet('getSaldoActualCuenta', { documento: currentUser.documento });
+const saldoEl = document.getElementById('ic-saldo');
+if(saldoEl){
+  if(String(saldoPrev||'').trim()){
+    // Poner el número puro (editable)
+    saldoEl.value = String(saldoPrev);
+    // Actualizar "Nuevo Saldo" visual si ya hay cobro digitado
+    const cobro = numPure(document.getElementById('ic-cobro').value||'');
+    document.getElementById('ic-nuevoSaldo').value = formatCOPView(numPure(saldoPrev) - cobro);
+  }else{
+    // Si no hay Q previa, dejar tu placeholder
+    saldoEl.placeholder = 'Primera cuenta: valor del contrato';
+  }
+}
 
     // Pintar vista
     renderIngresarCuenta();
@@ -1464,6 +1484,7 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
   }catch(e){
     Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
   }
+});
 
 /* Render de la vista */
 function renderIngresarCuenta(){
@@ -1472,7 +1493,7 @@ function renderIngresarCuenta(){
   const tot = document.getElementById('ic-total'); if(tot) tot.value = IC_STATE.total||'';
 
   // Precargar SALDO ACTUAL con Q (editable)
-   const saldoEl = document.getElementById('ic-saldo');
+  const saldoEl = document.getElementById('ic-saldo');
   if(saldoEl){
     saldoEl.value = IC_STATE.saldoQ || '';
   }
