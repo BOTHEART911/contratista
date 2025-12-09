@@ -318,6 +318,7 @@
         <button class="menu-btn" id="go-personales">DATOS PERSONALES</button>
         <button class="menu-btn" id="go-comunicados">COMUNICADOS</button>
         <button class="menu-btn" id="go-borrador">BORRADOR ACTIVIDADES</button>
+        <button class="menu-btn" id="go-ingresar-cuenta">INGRESAR CUENTA</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -638,6 +639,114 @@
     <div class="btn-row spaced">
       <button id="ba-guardar" class="btn-primary">Guardar</button>
       <button id="ba-volver" class="danger">Regresar</button>
+    </div>
+  </div>
+</section>
+
+    <!-- Vista INGRESAR CUENTA -->
+
+    <section id="view-ingresar-cuenta" class="view">
+  <div class="card narrow">
+    <h2 style="color:var(--primary)">CREACIÓN DE CUENTA</h2>
+    <h3 class="center" style="margin-top:6px;color:#333;">RELACIÓN DE PAGO</h3>
+
+    <p class="helper">
+      INFORME:
+      <span id="ic-informe" class="chip">1</span>
+      &nbsp; DE:
+      <input id="ic-total" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
+    </p>
+
+    <!-- Fechas: inicio/fin periodo y radicación -->
+    <div class="narrow">
+      <label>Inicio de Periodo Relacionado</label>
+      <input id="ic-inicio" type="text" placeholder="dd/mm/aaaa" readonly onclick="abrirPickerIC('inicio')" />
+      <input id="ic-diaRat1" type="text" readonly style="display:none;">
+      <input id="ic-mesRat1" type="text" readonly style="display:none;">
+
+      <label>Fin de Periodo Relacionado</label>
+      <input id="ic-fin" type="text" placeholder="dd/mm/aaaa" readonly onclick="abrirPickerIC('fin')" />
+      <input id="ic-diaRat2" type="text" readonly style="display:none;">
+      <input id="ic-mesRat2" type="text" readonly style="display:none;">
+
+      <label>Fecha de Radicación</label>
+      <input id="ic-radicado" type="text" placeholder="dd/mm/aaaa (hoy o próximos 2 días hábiles)" readonly onclick="abrirPickerRadicadoLimitado()" />
+      <input id="ic-diaRad" type="text" readonly style="display:none;">
+      <input id="ic-mesRad" type="text" readonly style="display:none;">
+    </div>
+
+    <h3 class="center" style="margin-top:12px;color:#333;">RELACIÓN DE PAGO</h3>
+
+    <div class="narrow">
+      <label>Saldo Actual</label>
+      <input id="ic-saldo" type="tel" inputmode="numeric" placeholder="Primera cuenta: valor del contrato">
+
+      <label>Valor por Cobrar</label>
+      <input id="ic-cobro" type="tel" inputmode="numeric" placeholder="Ingresa el valor de este periodo">
+
+      <label>Nuevo Saldo</label>
+      <input id="ic-nuevoSaldo" type="text" readonly placeholder="$ 0" />
+
+      <label>N° de Planilla</label>
+      <input id="ic-planilla" type="tel" inputmode="numeric" placeholder="Planilla ya pagada">
+
+      <label>Mes Relacionado en la Planilla</label>
+      <select id="ic-mesPlanilla"></select>
+
+      <label>Base de Cotización</label>
+      <input id="ic-base" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
+
+      <label>Aportes a Salud</label>
+      <input id="ic-salud" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
+
+      <label>Aportes a Pensión</label>
+      <input id="ic-fondo" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
+
+      <label>Aportes a ARL</label>
+      <input id="ic-riesgos" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
+
+      <input id="ic-solidario" type="text" readonly style="display:none;">
+      <input id="ic-aporte" type="text" readonly style="display:none;">
+    </div>
+
+    <div class="center" style="margin-top:10px;">
+      <button id="btn-planilla2-show" class="chip">Relacionar Planilla Anexa</button>
+    </div>
+
+    <div id="ic-planilla2-wrap" class="narrow hidden" style="margin-top:8px;">
+      <h3 class="center" style="margin-top:6px;color:#333;">RELACIÓN DE PAGO PLANILLA ANEXA</h3>
+      <label>N° de Planilla Anexa</label>
+      <input id="ic-planilla2" type="tel" inputmode="numeric" placeholder="Planilla ya pagada (opcional)">
+
+      <label>Mes Relacionado en la Planilla Anexa</label>
+      <select id="ic-mesPlanilla2"></select>
+
+      <label>Base de Cotización (Anexa)</label>
+      <input id="ic-base2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+
+      <label>Aportes a Salud (Anexa)</label>
+      <input id="ic-salud2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+
+      <label>Aportes a Pensión (Anexa)</label>
+      <input id="ic-fondo2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+
+      <label>Aportes a ARL (Anexa)</label>
+      <input id="ic-riesgos2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+
+      <input id="ic-solidario2" type="text" readonly style="display:none;">
+      <input id="ic-aporte2" type="text" readonly style="display:none;">
+
+      <div class="center" style="margin-top:8px;">
+        <button id="btn-planilla2-hide" class="chip danger">Ocultar Planilla Anexa</button>
+      </div>
+    </div>
+
+    <h3 class="center" style="margin-top:12px;color:#333;">RELACIÓN DE ACTIVIDADES</h3>
+    <div id="ic-oblig-wrap" class="narrow"></div>
+
+    <div class="btn-row spaced">
+      <button id="ic-guardar" class="btn-primary">Guardar</button>
+      <button id="ic-volver" class="danger">Regresar</button>
     </div>
   </div>
 </section>
@@ -1284,6 +1393,459 @@ function bindQuery(inputId, datalistId){
     }, 5); // debounce corto
   });
 }
+
+    /* ================== INGRESAR CUENTA ================== */
+
+  /* Constantes y helpers */
+const IC_SOLIDARIO_UMBRAL = 5694000;
+const MESES_LIT = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+function formatCOPView(n){
+  const x = Number(String(n).replace(/\D/g,''))||0;
+  return '$ ' + x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+function numPure(s){ return Number(String(s||'').replace(/\D/g,''))||0; }
+function monthNameDMY(dmy){
+  const m = (String(dmy).split('/')[1]||'01'); const idx = Math.max(1,Math.min(12,parseInt(m,10))) - 1;
+  return MESES_LIT[idx];
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+/* Estado local */
+let IC_STATE = {
+  informe: 1,
+  total: '',
+  obligaciones: [],
+  actividades: [],
+  evidFiles: [],   // FileList por obligación (máx 1 por obligación)
+  cuentaExiste: false,
+  nextMode: false,
+  contrato: '',       // oculto desde CONTRATISTAS col T
+  carpetaContratista: '', // oculto desde CONTRATISTAS col G
+  rowTarget: null,    // si BORRADOR, fila existente
+};
+
+/* Botón menú: INGRESAR CUENTA (con sonido y navegación) */
+document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({icon:'warning',title:'Sesión inválida'}); return;
+  }
+  try{
+    // Reutiliza backend de borrador para decidir flujo (D+1, BORRADOR, bloqueos)
+    const base = await apiGet('getBorradorActividades', { documento: currentUser.documento });
+
+    // Bloqueos por BJ
+    const bj = String(base.estado||'').toUpperCase();
+    if (bj==='DEVUELTA' || bj==='INGRESADA'){
+      await Swal.fire({icon:'info',title:'OPCIÓN NO VÁLIDA POR AHORA',text:'Toma la opción CORREGIR CUENTA',timer:5000,showConfirmButton:false});
+      showView('view-inicio'); return;
+    }
+    if (bj==='REVISADA POR SUPERVISOR'){
+      await Swal.fire({icon:'info',title:'DEBES ESPERAR UN POCO MÁS',text:'La oficina de Contratación no ha Aprobado tu anterior cuenta',timer:5000,showConfirmButton:false});
+      showView('view-inicio'); return;
+    }
+
+    // Necesitamos contrato (col T) y carpetaContratista (col G) del contratista
+    const dPers = await apiGet('getDatosPersonales', { documento: currentUser.documento });
+    const dCont = await apiGet('getDatosContrato', { documento: currentUser.documento });
+    // Nota: getDatosContrato devuelve 'contrato' (col T) y no carpetaContratista; la carpetaContratista se lee mejor vía getInicio (devuelve firmaId, no carpeta)
+    // Usamos un pequeño fetch directo de CONTRATISTAS necesario en backend saveNuevaCuenta; en frontend guardamos placeholders si faltan.
+
+    IC_STATE.informe       = Number(base.informe||1);
+    IC_STATE.total         = String(base.total||'');
+    IC_STATE.obligaciones  = Array.isArray(base.obligaciones) ? base.obligaciones : [];
+    IC_STATE.actividades   = Array.isArray(base.actividades) ? base.actividades : [];
+    IC_STATE.cuentaExiste  = !!base.cuentaExiste;
+    IC_STATE.nextMode      = !!base.nextMode;
+    IC_STATE.contrato      = String(dCont?.contrato||'').trim();
+    // IC_STATE.carpetaContratista se obtendrá en backend por seguridad; aquí lo dejamos vacío
+
+    // Pintar vista
+    renderIngresarCuenta();
+    showView('view-ingresar-cuenta');
+  }catch(e){
+    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
+  }
+});
+
+/* Render de la vista */
+function renderIngresarCuenta(){
+  // Informe y total
+  document.getElementById('ic-informe').textContent = String(IC_STATE.informe||1);
+  const tot = document.getElementById('ic-total'); if(tot) tot.value = IC_STATE.total||'';
+
+  // Meses select
+  const sel1 = document.getElementById('ic-mesPlanilla'); const sel2 = document.getElementById('ic-mesPlanilla2');
+  if(sel1) sel1.innerHTML = '<option value="" disabled selected>Selecciona</option>' + MESES_LIT.map(m=>`<option>${m}</option>`).join('');
+  if(sel2) sel2.innerHTML = '<option value="" disabled selected>Selecciona</option>' + MESES_LIT.map(m=>`<option>${m}</option>`).join('');
+
+  // Planilla anexa toggle
+  document.getElementById('btn-planilla2-show')?.addEventListener('click', ()=>{
+    document.getElementById('ic-planilla2-wrap')?.classList.remove('hidden');
+  });
+  document.getElementById('btn-planilla2-hide')?.addEventListener('click', ()=>{
+    document.getElementById('ic-planilla2-wrap')?.classList.add('hidden');
+  });
+
+  // Nuevo saldo dinámico + solidario/aporte
+  const recompute = ()=>{
+    const saldo = numPure(document.getElementById('ic-saldo').value);
+    const cobro = numPure(document.getElementById('ic-cobro').value);
+    document.getElementById('ic-nuevoSaldo').value = formatCOPView(saldo - cobro);
+
+    const base = numPure(document.getElementById('ic-base').value);
+    if(base >= IC_SOLIDARIO_UMBRAL){
+      document.getElementById('ic-solidario').value = String(Math.round(base * 0.01));
+      document.getElementById('ic-aporte').value = 'COL PENSIONES';
+    }else{
+      document.getElementById('ic-solidario').value = '0';
+      document.getElementById('ic-aporte').value = '-';
+    }
+
+    const base2 = numPure(document.getElementById('ic-base2').value);
+    if(base2 >= IC_SOLIDARIO_UMBRAL){
+      document.getElementById('ic-solidario2').value = String(Math.round(base2 * 0.01));
+      document.getElementById('ic-aporte2').value = 'COL PENSIONES';
+    }else{
+      document.getElementById('ic-solidario2').value = '0';
+      document.getElementById('ic-aporte2').value = '-';
+    }
+  };
+  ['ic-saldo','ic-cobro','ic-base','ic-base2'].forEach(id=>{
+    const el = document.getElementById(id); if(el){ el.addEventListener('input', recompute); }
+  });
+
+  // Obligaciones + Actividades + Evidencias
+  const wrap = document.getElementById('ic-oblig-wrap');
+  wrap.innerHTML = '';
+  const n = Math.max(1, IC_STATE.obligaciones.length);
+  IC_STATE.evidFiles = new Array(n).fill(null);
+
+  for(let i=0;i<n && i<26;i++){
+    const idx = i + 1;
+    const oblig = IC_STATE.obligaciones[i] || '-';
+    const actVal = (IC_STATE.actividades && IC_STATE.actividades[i]) ? IC_STATE.actividades[i] : '';
+
+    const block = document.createElement('div');
+    block.className = 'oblig-block';
+
+    const p = document.createElement('p');
+    p.innerHTML = `<b>Obligación ${idx}:</b> ${oblig}`;
+    const lab = document.createElement('label');
+    lab.textContent = 'Actividades por Obligación ' + idx + ':';
+
+    const ta = document.createElement('textarea');
+    ta.id = 'ic-act-' + idx;
+    ta.rows = 4;
+    ta.placeholder = 'Describe la(s) actividad(es) que quieres guardar, recuerda todo el esquema explicado en la parte superior.';
+    ta.value = actVal;
+
+    const labE = document.createElement('label');
+    labE.textContent = 'Evidencia Actividades ' + idx + ' (opcional)';
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*';
+    inp.id = 'ic-evi-' + idx;
+
+    const prev = document.createElement('img');
+    prev.id = 'ic-evi-prev-' + idx;
+    prev.style.display = 'none';
+    prev.style.maxWidth = '100%';
+    prev.style.borderRadius = '10px';
+    prev.style.border = '1.5px solid #d8e4ff';
+    prev.style.marginTop = '8px';
+
+    inp.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      IC_STATE.evidFiles[i] = file || null;
+      if(file){
+        const reader = new FileReader();
+        reader.onload = ev => { prev.src = ev.target.result; prev.style.display='block'; };
+        reader.readAsDataURL(file);
+      }else{
+        prev.src=''; prev.style.display='none';
+      }
+    });
+
+    block.appendChild(p);
+    block.appendChild(lab);
+    block.appendChild(ta);
+    block.appendChild(labE);
+    block.appendChild(inp);
+    block.appendChild(prev);
+    wrap.appendChild(block);
+  }
+}
+
+/* Fechas: picker reutilizando tu base con targets distintos */
+let __icPickerTarget = null; // 'inicio'|'fin'
+function abrirPickerIC(target){
+  __icPickerTarget = target;
+  // Reutiliza el modal 'cumpleModal' existente para base (o crea uno paralelo si prefieres).
+  abrirPickerCumple(); // abre modal general
+}
+function confirmarPickerCumple(){ // extendemos para llenar ic-inicio/ic-fin también
+  const dSel=document.getElementById('cumpleDia')?.value||'01';
+  const mSel=document.getElementById('cumpleMes')?.value||'01';
+  const aSel=document.getElementById('cumpleAnio')?.value||'2000';
+  const val = `${dSel}/${mSel}/${aSel}`;
+
+  if(__icPickerTarget==='inicio'){
+    const el = document.getElementById('ic-inicio'); if(el) el.value = val;
+    document.getElementById('ic-diaRat1').value = pad2(parseInt(dSel,10));
+    document.getElementById('ic-mesRat1').value = monthNameDMY(val);
+  }else if(__icPickerTarget==='fin'){
+    const el = document.getElementById('ic-fin'); if(el) el.value = val;
+    document.getElementById('ic-diaRat2').value = pad2(parseInt(dSel,10));
+    document.getElementById('ic-mesRat2').value = monthNameDMY(val);
+  }else{
+    // comportamiento original de registro/personales
+    __cumpleISO = val;
+    const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
+    const p  = document.getElementById('p-cumple');    if(p)  p.value = val;
+  }
+  cancelarPickerCumple();
+}
+
+/* Fecha de Radicación: modal limitado (hoy y siguientes 2 días hábiles; fin de semana/festivos 2026) */
+const FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026']);
+function esHabil(d){ // d = Date
+  const dd = pad2(d.getDate()), mm = pad2(d.getMonth()+1), yy = d.getFullYear();
+  const key = `${dd}/${mm}/${yy}`;
+  const dow = d.getDay(); // 0=Domingo, 6=Sábado
+  // Diciembre: todos los días habilitados excepto feriados (según tu regla especial)
+  if (mm==='12'){
+    return !FERIADOS_2026.has(key);
+  }
+  if(dow===0 || dow===6) return false;
+  if(FERIADOS_2026.has(key)) return false;
+  return true;
+}
+function abrirPickerRadicadoLimitado(){
+  // Abrimos el mismo modal 'contratoFechaModal' pero llenamos opciones de días limitadas.
+  const m = document.getElementById('contratoFechaModal');
+  if(!m) return;
+  const dSel = document.getElementById('contratoDia');
+  const mSel = document.getElementById('contratoMes');
+  const aSel = document.getElementById('contratoAnio');
+  if(!dSel || !mSel || !aSel) return;
+
+  // Limpiar días
+  dSel.innerHTML = '';
+  const hoy = new Date();
+  const opciones = [];
+  let count = 0;
+  let cursor = new Date(hoy);
+  while(count<3){
+    if(esHabil(cursor)){
+      opciones.push(new Date(cursor));
+      count++;
+    }
+    cursor.setDate(cursor.getDate()+1);
+  }
+  // Cargar mes/año de la primera opción
+  const d0 = opciones[0];
+  const anio = String(d0.getFullYear());
+  const mesIdx = d0.getMonth(); // 0..11
+  mSel.innerHTML = '';
+  const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  // Fijamos el mes actual
+  const optM = document.createElement('option'); optM.value = pad2(mesIdx+1); optM.textContent = mesesNombres[mesIdx]; mSel.appendChild(optM);
+  aSel.innerHTML = ''; const optY = document.createElement('option'); optY.value = anio; optY.textContent = anio; aSel.appendChild(optY);
+
+  // Cargar días habilitados
+  opciones.forEach(d=>{
+    const opt = document.createElement('option');
+    opt.value = pad2(d.getDate());
+    opt.textContent = pad2(d.getDate());
+    dSel.appendChild(opt);
+  });
+
+  m.style.display='flex'; m.setAttribute('aria-hidden','false');
+
+  // Confirmar: reutilizamos confirmarPickerContrato pero detectamos target radicado
+  __pickerContratoTarget = 'radicado';
+}
+function confirmarPickerContrato(){
+  const dSel=document.getElementById('contratoDia')?.value||'01';
+  const mSel=document.getElementById('contratoMes')?.value||'01';
+  const anio=document.getElementById('contratoAnio')?.value||'2026';
+  const val = `${dSel}/${mSel}/${anio}`;
+  const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const idx=Math.max(1,Math.min(12,parseInt(mSel,10)))-1;
+  const mesNombre = mesesNombres[idx];
+
+  if(__pickerContratoTarget==='inicio'){
+    document.getElementById('c-fechaInicio').value = val;
+    document.getElementById('c-diaInicio').value   = dSel;
+    document.getElementById('c-mesInicio').value   = mesNombre;
+    __fechaInicioISO = val;
+  }else if(__pickerContratoTarget==='termino'){
+    document.getElementById('c-fechaTermino').value = val;
+    document.getElementById('c-diaTermino').value   = dSel;
+    document.getElementById('c-mesTermino').value   = mesNombre;
+    __fechaTerminoISO = val;
+  }else if(__pickerContratoTarget==='radicado'){
+    const el = document.getElementById('ic-radicado'); if(el) el.value = val;
+    document.getElementById('ic-diaRad').value = pad2(parseInt(dSel,10));
+    document.getElementById('ic-mesRad').value = mesNombre.toUpperCase();
+  }
+  cancelarPickerContrato();
+}
+
+/* Volver con sonido */
+document.getElementById('ic-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
+/* Guardar con resumen + backend saveNuevaCuenta + generación de documentos */
+document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
+  if(!currentUser){ Swal.fire({icon:'warning',title:'Sesión inválida'}); return; }
+
+  // Validaciones mínimas requeridas
+  const required = {
+    inicio: document.getElementById('ic-inicio').value,
+    fin: document.getElementById('ic-fin').value,
+    radicado: document.getElementById('ic-radicado').value,
+    saldo: document.getElementById('ic-saldo').value,
+    cobro: document.getElementById('ic-cobro').value,
+    planilla: document.getElementById('ic-planilla').value,
+    mesPlanilla: document.getElementById('ic-mesPlanilla').value,
+    base: document.getElementById('ic-base').value,
+    salud: document.getElementById('ic-salud').value,
+    fondo: document.getElementById('ic-fondo').value,
+    riesgos: document.getElementById('ic-riesgos').value
+  };
+  if(Object.values(required).some(v=>!String(v||'').trim())){
+    Swal.fire({icon:'warning',title:'Faltan campos requeridos'}); return;
+  }
+
+  // Colectar actividades
+  const n = Math.max(1, IC_STATE.obligaciones.length);
+  const actividades = [];
+  for(let i=1;i<=Math.min(26,n);i++){
+    const el = document.getElementById('ic-act-'+i);
+    actividades.push((el && el.value) ? el.value.trim() : '');
+  }
+
+  // Evidencias: convertir a dataURL para enviar (1 por obligación)
+  const evidenciasData = [];
+  for(let i=0;i<Math.min(26,n);i++){
+    const f = IC_STATE.evidFiles[i];
+    if(!f){ evidenciasData.push(''); continue; }
+    evidenciasData.push(await new Promise((resolve)=>{
+      const r = new FileReader();
+      r.onload = ev => resolve(ev.target.result);
+      r.readAsDataURL(f);
+    }));
+  }
+
+  // Cálculos puros
+  const saldo = numPure(required.saldo);
+  const cobro = numPure(required.cobro);
+  const nuevoSaldo = saldo - cobro;
+  const base = numPure(required.base);
+  const solidario = base>=IC_SOLIDARIO_UMBRAL ? Math.round(base*0.01) : 0;
+  const aporte = base>=IC_SOLIDARIO_UMBRAL ? 'COL PENSIONES' : '-';
+
+  const base2 = numPure(document.getElementById('ic-base2').value||'');
+  const solidario2 = base2>=IC_SOLIDARIO_UMBRAL ? Math.round(base2*0.01) : 0;
+  const aporte2 = base2>=IC_SOLIDARIO_UMBRAL ? 'COL PENSIONES' : '-';
+
+  const body = {
+    documento: currentUser.documento,
+    nombre: '', // backend puede rellenar si hace falta
+    contrato: IC_STATE.contrato || '',
+    informe: IC_STATE.informe || 1,
+    total: String(document.getElementById('ic-total').value||''),
+    fechaRadicar: document.getElementById('ic-radicado').value,
+    diaRadicar: document.getElementById('ic-diaRad').value,
+    mesRadicar: document.getElementById('ic-mesRad').value,
+    inicioRatificar: document.getElementById('ic-inicio').value,
+    diaRatificar1: document.getElementById('ic-diaRat1').value,
+    mesRatificar1: document.getElementById('ic-mesRat1').value,
+    finRatificar: document.getElementById('ic-fin').value,
+    diaRatificar2: document.getElementById('ic-diaRat2').value,
+    mesRatificar2: document.getElementById('ic-mesRat2').value,
+    saldoActual: String(saldo),
+    cobro: String(cobro),
+    nuevoSaldo: String(nuevoSaldo),
+    planilla: String(numPure(document.getElementById('ic-planilla').value)),
+    mesPlanilla: document.getElementById('ic-mesPlanilla').value,
+    base: String(base),
+    salud: String(numPure(document.getElementById('ic-salud').value)),
+    fondo: String(numPure(document.getElementById('ic-fondo').value)),
+    riesgos: String(numPure(document.getElementById('ic-riesgos').value)),
+    solidario: String(solidario),
+    aporte: aporte,
+    planilla2: String(numPure(document.getElementById('ic-planilla2').value||'')),
+    mesPlanilla2: document.getElementById('ic-mesPlanilla2').value || '',
+    base2: String(base2||''),
+    salud2: String(numPure(document.getElementById('ic-salud2').value||'')),
+    fondo2: String(numPure(document.getElementById('ic-fondo2').value||'')),
+    riesgos2: String(numPure(document.getElementById('ic-riesgos2').value||'')),
+    solidario2: String(solidario2),
+    aporte2: aporte2,
+    actividades,
+    evidenciasData,
+    overwrite: !IC_STATE.nextMode && IC_STATE.cuentaExiste // si BORRADOR, sobrescribe
+  };
+
+  // Resumen visual
+  const resumen = [
+    `<b>Informe:</b> ${body.informe} de ${body.total}`,
+    `<b>Periodo:</b> ${body.inicioRatificar} — ${body.finRatificar}`,
+    `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`,
+    `<b>Saldo/Cobro/Nuevo:</b> ${formatCOPView(body.saldoActual)} / ${formatCOPView(body.cobro)} / ${formatCOPView(body.nuevoSaldo)}`,
+    `<b>Planilla:</b> ${body.planilla} (${body.mesPlanilla})`
+  ].join('<br>');
+
+  const rs = await Swal.fire({
+    icon:'info', title:'Resumen de Ingreso', html:resumen,
+    showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar', soundTag:'resumen'
+  });
+  if(!rs.isConfirmed) return;
+
+  try{
+    // Guardar
+    const r = await apiPost('saveNuevaCuenta', body);
+    if(r && r.success){
+      // Aviso mientras se generan documentos
+      playSoundOnce(SOUNDS.success);
+      await Swal.fire({
+        icon:'success',
+        title:'INFORMACIÓN INGRESADA CORRECTAMENTE',
+        text:'No salgas de la aplicación, se están creando tus documentos.',
+        timer:5000,
+        showConfirmButton:false
+      });
+
+      // Disparar generación de documentos
+      await apiPost('generarDocumentosCuenta', {
+        documento: currentUser.documento,
+        informe: body.informe
+      });
+
+      // Aviso de documentos creados
+      await Swal.fire({
+        icon:'success',
+        title:'DOCUMENTOS CREADOS',
+        text:'Para revisar si están correctos, toma la opción MI ÚLTIMA CUENTA DRIVE en el menú',
+        timer:6000,
+        showConfirmButton:false
+      });
+
+      showView('view-inicio');
+    }else{
+      Swal.fire({icon:'error',title:'Error al guardar',text:r?.message || 'Error desconocido'});
+    }
+  }catch(e){
+    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
+  }
+});
 
 /* ================== REGISTRO ================== */
 let regFirmaDataUrl = '';
