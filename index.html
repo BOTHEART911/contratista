@@ -1506,8 +1506,10 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
   overlay.classList.remove('open');
 
   if(!currentUser){
-    Swal.fire({icon:'warning',title:'Sesión inválida'}); return;
+    Swal.fire({icon:'warning',title:'Sesión inválida'}); 
+    return;
   }
+
   try{
     // Usa una sola llamada optimizada del backend (CONTRATISTAS + CUENTAS)
     const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento });
@@ -1516,26 +1518,28 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     const bj = String(base.estado||'').toUpperCase();
     if (bj==='DEVUELTA' || bj==='INGRESADA'){
       await Swal.fire({icon:'info',title:'OPCIÓN NO VÁLIDA POR AHORA',text:'Toma la opción CORREGIR CUENTA',timer:5000,showConfirmButton:false});
-      showView('view-inicio'); return;
+      showView('view-inicio'); 
+      return;
     }
     if (bj==='REVISADA POR SUPERVISOR'){
       await Swal.fire({icon:'info',title:'DEBES ESPERAR UN POCO MÁS',text:'La oficina de Contratación no ha Aprobado tu anterior cuenta',timer:5000,showConfirmButton:false});
-      showView('view-inicio'); return;
+      showView('view-inicio'); 
+      return;
     }
 
     // Cargar estado único
     IC_STATE.informe       = Number(base.informe||1);
     IC_STATE.total         = String(base.total||'');
-    IC_STATE.saldoQ        = String(base.saldoQ||''); // nuevo saldo previo Q
+    IC_STATE.saldoQ        = String(base.saldoQ||''); 
     IC_STATE.obligaciones  = Array.isArray(base.obligaciones) ? base.obligaciones : [];
     IC_STATE.actividades   = Array.isArray(base.actividades) ? base.actividades : [];
     IC_STATE.cuentaExiste  = !!base.cuentaExiste;
     IC_STATE.nextMode      = !!base.nextMode;
     IC_STATE.contrato      = String(base.contrato||'').trim();
-    // carpetaContratista la resuelve el backend en saveNuevaCuenta; no es necesario exponerla aquí
 
     // Pintar vista
     renderIngresarCuenta();
+
     // Precargar SALDO ACTUAL si viene
     const saldoEl = document.getElementById('ic-saldo');
     if(saldoEl){
@@ -1554,13 +1558,6 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
   }
 });
   
-    // Pintar vista
-    renderIngresarCuenta();
-    showView('view-ingresar-cuenta');
-  }catch(e){
-    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
-  }
-});
 
 /* Render de la vista */
 function renderIngresarCuenta(){
@@ -2612,6 +2609,107 @@ function confirmarPickerContrato(){
   calcularPlazo();
 }
 
+ function icPad2(n){ return String(n).padStart(2,'0'); }
+const icMesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// 1) Inicio (ruleta libre, año fijo 2026)
+(function icInitInicio(){
+  const d = document.getElementById('icInicioDia');
+  const m = document.getElementById('icInicioMes');
+  if (d && !d.childElementCount){
+    for(let i=1;i<=31;i++){ const o=document.createElement('option'); o.value=icPad2(i); o.textContent=o.value; d.appendChild(o); }
+  }
+  if (m && !m.childElementCount){
+    for(let i=0;i<12;i++){ const o=document.createElement('option'); o.value=icPad2(i+1); o.textContent=icMesesNombres[i]; m.appendChild(o); }
+  }
+})();
+function icAbrirInicio(){
+  const modal = document.getElementById('icInicioModal');
+  if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
+}
+function icCancelarInicio(){
+  const modal = document.getElementById('icInicioModal');
+  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+}
+function icConfirmarInicio(){
+  const dia = document.getElementById('icInicioDia')?.value || '01';
+  const mes = document.getElementById('icInicioMes')?.value || '01';
+  const anio = '2026';
+  const idx = Math.max(1,Math.min(12,parseInt(mes,10))) - 1;
+  const mesNombre = icMesesNombres[idx];
+  const input = document.getElementById('ic-inicio');
+  const dOut  = document.getElementById('ic-diaRat1');
+  const mOut  = document.getElementById('ic-mesRat1');
+  if(input) input.value = `${dia}/${mes}/${anio}`;
+  if(dOut) dOut.value = dia;
+  if(mOut) mOut.value = mesNombre;
+  icCancelarInicio();
+}
+
+// 2) Fin (ruleta libre, año fijo 2026)
+(function icInitFin(){
+  const d = document.getElementById('icFinDia');
+  const m = document.getElementById('icFinMes');
+  if (d && !d.childElementCount){
+    for(let i=1;i<=31;i++){ const o=document.createElement('option'); o.value=icPad2(i); o.textContent=o.value; d.appendChild(o); }
+  }
+  if (m && !m.childElementCount){
+    for(let i=0;i<12;i++){ const o=document.createElement('option'); o.value=icPad2(i+1); o.textContent=icMesesNombres[i]; m.appendChild(o); }
+  }
+})();
+function icAbrirFin(){
+  const modal = document.getElementById('icFinModal');
+  if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
+}
+function icCancelarFin(){
+  const modal = document.getElementById('icFinModal');
+  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+}
+function icConfirmarFin(){
+  const dia = document.getElementById('icFinDia')?.value || '01';
+  const mes = document.getElementById('icFinMes')?.value || '01';
+  const anio = '2026';
+  const idx = Math.max(1,Math.min(12,parseInt(mes,10))) - 1;
+  const mesNombre = icMesesNombres[idx];
+  const input = document.getElementById('ic-fin');
+  const dOut  = document.getElementById('ic-diaRat2');
+  const mOut  = document.getElementById('ic-mesRat2');
+  if(input) input.value = `${dia}/${mes}/${anio}`;
+  if(dOut) dOut.value = dia;
+  if(mOut) mOut.value = mesNombre;
+  icCancelarFin();
+}
+
+// 3) Radicado (hoy + 2 hábiles; feriados no hábiles, excepción diciembre habilita todos excepto feriados)
+const IC_FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026']);
+function icEsHabil(d){
+  const dd = icPad2(d.getDate()), mm = icPad2(d.getMonth()+1), yy = d.getFullYear();
+  const key = `${dd}/${mm}/${yy}`;
+  const dow = d.getDay(); // 0=Domingo, 6=Sábado
+  if (mm==='12'){ // diciembre: todos hábiles excepto feriados
+    return !IC_FERIADOS_2026.has(key);
+  }
+  if(dow===0 || dow===6) return false;
+  if(IC_FERIADOS_2026.has(key)) return false;
+  return true;
+}
+function icAbrirRadicado(){
+  const m = document.getElementById('icRadicadoModal');
+  const dSel = document.getElementById('icRadDia');
+  const mSel = document.getElementById('icRadMes');
+  const aSel = document.getElementById('icRadAnio');
+  if(!m || !dSel || !mSel || !aSel) return;
+
+  // Reset options
+  dSel.innerHTML = '';
+  mSel.innerHTML = '';
+  aSel.innerHTML = '';
+
+  const hoy = new Date();
+  const opciones = [];
+  let count = 0;
+  let cursor = new Date(hoy);
+
   while(count<3){
     if(icEsHabil(cursor)){
       opciones.push(new Date(cursor));
@@ -2641,7 +2739,8 @@ function confirmarPickerContrato(){
     dSel.appendChild(opt);
   });
 
-  m.style.display='flex'; m.setAttribute('aria-hidden','false');
+  m.style.display='flex'; 
+  m.setAttribute('aria-hidden','false');
 }
 function icCancelarRadicado(){
   const m=document.getElementById('icRadicadoModal');
@@ -2664,7 +2763,6 @@ function icConfirmarRadicado(){
   }
   icCancelarRadicado();
 }
-
 /* ================== FIN ================== */
 </script>
 </body>
