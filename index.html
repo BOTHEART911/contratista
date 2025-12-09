@@ -664,16 +664,92 @@
       <input id="ic-diaRat1" type="text" readonly style="display:none;">
       <input id="ic-mesRat1" type="text" readonly style="display:none;">
 
+      <div id="icInicioModal" class="picker-modal" aria-hidden="true">
+  <div class="picker-box">
+    <h3 style="margin:0 0 8px 0;">Selecciona Inicio del Periodo (2026)</h3>
+    <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+      <div>
+        <small>Día</small>
+        <select id="icInicioDia" size="10"></select>
+      </div>
+      <div>
+        <small>Mes</small>
+        <select id="icInicioMes" size="12"></select>
+      </div>
+      <div>
+        <small>Año</small>
+        <select id="icInicioAnio" size="3" disabled>
+          <option selected>2026</option>
+        </select>
+      </div>
+    </div>
+    <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+      <button type="button" class="btn btn-cancel" onclick="icCancelarInicio()">Cancelar</button>
+      <button type="button" class="btn btn-ok" onclick="icConfirmarInicio()">Ok</button>
+    </div>
+  </div>
+</div>
+
       <label>Fin de Periodo Relacionado</label>
       <input id="ic-fin" type="text" placeholder="dd/mm/aaaa" readonly onclick="abrirPickerIC('fin')" />
       <input id="ic-diaRat2" type="text" readonly style="display:none;">
       <input id="ic-mesRat2" type="text" readonly style="display:none;">
+
+      <div id="icFinModal" class="picker-modal" aria-hidden="true">
+  <div class="picker-box">
+    <h3 style="margin:0 0 8px 0;">Selecciona Fin del Periodo (2026)</h3>
+    <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+      <div>
+        <small>Día</small>
+        <select id="icFinDia" size="10"></select>
+      </div>
+      <div>
+        <small>Mes</small>
+        <select id="icFinMes" size="12"></select>
+      </div>
+      <div>
+        <small>Año</small>
+        <select id="icFinAnio" size="3" disabled>
+          <option selected>2026</option>
+        </select>
+      </div>
+    </div>
+    <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+      <button type="button" class="btn btn-cancel" onclick="icCancelarFin()">Cancelar</button>
+      <button type="button" class="btn btn-ok" onclick="icConfirmarFin()">Ok</button>
+    </div>
+  </div>
+</div>
 
       <label>Fecha de Radicación</label>
       <input id="ic-radicado" type="text" placeholder="dd/mm/aaaa (hoy o próximos 2 días hábiles)" readonly onclick="abrirPickerRadicadoLimitado()" />
       <input id="ic-diaRad" type="text" readonly style="display:none;">
       <input id="ic-mesRad" type="text" readonly style="display:none;">
     </div>
+
+    <div id="icRadicadoModal" class="picker-modal" aria-hidden="true">
+  <div class="picker-box">
+    <h3 style="margin:0 0 8px 0;">Selecciona Fecha de Radicación</h3>
+    <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+      <div>
+        <small>Día</small>
+        <select id="icRadDia" size="10"></select>
+      </div>
+      <div>
+        <small>Mes</small>
+        <select id="icRadMes" size="12" disabled></select>
+      </div>
+      <div>
+        <small>Año</small>
+        <select id="icRadAnio" size="3" disabled></select>
+      </div>
+    </div>
+    <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+      <button type="button" class="btn btn-cancel" onclick="icCancelarRadicado()">Cancelar</button>
+      <button type="button" class="btn btn-ok" onclick="icConfirmarRadicado()">Ok</button>
+    </div>
+  </div>
+</div>
 
     <h3 class="center" style="margin-top:12px;color:#333;">RELACIÓN DE PAGO</h3>
 
@@ -1424,7 +1500,7 @@ let IC_STATE = {
   rowTarget: null,    // si BORRADOR, fila existente
 };
 
-/* Botón menú: INGRESAR CUENTA (optimizado: usa 1 sola llamada GET) */
+/* Botón menú: INGRESAR CUENTA (con sonido y navegación) */
 document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
@@ -1433,10 +1509,10 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     Swal.fire({icon:'warning',title:'Sesión inválida'}); return;
   }
   try{
-    // 1 sola llamada optimizada del backend (CONTRATISTAS + CUENTAS)
+    // Usa una sola llamada optimizada del backend (CONTRATISTAS + CUENTAS)
     const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento });
 
-    // Bloqueos por estado BJ (sin afectar otras vistas)
+    // Bloqueos por estado BJ
     const bj = String(base.estado||'').toUpperCase();
     if (bj==='DEVUELTA' || bj==='INGRESADA'){
       await Swal.fire({icon:'info',title:'OPCIÓN NO VÁLIDA POR AHORA',text:'Toma la opción CORREGIR CUENTA',timer:5000,showConfirmButton:false});
@@ -1447,7 +1523,7 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
       showView('view-inicio'); return;
     }
 
-    // Cargar estado único para la vista INGRESAR CUENTA
+    // Cargar estado único
     IC_STATE.informe       = Number(base.informe||1);
     IC_STATE.total         = String(base.total||'');
     IC_STATE.saldoQ        = String(base.saldoQ||''); // nuevo saldo previo Q
@@ -1456,9 +1532,10 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     IC_STATE.cuentaExiste  = !!base.cuentaExiste;
     IC_STATE.nextMode      = !!base.nextMode;
     IC_STATE.contrato      = String(base.contrato||'').trim();
+    // carpetaContratista la resuelve el backend en saveNuevaCuenta; no es necesario exponerla aquí
 
+    // Pintar vista
     renderIngresarCuenta();
-
     // Precargar SALDO ACTUAL si viene
     const saldoEl = document.getElementById('ic-saldo');
     if(saldoEl){
@@ -1477,6 +1554,14 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
   }
 });
   
+    // Pintar vista
+    renderIngresarCuenta();
+    showView('view-ingresar-cuenta');
+  }catch(e){
+    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
+  }
+});
+
 /* Render de la vista */
 function renderIngresarCuenta(){
   // Informe y total
@@ -2481,87 +2566,103 @@ function cancelarPickerCumple(){
   if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
 }
 function confirmarPickerCumple(){
-  const dSel = document.getElementById('cumpleDia')?.value || '01';
-  const mSel = document.getElementById('cumpleMes')?.value || '01';
-  const aSel = document.getElementById('cumpleAnio')?.value || '2000';
+  const dSel=document.getElementById('cumpleDia')?.value||'01';
+  const mSel=document.getElementById('cumpleMes')?.value||'01';
+  const aSel=document.getElementById('cumpleAnio')?.value||'2000';
   const val = `${dSel}/${mSel}/${aSel}`;
-
-  // Detecta si es la ruleta de INGRESAR CUENTA (sin condiciones)
-  if (__icPickerTarget === 'inicio'){
-    // Inicio de Periodo Relacionado
-    const el = document.getElementById('ic-inicio');
-    if (el) el.value = val;
-    const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    const idx = Math.max(1,Math.min(12,parseInt(mSel,10))) - 1;
-    const mesNombre = mesesNombres[idx] || '';
-    const d1 = document.getElementById('ic-diaRat1');
-    const m1 = document.getElementById('ic-mesRat1');
-    if (d1) d1.value = dSel;
-    if (m1) m1.value = mesNombre;
-  } else if (__icPickerTarget === 'fin'){
-    // Fin de Periodo Relacionado
-    const el = document.getElementById('ic-fin');
-    if (el) el.value = val;
-    const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    const idx = Math.max(1,Math.min(12,parseInt(mSel,10))) - 1;
-    const mesNombre = mesesNombres[idx] || '';
-    const d2 = document.getElementById('ic-diaRat2');
-    const m2 = document.getElementById('ic-mesRat2');
-    if (d2) d2.value = dSel;
-    if (m2) m2.value = mesNombre;
-  } else {
-    // Flujo original para registro/personales
-    __cumpleISO = val;
-    const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
-    const p   = document.getElementById('p-cumple');   if(p)   p.value = val;
-  }
-
-  // Cerrar el modal de cumple
+  __cumpleISO = val;
+  const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
+  const p  = document.getElementById('p-cumple');    if(p)  p.value = val;
   cancelarPickerCumple();
-
-  // Importante: limpiar el target para no afectar otros modales
-  __icPickerTarget = null;
 }
-  
+// Contrato: año fijo 2026; reutilizable para inicio/termino
+(function(){ initPickerBase('contratoDia','contratoMes',null,[]); })();
+let __pickerContratoTarget = null; // 'inicio'|'termino'
+let __fechaInicioISO = ''; // dd/mm/2026
+let __fechaTerminoISO = '';
+function abrirPickerContrato(target){
+  __pickerContratoTarget = target;
+  const m=document.getElementById('contratoFechaModal');
+  if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
+}
 function cancelarPickerContrato(){
   const m=document.getElementById('contratoFechaModal');
   if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
 }
 function confirmarPickerContrato(){
-  const dSel = document.getElementById('contratoDia')?.value || '01';
-  const mSel = document.getElementById('contratoMes')?.value || '01';
-  const anio = document.getElementById('contratoAnio')?.value || '2026';
-
+  const dSel=document.getElementById('contratoDia')?.value||'01';
+  const mSel=document.getElementById('contratoMes')?.value||'01';
+  const anio='2026';
   const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const idx = Math.max(1,Math.min(12,parseInt(mSel,10))) - 1;
-  const mesNombre = mesesNombres[idx] || '';
+  const idx=Math.max(1,Math.min(12,parseInt(mSel,10)))-1;
+  const mesNombre = mesesNombres[idx];
 
-  if(__pickerContratoTarget === 'inicio'){
+  if(__pickerContratoTarget==='inicio'){
     document.getElementById('c-fechaInicio').value = `${dSel}/${mSel}/${anio}`;
     document.getElementById('c-diaInicio').value   = dSel;
     document.getElementById('c-mesInicio').value   = mesNombre;
     __fechaInicioISO = `${dSel}/${mSel}/${anio}`;
-  } else if(__pickerContratoTarget === 'termino'){
+  }else if(__pickerContratoTarget==='termino'){
     document.getElementById('c-fechaTermino').value = `${dSel}/${mSel}/${anio}`;
     document.getElementById('c-diaTermino').value   = dSel;
     document.getElementById('c-mesTermino').value   = mesNombre;
     __fechaTerminoISO = `${dSel}/${mSel}/${anio}`;
-  } else if(__pickerContratoTarget === 'radicado'){
-    // Fecha de Radicación para INGRESAR CUENTA (hoy o próximos 2 hábiles; excepción diciembre)
-    document.getElementById('ic-radicado').value = `${dSel}/${mSel}/${anio}`;
-    document.getElementById('ic-diaRad').value   = dSel;
-    document.getElementById('ic-mesRad').value   = mesNombre;
   }
-
   cancelarPickerContrato();
+  calcularPlazo();
+}
 
-  // Recalcular plazo del contrato solo si se tocó inicio/termino
-  if(__pickerContratoTarget === 'inicio' || __pickerContratoTarget === 'termino'){
-    calcularPlazo();
+  while(count<3){
+    if(icEsHabil(cursor)){
+      opciones.push(new Date(cursor));
+      count++;
+    }
+    cursor.setDate(cursor.getDate()+1);
   }
 
-  // Importante: limpiar el target para no afectar otros modales
-  __pickerContratoTarget = null;
+  const d0 = opciones[0];
+  const anio = String(d0.getFullYear());
+  const mesIdx = d0.getMonth();
+
+  const optM = document.createElement('option');
+  optM.value = icPad2(mesIdx+1);
+  optM.textContent = icMesesNombres[mesIdx];
+  mSel.appendChild(optM);
+
+  const optY = document.createElement('option');
+  optY.value = anio;
+  optY.textContent = anio;
+  aSel.appendChild(optY);
+
+  opciones.forEach(d=>{
+    const opt = document.createElement('option');
+    opt.value = icPad2(d.getDate());
+    opt.textContent = icPad2(d.getDate());
+    dSel.appendChild(opt);
+  });
+
+  m.style.display='flex'; m.setAttribute('aria-hidden','false');
+}
+function icCancelarRadicado(){
+  const m=document.getElementById('icRadicadoModal');
+  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
+}
+function icConfirmarRadicado(){
+  const dia = document.getElementById('icRadDia')?.value || '';
+  const mes = document.getElementById('icRadMes')?.value || '';
+  const anio = document.getElementById('icRadAnio')?.value || '';
+  const idx = Math.max(1,Math.min(12,parseInt(mes||'1',10))) - 1;
+  const mesNombre = icMesesNombres[idx] || '';
+
+  const input = document.getElementById('ic-radicado');
+  const dOut  = document.getElementById('ic-diaRad');
+  const mOut  = document.getElementById('ic-mesRad');
+  if(input && dia && mes && anio){
+    input.value = `${dia}/${mes}/${anio}`;
+    if(dOut) dOut.value = dia;
+    if(mOut) mOut.value = mesNombre;
+  }
+  icCancelarRadicado();
 }
 
 /* ================== FIN ================== */
