@@ -1455,6 +1455,7 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
 
     IC_STATE.informe       = Number(base.informe||1);
     IC_STATE.total         = String(base.total||'');
+    IC_STATE.saldoQ        = String(base.saldoQ||'');
     IC_STATE.obligaciones  = Array.isArray(base.obligaciones) ? base.obligaciones : [];
     IC_STATE.actividades   = Array.isArray(base.actividades) ? base.actividades : [];
     IC_STATE.cuentaExiste  = !!base.cuentaExiste;
@@ -1490,6 +1491,12 @@ function renderIngresarCuenta(){
   // Informe y total
   document.getElementById('ic-informe').textContent = String(IC_STATE.informe||1);
   const tot = document.getElementById('ic-total'); if(tot) tot.value = IC_STATE.total||'';
+
+  // Precargar SALDO ACTUAL con Q (editable)
+  const saldoEl = document.getElementById('ic-saldo');
+  if(saldoEl){
+    saldoEl.value = IC_STATE.saldoQ || '';
+  }
 
   // Meses select
   const sel1 = document.getElementById('ic-mesPlanilla'); const sel2 = document.getElementById('ic-mesPlanilla2');
@@ -1640,29 +1647,7 @@ function abrirPickerIC(target){
 }
 
 // SUSTITUIR TU confirmarPickerCumple por esta versión (respeta tu comportamiento original)
-function confirmarPickerCumple(){
-  const dSel=document.getElementById('cumpleDia')?.value||'01';
-  const mSel=document.getElementById('cumpleMes')?.value||'01';
-  const aSel=document.getElementById('cumpleAnio')?.value||'2000';
-  const val = `${dSel}/${mSel}/${aSel}`;
 
-  // Si estamos llenando Inicio/Fin de Periodo (vista INGRESAR CUENTA)
-  if(__icPickerTarget==='inicio'){
-    const el = document.getElementById('ic-inicio'); if(el) el.value = val;
-    document.getElementById('ic-diaRat1').value = pad2(parseInt(dSel,10));
-    document.getElementById('ic-mesRat1').value = monthNameDMY(val);
-  }else if(__icPickerTarget==='fin'){
-    const el = document.getElementById('ic-fin'); if(el) el.value = val;
-    document.getElementById('ic-diaRat2').value = pad2(parseInt(dSel,10));
-    document.getElementById('ic-mesRat2').value = monthNameDMY(val);
-  }else{
-    // Comportamiento original de REGISTRO/PERSONALES
-    __cumpleISO = val;
-    const reg = document.getElementById('reg-cumple'); if(reg) reg.value = val;
-    const p  = document.getElementById('p-cumple');    if(p)  p.value = val;
-  }
-  cancelarPickerCumple();
-}
   
 /* Fecha de Radicación: modal limitado (hoy y siguientes 2 días hábiles; fin de semana/festivos 2026) */
 const FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026']);
@@ -1731,32 +1716,8 @@ function abrirPickerRadicadoLimitado(){
   m.style.display='flex'; m.setAttribute('aria-hidden','false');
   __pickerContratoTarget = 'radicado';
 }
-function confirmarPickerContrato(){
-  const dSel=document.getElementById('contratoDia')?.value||'01';
-  const mSel=document.getElementById('contratoMes')?.value||'01';
-  const anio=document.getElementById('contratoAnio')?.value||'2026';
-  const val = `${dSel}/${mSel}/${anio}`;
-  const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const idx=Math.max(1,Math.min(12,parseInt(mSel,10)))-1;
-  const mesNombre = mesesNombres[idx];
 
-  if(__pickerContratoTarget==='inicio'){
-    document.getElementById('c-fechaInicio').value = val;
-    document.getElementById('c-diaInicio').value   = dSel;
-    document.getElementById('c-mesInicio').value   = mesNombre;
-    __fechaInicioISO = val;
-  }else if(__pickerContratoTarget==='termino'){
-    document.getElementById('c-fechaTermino').value = val;
-    document.getElementById('c-diaTermino').value   = dSel;
-    document.getElementById('c-mesTermino').value   = mesNombre;
-    __fechaTerminoISO = val;
-  }else if(__pickerContratoTarget==='radicado'){
-    const el = document.getElementById('ic-radicado'); if(el) el.value = val;
-    document.getElementById('ic-diaRad').value = pad2(parseInt(dSel,10));
-    document.getElementById('ic-mesRad').value = mesNombre.toUpperCase();
-  }
-  cancelarPickerContrato();
-}
+  
 
 /* Volver con sonido */
 document.getElementById('ic-volver')?.addEventListener('click', ()=>{
