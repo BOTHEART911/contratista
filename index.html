@@ -1880,7 +1880,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
 
   const body = {
     documento: currentUser.documento,
-    nombre: '', // backend puede rellenar si hace falta
+    nombre: IC_STATE.nombre || '',
     contrato: IC_STATE.contrato || '',
     informe: IC_STATE.informe || 1,
     total: String(document.getElementById('ic-total').value||''),
