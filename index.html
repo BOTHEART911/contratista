@@ -216,6 +216,26 @@
     .feed-detail-title{ margin:6px 0 4px; color:#111; font-weight:900; }
     .feed-detail-sub{ margin:0 0 8px; color:#333; font-weight:700; }
     .feed-detail-desc{ text-align:justify; color:#222; overflow-wrap:anywhere; }
+
+    /* Solo para los 3 modales de INGRESAR CUENTA: caja blanca y posición arriba */
+#icInicioModal,
+#icFinModal,
+#icRadicadoModal{
+  align-items: flex-start !important;   /* fuerza arriba */
+  padding-top: 16px;
+  padding-bottom: 0;
+  z-index: 10001;                       /* por si hay otros overlays */
+}
+#icInicioModal .picker-box,
+#icFinModal .picker-box,
+#icRadicadoModal .picker-box{
+  background:#fff;
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 8px 18px rgba(0,0,0,.15);
+  width: 90%;
+  max-width: 520px;
+}
   </style>
 </head>
 <body>
@@ -2611,6 +2631,8 @@ function confirmarPickerContrato(){
 
  function icPad2(n){ return String(n).padStart(2,'0'); }
 const icMesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let __icRadMonth = '';
+let __icRadYear  = '';
 
 // 1) Inicio (ruleta libre, año fijo 2026)
 (function icInitInicio(){
@@ -2710,6 +2732,7 @@ function icAbrirRadicado(){
   let count = 0;
   let cursor = new Date(hoy);
 
+  // hoy + 2 hábiles (diciembre: todos hábiles salvo feriados)
   while(count<3){
     if(icEsHabil(cursor)){
       opciones.push(new Date(cursor));
@@ -2718,28 +2741,32 @@ function icAbrirRadicado(){
     cursor.setDate(cursor.getDate()+1);
   }
 
+  // Mes/Año fijados por la primera opción
   const d0 = opciones[0];
-  const anio = String(d0.getFullYear());
-  const mesIdx = d0.getMonth();
+  __icRadYear  = String(d0.getFullYear());
+  __icRadMonth = icPad2(d0.getMonth()+1);
 
   const optM = document.createElement('option');
-  optM.value = icPad2(mesIdx+1);
-  optM.textContent = icMesesNombres[mesIdx];
+  optM.value = __icRadMonth;
+  optM.textContent = icMesesNombres[d0.getMonth()];
   mSel.appendChild(optM);
 
   const optY = document.createElement('option');
-  optY.value = anio;
-  optY.textContent = anio;
+  optY.value = __icRadYear;
+  optY.textContent = __icRadYear;
   aSel.appendChild(optY);
 
+  // Días posibles
   opciones.forEach(d=>{
     const opt = document.createElement('option');
     opt.value = icPad2(d.getDate());
     opt.textContent = icPad2(d.getDate());
     dSel.appendChild(opt);
   });
+  // por seguridad, selecciona el primer día
+  if (dSel.options.length) dSel.selectedIndex = 0;
 
-  m.style.display='flex'; 
+  m.style.display='flex';
   m.setAttribute('aria-hidden','false');
 }
 function icCancelarRadicado(){
@@ -2747,15 +2774,22 @@ function icCancelarRadicado(){
   if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
 }
 function icConfirmarRadicado(){
-  const dia = document.getElementById('icRadDia')?.value || '';
-  const mes = document.getElementById('icRadMes')?.value || '';
-  const anio = document.getElementById('icRadAnio')?.value || '';
+  const dSel = document.getElementById('icRadDia');
+  const mSel = document.getElementById('icRadMes');
+  const aSel = document.getElementById('icRadAnio');
+
+  const dia  = (dSel?.value || '').trim();
+  // si el select disabled no da value, usa los guardados
+  const mes  = (mSel?.value || __icRadMonth || '').trim();
+  const anio = (aSel?.value || __icRadYear  || '').trim();
+
   const idx = Math.max(1,Math.min(12,parseInt(mes||'1',10))) - 1;
   const mesNombre = icMesesNombres[idx] || '';
 
   const input = document.getElementById('ic-radicado');
   const dOut  = document.getElementById('ic-diaRad');
   const mOut  = document.getElementById('ic-mesRad');
+
   if(input && dia && mes && anio){
     input.value = `${dia}/${mes}/${anio}`;
     if(dOut) dOut.value = dia;
