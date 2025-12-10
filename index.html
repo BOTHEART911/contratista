@@ -1990,12 +1990,12 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   if(!rs.isConfirmed) return;
 
   const waitSwal = Swal.fire({
-    title: 'CREANDO TUS DOCUMENTOS...',
-    html: 'Por favor espera un minuto mientras termina el proceso.',
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
+  title: 'CREANDO TUS DOCUMENTOS...',
+  html: 'Por favor espera un minuto mientras termina el proceso.',
+  allowOutsideClick: false,
+  allowEscapeKey: false,
+  showConfirmButton: false // opcional, para que no aparezca botón
+});
 
   try{
     const r = await apiPost('saveNuevaCuenta', body);
