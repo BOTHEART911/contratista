@@ -1998,29 +1998,36 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
       });
 
       // Segundo plano: crear documentos SIN alertas adicionales y sin bloquear la UI
-  setTimeout(async ()=>{
-    try{
-      await apiPost('generarDocumentosCuenta', {
-        documento: currentUser.documento,
-        informe: body.informe
-      });
-    }catch(_){ /* silencioso */ }
-  }, 0);
+      setTimeout(async ()=>{
+        try{
+          await apiPost('generarDocumentosCuenta', {
+            documento: currentUser.documento,
+            informe: body.informe
+          });
+        }catch(_){ /* silencioso */ }
+      }, 0);
 
-  // Resetear la vista INGRESAR CUENTA y regresar a INICIO
-  try {
-    // limpia campos principales de la vista de ingresar cuenta
-    ['ic-total','ic-inicio','ic-diaRat1','ic-mesRat1','ic-fin','ic-diaRat2','ic-mesRat2','ic-radicado','ic-diaRad','ic-mesRad',
-     'ic-saldo','ic-cobro','ic-nuevoSaldo','ic-planilla','ic-mesPlanilla','ic-base','ic-salud','ic-fondo','ic-riesgos',
-     'ic-planilla2','ic-mesPlanilla2','ic-base2','ic-salud2','ic-fondo2','ic-riesgos2','ic-solidario','ic-aporte',
-     'ic-solidario2','ic-aporte2'
-    ].forEach(id=>{ const el=document.getElementById(id); if(el){ if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; } });
-    const wrap = document.getElementById('ic-oblig-wrap'); if(wrap) wrap.innerHTML='';
-  }catch(_){}
+      // Resetear la vista INGRESAR CUENTA y regresar a INICIO
+      try {
+        ['ic-total','ic-inicio','ic-diaRat1','ic-mesRat1','ic-fin','ic-diaRat2','ic-mesRat2','ic-radicado','ic-diaRad','ic-mesRad',
+         'ic-saldo','ic-cobro','ic-nuevoSaldo','ic-planilla','ic-mesPlanilla','ic-base','ic-salud','ic-fondo','ic-riesgos',
+         'ic-planilla2','ic-mesPlanilla2','ic-base2','ic-salud2','ic-fondo2','ic-riesgos2','ic-solidario','ic-aporte',
+         'ic-solidario2','ic-aporte2'
+        ].forEach(id=>{ const el=document.getElementById(id); if(el){ if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; } });
+        const wrap = document.getElementById('ic-oblig-wrap'); if(wrap) wrap.innerHTML='';
+      }catch(_){}
 
-  showView('view-inicio');
-  return;
-}
+      showView('view-inicio');
+      return;
+    } else {
+      // Error reportado por backend
+      Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
+    }
+  }catch(e){
+    // Error de red o excepción
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+});
 
 /* ================== REGISTRO ================== */
 let regFirmaDataUrl = '';
