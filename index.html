@@ -1989,26 +1989,32 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   });
   if(!rs.isConfirmed) return;
 
+  const waitSwal = Swal.fire({
+    title: 'CREANDO TUS DOCUMENTOS...',
+    html: 'Por favor espera un minuto mientras termina el proceso.',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
   try{
-    // Hacer el POST y, APENAS regrese, mostrar el éxito y salir
     const r = await apiPost('saveNuevaCuenta', body);
+    await Swal.close();
     if(r && r.success){
       Swal.fire({
         icon:'success',
-        title:'INFORMACIÓN INGRESADA CORRECTAMENTE',
-        html:'Los Documentos se crearán en breve.<br><br>Revísalos en unos minutos desde "MI ÚLTIMA CUENTA DRIVE".',
-        timer:5000,
-        timerProgressBar:true,
-        showConfirmButton:false,
-        allowOutsideClick:false
+        title:'PROCESO FINALIZADO',
+        html:'Tus documentos se han generado y la cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI ÚLTIMA CUENTA DRIVE</b> en el Menú Principal',
+        timer: 4000, 
+        showConfirmButton: false
       });
       resetIngresarCuentaView();
       showView('view-inicio');
-      return;
     } else {
       Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
     }
   }catch(e){
+    await Swal.close();
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }
 });
