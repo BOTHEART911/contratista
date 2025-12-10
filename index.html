@@ -1867,7 +1867,7 @@ document.getElementById('ic-volver')?.addEventListener('click', ()=>{
 document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning',title:'Sesión inválida'}); return; }
 
-  // Validar que TODAS las actividades visibles sean requeridas (no vacías)
+  // Validar actividades obligatorias
   {
     const n = Math.max(1, IC_STATE.obligaciones.length);
     for(let i=1;i<=Math.min(26,n);i++){
@@ -1880,7 +1880,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     }
   }
 
-  // Validaciones mínimas requeridas
+  // Validaciones mínimas
   const required = {
     inicio: document.getElementById('ic-inicio').value,
     fin: document.getElementById('ic-fin').value,
@@ -1898,7 +1898,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     Swal.fire({icon:'warning',title:'Faltan campos requeridos'}); return;
   }
 
-  // Colectar actividades
+  // Actividades
   const n = Math.max(1, IC_STATE.obligaciones.length);
   const actividades = [];
   for(let i=1;i<=Math.min(26,n);i++){
@@ -1906,10 +1906,10 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     actividades.push((el && el.value) ? el.value.trim() : '');
   }
 
-  // Evidencias: convertir a dataURL para enviar (1 por obligación)
+  // Evidencias (1 por obligación) a dataURL
   const evidenciasData = [];
   for(let i=0;i<Math.min(26,n);i++){
-    const f = IC_STATE.evidFiles[i];
+    const f = IC_STATE.evidFiles[i] || null;
     if(!f){ evidenciasData.push(''); continue; }
     evidenciasData.push(await new Promise((resolve)=>{
       const r = new FileReader();
@@ -1918,7 +1918,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     }));
   }
 
-  // Cálculos puros
+  // Cálculos
   const saldo = numPure(required.saldo);
   const cobro = numPure(required.cobro);
   const nuevoSaldo = saldo - cobro;
@@ -1930,6 +1930,11 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   const solidario2 = base2>=IC_SOLIDARIO_UMBRAL ? Math.round(base2*0.01) : 0;
   const aporte2 = base2>=IC_SOLIDARIO_UMBRAL ? 'COL PENSIONES' : '-';
 
+  // Fuerza dos dígitos para días
+  const diaRadicar  = pad2(document.getElementById('ic-diaRad').value||'');
+  const diaRat1     = pad2(document.getElementById('ic-diaRat1').value||'');
+  const diaRat2     = pad2(document.getElementById('ic-diaRat2').value||'');
+
   const body = {
     documento: currentUser.documento,
     nombre: IC_STATE.nombre || '',
@@ -1937,13 +1942,13 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     informe: IC_STATE.informe || 1,
     total: String(document.getElementById('ic-total').value||''),
     fechaRadicar: document.getElementById('ic-radicado').value,
-    diaRadicar: pad2(document.getElementById('ic-diaRad').value||''),
+    diaRadicar: diaRadicar,
     mesRadicar: document.getElementById('ic-mesRad').value,
     inicioRatificar: document.getElementById('ic-inicio').value,
-    diaRatificar1: pad2(document.getElementById('ic-diaRat1').value||''),
+    diaRatificar1: diaRat1,
     mesRatificar1: document.getElementById('ic-mesRat1').value,
     finRatificar: document.getElementById('ic-fin').value,
-    diaRatificar2: pad2(document.getElementById('ic-diaRat2').value||''),
+    diaRatificar2: diaRat2,
     mesRatificar2: document.getElementById('ic-mesRat2').value,
     saldoActual: String(saldo),
     cobro: String(cobro),
@@ -1956,7 +1961,6 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     riesgos: String(numPure(document.getElementById('ic-riesgos').value)),
     solidario: String(solidario),
     aporte: aporte,
-    // Planilla anexa: enviar '' si el campo está vacío
     planilla2: emptyIfZero(document.getElementById('ic-planilla2').value||''),
     mesPlanilla2: document.getElementById('ic-mesPlanilla2').value || '',
     base2: emptyIfZero(document.getElementById('ic-base2').value||''),
@@ -1967,16 +1971,14 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     aporte2: aporte2,
     actividades,
     evidenciasData,
-    overwrite: !IC_STATE.nextMode && IC_STATE.cuentaExiste // si BORRADOR, sobrescribe
+    overwrite: !IC_STATE.nextMode && IC_STATE.cuentaExiste
   };
 
-  // Resumen visual
+  // Resumen breve para confirmar
   const resumen = [
     `<b>Informe:</b> ${body.informe} de ${body.total}`,
     `<b>Periodo:</b> ${body.inicioRatificar} — ${body.finRatificar}`,
-    `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`,
-    `<b>Saldo/Cobro/Nuevo:</b> ${formatCOPView(body.saldoActual)} / ${formatCOPView(body.cobro)} / ${formatCOPView(body.nuevoSaldo)}`,
-    `<b>Planilla:</b> ${body.planilla} (${body.mesPlanilla})`
+    `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`
   ].join('<br>');
 
   const rs = await Swal.fire({
@@ -1986,48 +1988,29 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   if(!rs.isConfirmed) return;
 
   try{
-    // Guardar
     const r = await apiPost('saveNuevaCuenta', body);
     if(r && r.success){
+      // Un solo mensaje corto
       await Swal.fire({
         icon:'success',
         title:'INFORMACIÓN INGRESADA CORRECTAMENTE',
         html:'Los Documentos se crearán a partir de este momento.<br><br>Revísalos desde la opción MI ÚLTIMA CUENTA DRIVE en el menú .',
-        timer:8000,
+        timer:7000,
         showConfirmButton:false
       });
 
-      // Segundo plano: crear documentos SIN alertas adicionales y sin bloquear la UI
-      setTimeout(async ()=>{
-        try{
-          await apiPost('generarDocumentosCuenta', {
-            documento: currentUser.documento,
-            informe: body.informe
-          });
-        }catch(_){ /* silencioso */ }
-      }, 0);
-
-      // Resetear la vista INGRESAR CUENTA y regresar a INICIO
-      try {
-        ['ic-total','ic-inicio','ic-diaRat1','ic-mesRat1','ic-fin','ic-diaRat2','ic-mesRat2','ic-radicado','ic-diaRad','ic-mesRad',
-         'ic-saldo','ic-cobro','ic-nuevoSaldo','ic-planilla','ic-mesPlanilla','ic-base','ic-salud','ic-fondo','ic-riesgos',
-         'ic-planilla2','ic-mesPlanilla2','ic-base2','ic-salud2','ic-fondo2','ic-riesgos2','ic-solidario','ic-aporte',
-         'ic-solidario2','ic-aporte2'
-        ].forEach(id=>{ const el=document.getElementById(id); if(el){ if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; } });
-        const wrap = document.getElementById('ic-oblig-wrap'); if(wrap) wrap.innerHTML='';
-      }catch(_){}
-
+      // Reset vista y regreso a INICIO sin carga
+      resetIngresarCuentaView();
       showView('view-inicio');
       return;
     } else {
-      // Error reportado por backend
       Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
     }
   }catch(e){
-    // Error de red o excepción
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }
 });
+
 
 /* ================== REGISTRO ================== */
 let regFirmaDataUrl = '';
