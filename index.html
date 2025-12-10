@@ -1985,7 +1985,6 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     // Guardar
     const r = await apiPost('saveNuevaCuenta', body);
     if(r && r.success){
-      // Mostrar única alerta de éxito y poner la generación de documentos en segundo plano
       await Swal.fire({
         icon:'success',
         title:'INFORMACIÓN INGRESADA CORRECTAMENTE',
@@ -1995,25 +1994,20 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
       });
 
       // Segundo plano: crear documentos SIN alertas adicionales y sin bloquear la UI
-      (async ()=>{
+      setTimeout(async ()=>{
         try{
           await apiPost('generarDocumentosCuenta', {
             documento: currentUser.documento,
             informe: body.informe
           });
         }catch(_){ /* silencioso */ }
-      })();
+      }, 0);
 
-            // Regresar y resetear la vista
+      // Después de la alerta: resetear esta vista y regresar a INICIO
       resetIngresarCuentaView();
       showView('view-inicio');
-    } else {
-      Swal.fire({icon:'error',title:'Error al guardar',text:r?.message || 'Error desconocido'});
+      return;
     }
-  } catch(e){
-    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
-  }
-});
 
 /* ================== REGISTRO ================== */
 let regFirmaDataUrl = '';
