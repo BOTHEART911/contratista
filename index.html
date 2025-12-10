@@ -869,11 +869,11 @@ function playSoundOnce(url){
 }
 if (window.Swal && typeof Swal.fire === 'function'){
   const __fire = Swal.fire.bind(Swal);
-  Swal.fire = function(options = {}, ...rest){
-    try{
-      const icon = options.icon || options.type;
-      if (options.soundTag === 'resumen'){ playSoundOnce(SOUNDS.info); }
+  const soundTag = options.soundTag;
+      if (soundTag === 'resumen'){ playSoundOnce(SOUNDS.info); }
       else if (icon && SOUNDS[icon]) playSoundOnce(SOUNDS[icon]);
+      // Eliminar la clave para evitar el warning
+      if ('soundTag' in options){ try{ delete options.soundTag; }catch(_){ /* noop */ } }
     }catch(e){}
     return __fire(options, ...rest);
   }
@@ -1930,7 +1930,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   const solidario2 = base2>=IC_SOLIDARIO_UMBRAL ? Math.round(base2*0.01) : 0;
   const aporte2 = base2>=IC_SOLIDARIO_UMBRAL ? 'COL PENSIONES' : '-';
 
-  // Fuerza dos dígitos para días
+  // Fuerza dos dígitos para días desde los inputs ocultos
   const diaRadicar  = pad2(document.getElementById('ic-diaRad').value||'');
   const diaRat1     = pad2(document.getElementById('ic-diaRat1').value||'');
   const diaRat2     = pad2(document.getElementById('ic-diaRat2').value||'');
@@ -1942,13 +1942,13 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     informe: IC_STATE.informe || 1,
     total: String(document.getElementById('ic-total').value||''),
     fechaRadicar: document.getElementById('ic-radicado').value,
-    diaRadicar: diaRadicar,            // siempre 2 dígitos
+    diaRadicar: diaRadicar,            // 2 dígitos
     mesRadicar: document.getElementById('ic-mesRad').value,
     inicioRatificar: document.getElementById('ic-inicio').value,
-    diaRatificar1: diaRat1,            // siempre 2 dígitos
+    diaRatificar1: diaRat1,            // 2 dígitos
     mesRatificar1: document.getElementById('ic-mesRat1').value,
     finRatificar: document.getElementById('ic-fin').value,
-    diaRatificar2: diaRat2,            // siempre 2 dígitos
+    diaRatificar2: diaRat2,            // 2 dígitos
     mesRatificar2: document.getElementById('ic-mesRat2').value,
     saldoActual: String(saldo),
     cobro: String(cobro),
@@ -1983,23 +1983,21 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
 
   const rs = await Swal.fire({
     icon:'info', title:'Resumen de Ingreso', html:resumen,
-    showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar', soundTag:'resumen'
+    showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar'
   });
   if(!rs.isConfirmed) return;
 
   try{
-    // IMPORTANTE: el backend devolverá rápido y disparará la generación de documentos en diferido.
+    // Hacer el POST y, APENAS regrese, mostrar el éxito y salir
     const r = await apiPost('saveNuevaCuenta', body);
     if(r && r.success){
-      // Mostrar el éxito inmediatamente (sin esperar a creación de PDFs)
       Swal.fire({
         icon:'success',
         title:'INFORMACIÓN INGRESADA CORRECTAMENTE',
-        html:'Los Documentos se crearán a partir de este momento en segundo plano.<br><br>Revísalos desde "MI ÚLTIMA CUENTA DRIVE" en el menú.',
-        timer:5000,
+        html:'Los Documentos se crearán en breve.<br><br>Revísalos desde "MI ÚLTIMA CUENTA DRIVE".',
+        timer:4000,
         showConfirmButton:false
       });
-      // Reset vista y regreso a INICIO sin más esperas
       resetIngresarCuentaView();
       showView('view-inicio');
       return;
