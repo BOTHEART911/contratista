@@ -2004,10 +2004,13 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
         }catch(_){ /* silencioso */ }
       })();
 
-      // Regresar y resetear la vista
+            // Regresar y resetear la vista
       resetIngresarCuentaView();
       showView('view-inicio');
-     }catch(e){
+    } else {
+      Swal.fire({icon:'error',title:'Error al guardar',text:r?.message || 'Error desconocido'});
+    }
+  } catch(e){
     Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
   }
 });
