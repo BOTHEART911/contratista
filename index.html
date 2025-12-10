@@ -1996,9 +1996,11 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
       Swal.fire({
         icon:'success',
         title:'INFORMACIÓN INGRESADA CORRECTAMENTE',
-        html:'Los Documentos se crearán en breve.<br><br>Revísalos desde "MI ÚLTIMA CUENTA DRIVE".',
-        timer:4000,
-        showConfirmButton:false
+        html:'Los Documentos se crearán en breve.<br><br>Revísalos en unos minutos desde "MI ÚLTIMA CUENTA DRIVE".',
+        timer:5000,
+        timerProgressBar:true,
+        showConfirmButton:false,
+        allowOutsideClick:false
       });
       resetIngresarCuentaView();
       showView('view-inicio');
