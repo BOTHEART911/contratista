@@ -1562,6 +1562,7 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     IC_STATE.cuentaExiste  = !!base.cuentaExiste;
     IC_STATE.nextMode      = !!base.nextMode;
     IC_STATE.contrato      = String(base.contrato||'').trim();
+    IC_STATE.nombre        = String(base.nombre||'').trim();  
 
     // Pintar vista
     renderIngresarCuenta();
@@ -1700,6 +1701,39 @@ function renderIngresarCuenta(){
   }
 }
 
+   // Reset de cuenta
+  function resetIngresarCuentaView(){
+  // Limpiar inputs principales
+  ['ic-total','ic-inicio','ic-diaRat1','ic-mesRat1','ic-fin','ic-diaRat2','ic-mesRat2',
+   'ic-radicado','ic-diaRad','ic-mesRad','ic-saldo','ic-cobro','ic-nuevoSaldo','ic-planilla',
+   'ic-mesPlanilla','ic-base','ic-salud','ic-fondo','ic-riesgos',
+   'ic-planilla2','ic-mesPlanilla2','ic-base2','ic-salud2','ic-fondo2','ic-riesgos2',
+   'ic-solidario','ic-aporte','ic-solidario2','ic-aporte2'
+  ].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ el.value=''; }
+  });
+
+  // Limpiar actividades y evidencias previas
+  const wrap = document.getElementById('ic-oblig-wrap');
+  if(wrap){ wrap.innerHTML=''; }
+
+  // Reset estado local mínimo
+  IC_STATE = {
+    informe: 1,
+    total: '',
+    obligaciones: [],
+    actividades: [],
+    evidFiles: [],
+    cuentaExiste: false,
+    nextMode: false,
+    contrato: '',
+    carpetaContratista: '',
+    rowTarget: null,
+    nombre: ''   // oculto
+  };
+}
+
 /* Fechas: picker reutilizando tu base con targets distintos */
 let __icPickerTarget = null; // 'inicio'|'fin'
 
@@ -1821,12 +1855,26 @@ function abrirPickerRadicadoLimitado(){
 /* Volver con sonido */
 document.getElementById('ic-volver')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
+  resetIngresarCuentaView();  
   showView('view-inicio');
 });
 
 /* Guardar con resumen + backend saveNuevaCuenta + generación de documentos */
 document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning',title:'Sesión inválida'}); return; }
+
+  // Validar que TODAS las actividades visibles sean requeridas (no vacías)
+  {
+    const n = Math.max(1, IC_STATE.obligaciones.length);
+    for(let i=1;i<=Math.min(26,n);i++){
+      const el = document.getElementById('ic-act-'+i);
+      const v = (el && el.value) ? el.value.trim() : '';
+      if(!v){
+        await Swal.fire({ icon:'warning', title:`Faltan actividades`, text:`Debes diligenciar la actividad para la obligación ${i}.` });
+        return;
+      }
+    }
+  }
 
   // Validaciones mínimas requeridas
   const required = {
@@ -1885,13 +1933,13 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     informe: IC_STATE.informe || 1,
     total: String(document.getElementById('ic-total').value||''),
     fechaRadicar: document.getElementById('ic-radicado').value,
-    diaRadicar: document.getElementById('ic-diaRad').value,
+    diaRadicar: pad2(document.getElementById('ic-diaRad').value||''),
     mesRadicar: document.getElementById('ic-mesRad').value,
     inicioRatificar: document.getElementById('ic-inicio').value,
-    diaRatificar1: document.getElementById('ic-diaRat1').value,
+    diaRatificar1: pad2(document.getElementById('ic-diaRat1').value||''),
     mesRatificar1: document.getElementById('ic-mesRat1').value,
     finRatificar: document.getElementById('ic-fin').value,
-    diaRatificar2: document.getElementById('ic-diaRat2').value,
+    diaRatificar2: pad2(document.getElementById('ic-diaRat2').value||''),
     mesRatificar2: document.getElementById('ic-mesRat2').value,
     saldoActual: String(saldo),
     cobro: String(cobro),
@@ -1937,39 +1985,32 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     // Guardar
     const r = await apiPost('saveNuevaCuenta', body);
     if(r && r.success){
-      // Aviso mientras se generan documentos
-      playSoundOnce(SOUNDS.success);
+      // Mostrar única alerta de éxito y poner la generación de documentos en segundo plano
       await Swal.fire({
         icon:'success',
         title:'INFORMACIÓN INGRESADA CORRECTAMENTE',
-        text:'No salgas de la aplicación, se están creando tus documentos.',
-        timer:5000,
+        text:'Los Documentos se crearán a partir de este momento.<br><br>Revísalos desde la opción MI ÚLTIMA CUENTA DRIVE en el menú .',
+        timer:8000,
         showConfirmButton:false
       });
 
-      // Disparar generación de documentos
-      await apiPost('generarDocumentosCuenta', {
-        documento: currentUser.documento,
-        informe: body.informe
-      });
+      // Segundo plano: crear documentos SIN alertas adicionales y sin bloquear la UI
+      (async ()=>{
+        try{
+          await apiPost('generarDocumentosCuenta', {
+            documento: currentUser.documento,
+            informe: body.informe
+          });
+        }catch(_){ /* silencioso */ }
+      })();
 
-      // Aviso de documentos creados
-      await Swal.fire({
-        icon:'success',
-        title:'DOCUMENTOS CREADOS',
-        text:'Para revisar si están correctos, toma la opción MI ÚLTIMA CUENTA DRIVE en el menú',
-        timer:6000,
-        showConfirmButton:false
-      });
-
+      // Regresar y resetear la vista
+      resetIngresarCuentaView();
       showView('view-inicio');
     }else{
       Swal.fire({icon:'error',title:'Error al guardar',text:r?.message || 'Error desconocido'});
     }
-  }catch(e){
-    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
-  }
-});
+
 
 /* ================== REGISTRO ================== */
 let regFirmaDataUrl = '';
