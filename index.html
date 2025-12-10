@@ -869,14 +869,16 @@ function playSoundOnce(url){
 }
 if (window.Swal && typeof Swal.fire === 'function'){
   const __fire = Swal.fire.bind(Swal);
-  const soundTag = options.soundTag;
+  Swal.fire = function(options = {}, ...rest){
+    try{
+      const icon = options.icon || options.type;
+      const soundTag = options.soundTag;
       if (soundTag === 'resumen'){ playSoundOnce(SOUNDS.info); }
-      else if (icon && SOUNDS[icon]) playSoundOnce(SOUNDS[icon]);
-      // Eliminar la clave para evitar el warning
-      if ('soundTag' in options){ try{ delete options.soundTag; }catch(_){ /* noop */ } }
-    }catch(e){}
+      else if (icon && SOUNDS[icon]){ playSoundOnce(SOUNDS[icon]); }
+      if ('soundTag' in options){ delete options.soundTag; } // evita el warning
+    }catch(e){ /* noop */ }
     return __fire(options, ...rest);
-  }
+  };
 }
 
 /* ================== LOADER ================== */
