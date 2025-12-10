@@ -1942,13 +1942,13 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     informe: IC_STATE.informe || 1,
     total: String(document.getElementById('ic-total').value||''),
     fechaRadicar: document.getElementById('ic-radicado').value,
-    diaRadicar: diaRadicar,
+    diaRadicar: diaRadicar,            // siempre 2 dígitos
     mesRadicar: document.getElementById('ic-mesRad').value,
     inicioRatificar: document.getElementById('ic-inicio').value,
-    diaRatificar1: diaRat1,
+    diaRatificar1: diaRat1,            // siempre 2 dígitos
     mesRatificar1: document.getElementById('ic-mesRat1').value,
     finRatificar: document.getElementById('ic-fin').value,
-    diaRatificar2: diaRat2,
+    diaRatificar2: diaRat2,            // siempre 2 dígitos
     mesRatificar2: document.getElementById('ic-mesRat2').value,
     saldoActual: String(saldo),
     cobro: String(cobro),
@@ -1988,18 +1988,18 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   if(!rs.isConfirmed) return;
 
   try{
+    // IMPORTANTE: el backend devolverá rápido y disparará la generación de documentos en diferido.
     const r = await apiPost('saveNuevaCuenta', body);
     if(r && r.success){
-      // Un solo mensaje corto
-      await Swal.fire({
+      // Mostrar el éxito inmediatamente (sin esperar a creación de PDFs)
+      Swal.fire({
         icon:'success',
         title:'INFORMACIÓN INGRESADA CORRECTAMENTE',
-        html:'Los Documentos se crearán a partir de este momento.<br><br>Revísalos desde la opción MI ÚLTIMA CUENTA DRIVE en el menú .',
-        timer:7000,
+        html:'Los Documentos se crearán a partir de este momento en segundo plano.<br><br>Revísalos desde "MI ÚLTIMA CUENTA DRIVE" en el menú.',
+        timer:5000,
         showConfirmButton:false
       });
-
-      // Reset vista y regreso a INICIO sin carga
+      // Reset vista y regreso a INICIO sin más esperas
       resetIngresarCuentaView();
       showView('view-inicio');
       return;
