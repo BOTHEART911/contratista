@@ -918,14 +918,16 @@ if (window.Swal && typeof Swal.fire === 'function'){
 
 /* ================== LOADER ================== */
 const loader = document.getElementById('loader');
-let loadingCount = 0, loaderTimer = null;
+let loadingCount = 0, loaderTimer = null; let suppressLoader = false;
 function startLoading(){
+  if (suppressLoader) return;
   loadingCount++;
   if (loadingCount === 1){
     loaderTimer = setTimeout(()=>{ loader.classList.remove('hidden'); loaderTimer = null; }, 120);
   }
 }
 function stopLoading(){
+  if (suppressLoader) return;
   if (loadingCount === 0) return;
   loadingCount--;
   if (loadingCount === 0){
@@ -2055,7 +2057,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   };
 
   // Resumen breve para confirmar
- const resumen = [
+  const resumen = [
     `<b>Informe:</b> ${body.informe} de ${body.total}`,
     `<b>Periodo:</b> ${body.inicioRatificar} — ${body.finRatificar}`,
     `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`
@@ -2066,6 +2068,11 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar'
   });
   if(!rs.isConfirmed) return;
+
+  // Suprime el loader nativo durante este flujo
+  suppressLoader = true;
+  loadingCount = 0;
+  if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
 
   const prevLoaderDisplay = loader?.style.display;
   if(loader){ loader.classList.add('hidden'); loader.style.display = 'none'; }
@@ -2098,9 +2105,13 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     await Swal.close();
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }finally{
+    // Restablece el loader y el flag
+    suppressLoader = false;
+    loadingCount = 0;
+    if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
     if(loader){
       loader.style.display = prevLoaderDisplay || '';
-      loader.classList.remove('hidden');
+      loader.classList.add('hidden');
     }
   }
 });
