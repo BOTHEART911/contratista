@@ -1745,7 +1745,7 @@ function renderIngresarCuenta(){
     const ta = document.createElement('textarea');
     ta.id = 'ic-act-' + idx;
     ta.rows = 5;
-    ta.placeholder = 'Describe la(s) actividad(es) que quieres guardar, recuerda todo el esquema explicado en la parte superior.';
+    ta.placeholder = 'Describe la(s) actividad(es) que quieres ingresar, recuerda todo el esquema explicado en la parte superior.';
     ta.value = actVal;
 
     const labE = document.createElement('label');
@@ -2080,7 +2080,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
 
   const waitSwal = Swal.fire({
     title: 'CREANDO TUS DOCUMENTOS...',
-    html: '- Por favor espera 2 minutos mientras termina el proceso.<br>- No salgas de la App.<br>- No dejes bloquear la pantalla.',
+    html: 'Por favor espera un par de minutos mientras termina el proceso.<br>No salgas de la App.',
     allowOutsideClick: false,
     allowEscapeKey: false,
     didOpen: () => { Swal.showLoading(); }
