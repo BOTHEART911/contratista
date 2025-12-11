@@ -2787,8 +2787,10 @@ function icCancelarInicio(){
   if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
 }
 function icConfirmarInicio(){
-  const dia = document.getElementById('icInicioDia')?.value || '01';
-  const mes = document.getElementById('icInicioMes')?.value || '01';
+  const dia = document.getElementById('icInicioDia')?.value || '';
+  const mes = document.getElementById('icInicioMes')?.value || '';
+  if(!dia || !mes){ showPickerSelectAlert(); return; }
+
   const anio = '2026';
   const idx = Math.max(1,Math.min(12,parseInt(mes,10))) - 1;
   const mesNombre = icMesesNombres[idx];
@@ -2800,6 +2802,7 @@ function icConfirmarInicio(){
   if(mOut) mOut.value = mesNombre;
   icCancelarInicio();
 }
+
 
 // 2) Fin (ruleta libre, año fijo 2026)
 (function icInitFin(){
@@ -2821,8 +2824,10 @@ function icCancelarFin(){
   if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
 }
 function icConfirmarFin(){
-  const dia = document.getElementById('icFinDia')?.value || '01';
-  const mes = document.getElementById('icFinMes')?.value || '01';
+  const dia = document.getElementById('icFinDia')?.value || '';
+  const mes = document.getElementById('icFinMes')?.value || '';
+  if(!dia || !mes){ showPickerSelectAlert(); return; }
+
   const anio = '2026';
   const idx = Math.max(1,Math.min(12,parseInt(mes,10))) - 1;
   const mesNombre = icMesesNombres[idx];
@@ -2912,9 +2917,10 @@ function icConfirmarRadicado(){
   const aSel = document.getElementById('icRadAnio');
 
   const dia  = (dSel?.value || '').trim();
-  // si el select disabled no da value, usa los guardados
   const mes  = (mSel?.value || __icRadMonth || '').trim();
   const anio = (aSel?.value || __icRadYear  || '').trim();
+
+  if(!dia || !mes || !anio){ showPickerSelectAlert(); return; }
 
   const idx = Math.max(1,Math.min(12,parseInt(mes||'1',10))) - 1;
   const mesNombre = icMesesNombres[idx] || '';
@@ -2923,7 +2929,7 @@ function icConfirmarRadicado(){
   const dOut  = document.getElementById('ic-diaRad');
   const mOut  = document.getElementById('ic-mesRad');
 
-  if(input && dia && mes && anio){
+  if(input){
     input.value = `${dia}/${mes}/${anio}`;
     if(dOut) dOut.value = dia;
     if(mOut) mOut.value = mesNombre;
