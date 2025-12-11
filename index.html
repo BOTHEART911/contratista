@@ -132,6 +132,16 @@
 
     @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
 
+/* Estilo para previews en móvil */
+    .evi-preview{
+  max-width:100%;
+  max-height:320px;
+  object-fit:contain;
+  border-radius:10px;
+  border:1.5px solid #d8e4ff;
+  margin-top:8px;
+}
+
 /* Fuerza que TODOS los modales de fecha queden centrados horizontal y pegados abajo,
    incluso si el inline style pone align-items:center/justify-content:center */
 .picker-modal{
@@ -875,6 +885,7 @@
         </div>
     
     <div id="ic-oblig-wrap" class="narrow"></div>
+    
 
     <div class="btn-row spaced">
       <button id="ic-guardar" class="btn-primary">Guardar</button>
@@ -921,6 +932,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
 const MAX_IMAGE_MB = 5;
 const MAX_IMG_DIM  = 1600;   // px lado mayor para evidencias/firmas
 const JPEG_QUALITY = 0.78;
+const EVI_SELECT_MAX_MB = 10;
 
 function revokeObjUrl(url){ try{ if(url) URL.revokeObjectURL(url); }catch(_){ } }
 
@@ -1602,12 +1614,16 @@ let IC_STATE = {
   total: '',
   obligaciones: [],
   actividades: [],
-  evidFiles: [],   // FileList por obligación (máx 1 por obligación)
+  evidFiles: [],    // ya no guardaremos el File para subir
+  evidData: [],     // dataURL comprimida para preview + backend
+  evidSizes: [],    // tamaño MB de la dataURL comprimida
   cuentaExiste: false,
   nextMode: false,
-  contrato: '',       // oculto desde CONTRATISTAS col T
-  carpetaContratista: '', // oculto desde CONTRATISTAS col G
-  rowTarget: null,    // si BORRADOR, fila existente
+  contrato: '',
+  carpetaContratista: '',
+  rowTarget: null,
+  nombre: '',
+  saldoQ: ''
 };
 
 /* Botón menú: INGRESAR CUENTA (con sonido y navegación) */
@@ -1809,19 +1825,58 @@ function renderIngresarCuenta(){
     prev.style.marginTop = '8px';
 
      let previewUrl = '';
-    inp.addEventListener('change', (e)=>{
-      const file = e.target.files && e.target.files[0];
-      IC_STATE.evidFiles[i] = file || null;
-      revokeObjUrl(previewUrl); previewUrl = '';
-      if(file){
-        previewUrl = URL.createObjectURL(file);
-        prev.src = previewUrl;
-        prev.style.display = 'block';
-      }else{
-        prev.src = '';
-        prev.style.display = 'none';
-      }
+   const prev = document.createElement('img');
+prev.id = 'ic-evi-prev-' + idx;
+prev.className = 'evi-preview';
+prev.loading = 'lazy';
+prev.style.display = 'none';
+
+inp.addEventListener('change', async (e)=>{
+  const file = e.target.files && e.target.files[0];
+  // limpiar estado previo
+  IC_STATE.evidFiles[i] = null;
+  IC_STATE.evidData[i]  = '';
+  IC_STATE.evidSizes[i] = 0;
+  prev.src = '';
+  prev.style.display = 'none';
+
+  if(!file){ return; }
+
+  // Límite temprano por peso original
+  if(file.size > EVI_SELECT_MAX_MB * 1024 * 1024){
+    await Swal.fire({
+      icon:'warning',
+      title:`Imagen ${idx} muy pesada`,
+      text:`Elige una foto menor a ${EVI_SELECT_MAX_MB} MB.`
     });
+    inp.value = '';
+    return;
+  }
+
+  try{
+    const { dataUrl, sizeMB } = await compressImageToDataUrl(file);
+    if(sizeMB > MAX_IMAGE_MB){
+      await Swal.fire({
+        icon:'warning',
+        title:`Imagen ${idx} aún supera ${MAX_IMAGE_MB} MB`,
+        text:'Usa una foto más liviana o baja la resolución antes de cargarla.'
+      });
+      inp.value = '';
+      return;
+    }
+    IC_STATE.evidFiles[i] = null;      // ya no guardamos el File
+    IC_STATE.evidData[i]  = dataUrl;   // usamos el dataURL comprimido
+    IC_STATE.evidSizes[i] = sizeMB;
+
+    prev.src = dataUrl;
+    prev.style.display = 'block';
+  }catch(err){
+    inp.value = '';
+    prev.src = '';
+    prev.style.display = 'none';
+    await Swal.fire({ icon:'error', title:'Error con la imagen', text:String(err.message||err) });
+  }
+});
 
     // AÑADE TODOS LOS ELEMENTOS AL BLOQUE EN ORDEN
     block.appendChild(p);
@@ -1850,15 +1905,20 @@ function renderIngresarCuenta(){
 
   // Limpiar actividades y evidencias previas
   const wrap = document.getElementById('ic-oblig-wrap');
+    IC_STATE.evidData = [];
+IC_STATE.evidSizes = [];
+IC_STATE.evidFiles = [];
   if(wrap){ wrap.innerHTML=''; }
 
   // Reset estado local mínimo
   IC_STATE = {
     informe: 1,
     total: '',
-    obligaciones: [],
-    actividades: [],
-    evidFiles: [],
+     obligaciones: [],
+  actividades: [],
+  evidFiles: [],
+  evidData: [],
+  evidSizes: [],
     cuentaExiste: false,
     nextMode: false,
     contrato: '',
@@ -1998,6 +2058,9 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   // Validar actividades obligatorias
   {
     const n = Math.max(1, IC_STATE.obligaciones.length);
+    IC_STATE.evidFiles = new Array(n).fill(null);
+IC_STATE.evidData  = new Array(n).fill('');
+IC_STATE.evidSizes = new Array(n).fill(0);
     for(let i=1;i<=Math.min(26,n);i++){
       const el = document.getElementById('ic-act-'+i);
       const v = (el && el.value) ? el.value.trim() : '';
@@ -2037,21 +2100,19 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   // Evidencias (1 por obligación) a dataURL
     // Evidencias (1 por obligación) → comprimir y validar peso
   const evidenciasData = [];
-  for(let i=0;i<Math.min(26,n);i++){
-    const f = IC_STATE.evidFiles[i] || null;
-    if(!f){ evidenciasData.push(''); continue; }
-
-    const { dataUrl, sizeMB } = await compressImageToDataUrl(f);
-    if(sizeMB > MAX_IMAGE_MB){
-      await Swal.fire({
-        icon:'warning',
-        title:'Imagen muy pesada',
-        text:`La evidencia ${i+1} aún supera ${MAX_IMAGE_MB} MB. Usa una foto más liviana o reduce su resolución.`
-      });
-      return;
-    }
-    evidenciasData.push(dataUrl);
+for(let i=0;i<Math.min(26,n);i++){
+  const dataUrl = IC_STATE.evidData[i] || '';
+  const sz = IC_STATE.evidSizes[i] || 0;
+  if(dataUrl && sz > MAX_IMAGE_MB){
+    await Swal.fire({
+      icon:'warning',
+      title:`Evidencia ${i+1} supera ${MAX_IMAGE_MB} MB`,
+      text:'Vuelve a cargarla con menor peso.'
+    });
+    return;
   }
+  evidenciasData.push(dataUrl);
+}
 
   // Cálculos
   const saldo = numPure(required.saldo);
