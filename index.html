@@ -2965,7 +2965,7 @@ function icConfirmarRadicado(){
   overlay.classList.remove('open');
 
   if(!currentUser){
-    Swal.fire({icon:'warning', title:'Sesión inválida'}); 
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
     return;
   }
 
@@ -2975,7 +2975,7 @@ function icConfirmarRadicado(){
       await Swal.fire({
         icon:'info',
         title:'NO HAZ INGRESADO CUENTAS',
-        text:'Esta opción se tomo después de Ingresar una Cuenta',
+        text:'Esta opción se tomó después de Ingresar una Cuenta',
         timer:4000,
         showConfirmButton:false
       });
@@ -2991,7 +2991,7 @@ function icConfirmarRadicado(){
       await Swal.fire({
         icon:'info',
         title:'OPCIÓN NO VALIDA POR AHORA',
-        text:'tu cuenta ya fue revisada por el Supervisor y está en proceso de Aprobación',
+        text:'Tu cuenta ya fue revisada por el Supervisor y está en proceso de Aprobación',
         timer:5000,
         showConfirmButton:false
       });
@@ -2999,38 +2999,35 @@ function icConfirmarRadicado(){
     }
 
     if(estado === 'APROBADA'){
-      await Swal.fire({
+      const r = await Swal.fire({
         icon:'success',
         title:'UNIFICA TUS DOCUMENTOS',
         text:'Ya solo falta el cargue en el SECOP II',
-        timer:3000,
-        showConfirmButton:false
+        confirmButtonText:'OK'
       });
-      openFolder();
+      if(r.isConfirmed) openFolder();
       return;
     }
 
     if(estado === 'INCOMPLETA'){
-      await Swal.fire({
+      const r = await Swal.fire({
         icon:'info',
         title:'COMPLETA TUS DOCUMENTOS',
-        text:'Recuerda de nuevo tomar la opcíon REPORTAR CUENTA DRIVE en el Menú Principal',
-        timer:4000,
-        showConfirmButton:false
+        text:'Recuerda de nuevo tomar la opción REPORTAR CUENTA DRIVE en el Menú Principal',
+        confirmButtonText:'OK'
       });
-      openFolder();
+      if(r.isConfirmed) openFolder();
       return;
     }
 
     if(estado === 'INGRESADA'){
-      await Swal.fire({
+      const r = await Swal.fire({
         icon:'info',
         title:'REVISA TUS DOCUMENTOS',
         text:'Revisa que todo esté correcto',
-        timer:4000,
-        showConfirmButton:false
+        confirmButtonText:'OK'
       });
-      openFolder();
+      if(r.isConfirmed) openFolder();
       return;
     }
   }catch(e){
