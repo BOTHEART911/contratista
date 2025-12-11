@@ -917,6 +917,50 @@ if (window.Swal && typeof Swal.fire === 'function'){
   };
 }
 
+  /* ================== IMÁGENES (preview y compresión) ================== */
+const MAX_IMAGE_MB = 5;
+const MAX_IMG_DIM  = 1600;   // px lado mayor para evidencias/firmas
+const JPEG_QUALITY = 0.78;
+
+function revokeObjUrl(url){ try{ if(url) URL.revokeObjectURL(url); }catch(_){ } }
+
+/**
+ * Convierte cualquier imagen (incluido HEIC) a JPEG, redimensiona al tope y devuelve dataURL.
+ * Retorna { dataUrl, sizeMB, width, height }.
+ */
+function compressImageToDataUrl(file, { maxDim = MAX_IMG_DIM, quality = JPEG_QUALITY } = {}){
+  return new Promise((resolve, reject)=>{
+    if(!file) return resolve({ dataUrl:'', sizeMB:0 });
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const w = Math.round(img.width  * scale);
+        const h = Math.round(img.height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        canvas.toBlob(blob=>{
+          if(!blob) return reject(new Error('No se pudo comprimir la imagen'));
+          const sizeMB = blob.size / (1024*1024);
+          const fr = new FileReader();
+          fr.onload = ()=> resolve({ dataUrl: fr.result, sizeMB, width:w, height:h });
+          fr.onerror = ()=> reject(new Error('No se pudo leer la imagen comprimida'));
+          fr.readAsDataURL(blob);
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = ()=> reject(new Error('La imagen no se pudo cargar'));
+      img.src = reader.result;
+    };
+    reader.onerror = ()=> reject(new Error('No se pudo leer el archivo'));
+    reader.readAsDataURL(file);
+  });
+}
+
 /* ================== LOADER ================== */
 const loader = document.getElementById('loader');
 let loadingCount = 0, loaderTimer = null; let suppressLoader = false;
@@ -1718,7 +1762,7 @@ function renderIngresarCuenta(){
     const el = document.getElementById(id); if(el){ el.addEventListener('input', recompute); }
   });
 
-  // >>> Añade estas dos líneas antes de cerrar renderIngresarCuenta()
+  // >>> Formato de pesos
   bindCOPFormatters();
   recompute();
 
@@ -1745,7 +1789,7 @@ function renderIngresarCuenta(){
     const ta = document.createElement('textarea');
     ta.id = 'ic-act-' + idx;
     ta.rows = 5;
-    ta.placeholder = 'Describe la(s) actividad(es) que quieres ingresar, recuerda todo el esquema explicado en la parte superior.';
+    ta.placeholder = 'Describe la(s) actividad(es) que quieres ingresar, recuerda todo el esquema explicado al empezar esta sección.';
     ta.value = actVal;
 
     const labE = document.createElement('label');
@@ -1764,15 +1808,18 @@ function renderIngresarCuenta(){
     prev.style.border = '1.5px solid #d8e4ff';
     prev.style.marginTop = '8px';
 
+     let previewUrl = '';
     inp.addEventListener('change', (e)=>{
       const file = e.target.files && e.target.files[0];
       IC_STATE.evidFiles[i] = file || null;
+      revokeObjUrl(previewUrl); previewUrl = '';
       if(file){
-        const reader = new FileReader();
-        reader.onload = ev => { prev.src = ev.target.result; prev.style.display='block'; };
-        reader.readAsDataURL(file);
+        previewUrl = URL.createObjectURL(file);
+        prev.src = previewUrl;
+        prev.style.display = 'block';
       }else{
-        prev.src=''; prev.style.display='none';
+        prev.src = '';
+        prev.style.display = 'none';
       }
     });
 
@@ -1865,8 +1912,6 @@ function abrirPickerIC(target){
   const m=document.getElementById('cumpleModal');
   if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
-
-// SUSTITUIR TU confirmarPickerCumple por esta versión (respeta tu comportamiento original)
 
   
 /* Fecha de Radicación: modal limitado (hoy y siguientes 2 días hábiles; fin de semana/festivos 2026) */
@@ -1990,16 +2035,20 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   }
 
   // Evidencias (1 por obligación) a dataURL
-  const evidenciasData = [];
-  for(let i=0;i<Math.min(26,n);i++){
-    const f = IC_STATE.evidFiles[i] || null;
-    if(!f){ evidenciasData.push(''); continue; }
-    evidenciasData.push(await new Promise((resolve)=>{
-      const r = new FileReader();
-      r.onload = ev => resolve(ev.target.result);
-      r.readAsDataURL(f);
-    }));
-  }
+  let previewUrl = '';
+    inp.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      IC_STATE.evidFiles[i] = file || null;
+      revokeObjUrl(previewUrl); previewUrl = '';
+      if(file){
+        previewUrl = URL.createObjectURL(file);
+        prev.src = previewUrl;
+        prev.style.display = 'block';
+      }else{
+        prev.src = '';
+        prev.style.display = 'none';
+      }
+    });
 
   // Cálculos
   const saldo = numPure(required.saldo);
@@ -2119,15 +2168,20 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
 
 
 /* ================== REGISTRO ================== */
-let regFirmaDataUrl = '';
-document.getElementById('reg-firma').addEventListener('change', (e)=>{
-  const file = e.target.files && e.target.files[0];
-  const prev = document.getElementById('reg-firma-preview');
-  if(!file){ regFirmaDataUrl=''; prev.style.display='none'; prev.src=''; return; }
-  const reader = new FileReader();
-  reader.onload = ev => { regFirmaDataUrl = ev.target.result; prev.src = regFirmaDataUrl; prev.style.display='block'; };
-  reader.readAsDataURL(file);
-});
+let previewUrl = '';
+    inp.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      IC_STATE.evidFiles[i] = file || null;
+      revokeObjUrl(previewUrl); previewUrl = '';
+      if(file){
+        previewUrl = URL.createObjectURL(file);
+        prev.src = previewUrl;
+        prev.style.display = 'block';
+      }else{
+        prev.src = '';
+        prev.style.display = 'none';
+      }
+    });
 bindNumericSanitizer('reg-telefono', 10);
 bindNumericSanitizer('reg-numeroCuenta', 16);
 
@@ -2368,15 +2422,20 @@ document.getElementById('c-cancelar').addEventListener('click', ()=>{
 });
 
 /* ================== PERSONALES (lectura + edición) ================== */
-let pFirmaDataUrl = '';
-document.getElementById('p-firma').addEventListener('change', (e)=>{
-  const file = e.target.files && e.target.files[0];
-  const prev = document.getElementById('p-firma-preview');
-  if(!file){ pFirmaDataUrl=''; prev.style.display='none'; prev.src=''; return; }
-  const reader = new FileReader();
-  reader.onload = ev => { pFirmaDataUrl = ev.target.result; prev.src = pFirmaDataUrl; prev.style.display='block'; };
-  reader.readAsDataURL(file);
-});
+    let previewUrl = '';
+    inp.addEventListener('change', (e)=>{
+      const file = e.target.files && e.target.files[0];
+      IC_STATE.evidFiles[i] = file || null;
+      revokeObjUrl(previewUrl); previewUrl = '';
+      if(file){
+        previewUrl = URL.createObjectURL(file);
+        prev.src = previewUrl;
+        prev.style.display = 'block';
+      }else{
+        prev.src = '';
+        prev.style.display = 'none';
+      }
+    });
 bindNumericSanitizer('p-telefono', 10);
 bindNumericSanitizer('p-numeroCuenta', 16);
 
