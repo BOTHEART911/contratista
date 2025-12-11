@@ -10,7 +10,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      --primary-2:#04281C;
+     
+  <style>
+  :root{
+  --primary-2:#04281C;
       --ok:#16a34a;
       --error:#dc2626;
       --scrim:rgba(0,0,0,.35);
@@ -2955,7 +2958,8 @@ function icConfirmarRadicado(){
 }
 
   /* ================== CUENTA DRIVE ================== */
-  document.getElementById('go-cuenta-drive')?.addEventListener('click', async ()=>{
+
+ document.getElementById('go-cuenta-drive')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
 
