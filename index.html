@@ -2055,7 +2055,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   };
 
   // Resumen breve para confirmar
-  const resumen = [
+ const resumen = [
     `<b>Informe:</b> ${body.informe} de ${body.total}`,
     `<b>Periodo:</b> ${body.inicioRatificar} — ${body.finRatificar}`,
     `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`
@@ -2067,9 +2067,12 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   });
   if(!rs.isConfirmed) return;
 
-    const waitSwal = Swal.fire({
+  const prevLoaderDisplay = loader?.style.display;
+  if(loader){ loader.classList.add('hidden'); loader.style.display = 'none'; }
+
+  const waitSwal = Swal.fire({
     title: 'CREANDO TUS DOCUMENTOS...',
-    html: 'Por favor espera un minuto mientras termina el proceso.',
+    html: '- Por favor espera 2 minutos mientras termina el proceso.<br>- No salgas de la App.<br>- No dejes bloquear la pantalla.',
     allowOutsideClick: false,
     allowEscapeKey: false,
     didOpen: () => { Swal.showLoading(); }
@@ -2094,6 +2097,11 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   }catch(e){
     await Swal.close();
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }finally{
+    if(loader){
+      loader.style.display = prevLoaderDisplay || '';
+      loader.classList.remove('hidden');
+    }
   }
 });
 
