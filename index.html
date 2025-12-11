@@ -1634,7 +1634,7 @@ function showPickerSelectAlert(){
 }
 
 // Formato COP en inputs
-const COP_INPUT_IDS = ['ic-saldo','ic-cobro','ic-base','ic-salud','ic-riesgos','ic-base2','ic-salud2','ic-fondo2','ic-riesgos2'];
+const COP_INPUT_IDS = ['ic-saldo','ic-cobro','ic-base','ic-salud','ic-riesgos','ic-base2','ic-salud2','ic-fondo','ic-fondo2','ic-riesgos2'];
 
 function formatCOPInstant(el){
   if(!el) return;
@@ -1684,11 +1684,12 @@ function renderIngresarCuenta(){
     const saldo = numPure(document.getElementById('ic-saldo').value);
     const cobro = numPure(document.getElementById('ic-cobro').value);
 
-    // Mostrar error si cobro supera saldo
     const nuevoSaldoEl = document.getElementById('ic-nuevoSaldo');
-    if(cobro > saldo){
+    if(!saldo && !cobro){
+      nuevoSaldoEl.value = '$ ';
+    } else if(cobro > saldo){
       nuevoSaldoEl.value = 'Error, revisa las cantidades';
-    }else{
+    } else {
       nuevoSaldoEl.value = formatCOPView(saldo - cobro);
     }
 
@@ -1701,7 +1702,7 @@ function renderIngresarCuenta(){
       document.getElementById('ic-aporte').value = '-';
     }
 
-    const base2 = numPure(document.getElementById('ic-base2').value);
+   const base2 = numPure(document.getElementById('ic-base2').value);
     if(base2 >= IC_SOLIDARIO_UMBRAL){
       document.getElementById('ic-solidario2').value = String(Math.round(base2 * 0.01));
       document.getElementById('ic-aporte2').value = 'COL PENSIONES';
