@@ -10,10 +10,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <style>
-    :root{
-      --primary:#06402B;
       --primary-2:#04281C;
       --ok:#16a34a;
       --error:#dc2626;
@@ -2092,8 +2088,8 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
       Swal.fire({
         icon:'success',
         title:'PROCESO FINALIZADO',
-        html:'Tus documentos se han generado y la cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal',
-        timer: 4000, 
+        html:'La cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisarlos',
+        timer: 6000, 
         showConfirmButton: false
       });
       resetIngresarCuentaView();
