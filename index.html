@@ -873,6 +873,8 @@
       <input id="ic-solidario2" type="text" readonly style="display:none;">
       <input id="ic-aporte2" type="text" readonly style="display:none;">
 
+      <input id="ic-supervisor" type="hidden" />
+
       <div class="center" style="margin-top:8px;">
         <button id="btn-planilla2-hide" class="chip danger">Ocultar Planilla Anexa</button>
       </div>
@@ -1623,7 +1625,8 @@ let IC_STATE = {
   carpetaContratista: '',
   rowTarget: null,
   nombre: '',
-  saldoQ: ''
+  saldoQ: '',
+  supervisor: ''
 };
 
 /* Botón menú: INGRESAR CUENTA (con sonido y navegación) */
@@ -1662,7 +1665,8 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     IC_STATE.cuentaExiste  = !!base.cuentaExiste;
     IC_STATE.nextMode      = !!base.nextMode;
     IC_STATE.contrato      = String(base.contrato||'').trim();
-    IC_STATE.nombre        = String(base.nombre||'').trim();  
+    IC_STATE.nombre        = String(base.nombre||'').trim();
+    IC_STATE.supervisor    = String(base.supervisor||'').trim(); 
 
     // Pintar vista
     renderIngresarCuenta();
@@ -1722,6 +1726,10 @@ function renderIngresarCuenta(){
   // Informe y total
   document.getElementById('ic-informe').textContent = String(IC_STATE.informe||1);
   const tot = document.getElementById('ic-total'); if(tot) tot.value = IC_STATE.total||'';
+
+// Precargar supervisor de forma oculta
+  const sup = document.getElementById('ic-supervisor');
+if (sup) sup.value = IC_STATE.supervisor || '';
 
   // Precargar SALDO ACTUAL con Q (editable)
   const saldoEl = document.getElementById('ic-saldo');
@@ -2127,6 +2135,7 @@ for(let i=0;i<Math.min(26,n);i++){
     documento: currentUser.documento,
     nombre: IC_STATE.nombre || '',
     contrato: IC_STATE.contrato || '',
+    supervisor: document.getElementById('ic-supervisor').value || '',
     informe: IC_STATE.informe || 1,
     total: String(document.getElementById('ic-total').value||''),
     fechaRadicar: document.getElementById('ic-radicado').value,
