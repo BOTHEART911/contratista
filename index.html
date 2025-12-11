@@ -887,6 +887,10 @@
 /* ================== CONFIGURACIÓN ================== */
 const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec';
 
+  /* Firmas (registro y personales) */
+let regFirmaDataUrl = '';
+let pFirmaDataUrl   = '';
+
 /* ================== SONIDOS ================== */
 const SOUNDS = {
   question: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_fail_ls2aif.mp3',
@@ -961,6 +965,38 @@ function compressImageToDataUrl(file, { maxDim = MAX_IMG_DIM, quality = JPEG_QUA
   });
 }
 
+  /* Helper: enlaza input de firma con previsualización + compresión */
+function bindFirmaInput(inputId, previewId, assignCb){
+  const input = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  if(!input || !preview) return;
+  let localUrl = '';
+
+  input.addEventListener('change', async (e)=>{
+    const file = e.target.files?.[0];
+    assignCb('');
+    revokeObjUrl(localUrl); localUrl = '';
+    preview.style.display = 'none'; preview.src = '';
+    if(!file) return;
+
+    try{
+      const { dataUrl, sizeMB } = await compressImageToDataUrl(file);
+      if(sizeMB > MAX_IMAGE_MB){
+        Swal.fire({ icon:'warning', title:'Imagen muy pesada', text:`La imagen debe pesar máximo ${MAX_IMAGE_MB} MB.` });
+        input.value = '';
+        return;
+      }
+      assignCb(dataUrl);
+      localUrl = URL.createObjectURL(file);
+      preview.src = localUrl;
+      preview.style.display = 'block';
+    }catch(err){
+      Swal.fire({ icon:'error', title:'No se pudo leer la imagen', text:String(err.message||err) });
+      input.value = '';
+    }
+  });
+}
+
 /* ================== LOADER ================== */
 const loader = document.getElementById('loader');
 let loadingCount = 0, loaderTimer = null; let suppressLoader = false;
@@ -1025,6 +1061,9 @@ function resetVistas(){
   // Limpiar previews
   const pf = document.getElementById('p-firma-preview'); if(pf){ pf.src=''; pf.style.display='none'; }
   const rf = document.getElementById('reg-firma-preview'); if(rf){ rf.src=''; rf.style.display='none'; }
+
+    regFirmaDataUrl = '';
+  pFirmaDataUrl   = '';
 
   // Campos de contrato
   ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-costos','c-regimen'].forEach(id=>{
@@ -1808,21 +1847,6 @@ function renderIngresarCuenta(){
     prev.style.border = '1.5px solid #d8e4ff';
     prev.style.marginTop = '8px';
 
-     let previewUrl = '';
-    inp.addEventListener('change', (e)=>{
-      const file = e.target.files && e.target.files[0];
-      IC_STATE.evidFiles[i] = file || null;
-      revokeObjUrl(previewUrl); previewUrl = '';
-      if(file){
-        previewUrl = URL.createObjectURL(file);
-        prev.src = previewUrl;
-        prev.style.display = 'block';
-      }else{
-        prev.src = '';
-        prev.style.display = 'none';
-      }
-    });
-
     // AÑADE TODOS LOS ELEMENTOS AL BLOQUE EN ORDEN
     block.appendChild(p);
     block.appendChild(lab);
@@ -2171,20 +2195,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
 
 
 /* ================== REGISTRO ================== */
-let previewUrl = '';
-    inp.addEventListener('change', (e)=>{
-      const file = e.target.files && e.target.files[0];
-      IC_STATE.evidFiles[i] = file || null;
-      revokeObjUrl(previewUrl); previewUrl = '';
-      if(file){
-        previewUrl = URL.createObjectURL(file);
-        prev.src = previewUrl;
-        prev.style.display = 'block';
-      }else{
-        prev.src = '';
-        prev.style.display = 'none';
-      }
-    });
+
 bindNumericSanitizer('reg-telefono', 10);
 bindNumericSanitizer('reg-numeroCuenta', 16);
 
@@ -2195,6 +2206,7 @@ fillSelect('reg-arl', ARL);
 
 bindQuery('reg-expedida','dl-expedida');
 bindQuery('reg-municipio','dl-municipio');
+bindFirmaInput('reg-firma','reg-firma-preview',(val)=>{ regFirmaDataUrl = val; });
 
 document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
@@ -2449,6 +2461,7 @@ fillSelect('p-arl', ARL);
 
 bindQuery('p-expedida','dl-expedida2');
 bindQuery('p-municipio','dl-municipio2');
+bindFirmaInput('p-firma','p-firma-preview',(val)=>{ pFirmaDataUrl = val; });
 
 document.getElementById('personales-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
 document.getElementById('personales-editar').addEventListener('click', ()=>{
