@@ -2048,19 +2048,20 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
 
   // Validar actividades obligatorias
   {
-    const n = Math.max(1, IC_STATE.obligaciones.length);
-    IC_STATE.evidFiles = new Array(n).fill(null);
-IC_STATE.evidData  = new Array(n).fill('');
-IC_STATE.evidSizes = new Array(n).fill(0);
-    for(let i=1;i<=Math.min(26,n);i++){
-      const el = document.getElementById('ic-act-'+i);
-      const v = (el && el.value) ? el.value.trim() : '';
-      if(!v){
-        await Swal.fire({ icon:'warning', title:`Faltan actividades`, text:`Debes diligenciar la actividad para la obligación ${i}.` });
-        return;
-      }
+  const n = Math.max(1, IC_STATE.obligaciones.length);
+  for (let i = 1; i <= Math.min(26, n); i++) {
+    const el = document.getElementById('ic-act-' + i);
+    const v = (el && el.value) ? el.value.trim() : '';
+    if (!v) {
+      await Swal.fire({
+        icon: 'warning',
+        title: `Faltan actividades`,
+        text: `Debes diligenciar la actividad para la obligación ${i}.`
+      });
+      return;
     }
   }
+}
 
   // Validaciones mínimas
   const required = {
