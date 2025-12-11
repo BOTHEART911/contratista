@@ -335,6 +335,7 @@
         <button class="menu-btn" id="go-comunicados">COMUNICADOS</button>
         <button class="menu-btn" id="go-borrador">BORRADOR ACTIVIDADES</button>
         <button class="menu-btn" id="go-ingresar-cuenta">INGRESAR CUENTA</button>
+        <button class="menu-btn" id="go-cuenta-drive">MI CUENTA DRIVE</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -2952,6 +2953,86 @@ function icConfirmarRadicado(){
   }
   icCancelarRadicado();
 }
+
+  /* ================== CUENTA DRIVE ================== */
+  document.getElementById('go-cuenta-drive')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'}); 
+    return;
+  }
+
+  try{
+    const res = await apiGet('getCuentaDrive', { documento: currentUser.documento });
+    if(!res || !res.found){
+      await Swal.fire({
+        icon:'info',
+        title:'NO HAZ INGRESADO CUENTAS',
+        text:'Esta opción se tomo después de Ingresar una Cuenta',
+        timer:4000,
+        showConfirmButton:false
+      });
+      return;
+    }
+
+    const estado = String(res.estado||'').toUpperCase();
+    const folderId = String(res.folderId||'').trim();
+    const openFolder = ()=>{ if(folderId){ window.open('https://drive.google.com/drive/folders/' + folderId, '_blank'); } };
+
+    const estadosValidos = ['INGRESADA','INCOMPLETA','APROBADA'];
+    if(estadosValidos.indexOf(estado) === -1){
+      await Swal.fire({
+        icon:'info',
+        title:'OPCIÓN NO VALIDA POR AHORA',
+        text:'tu cuenta ya fue revisada por el Supervisor y está en proceso de Aprobación',
+        timer:5000,
+        showConfirmButton:false
+      });
+      return;
+    }
+
+    if(estado === 'APROBADA'){
+      await Swal.fire({
+        icon:'success',
+        title:'UNIFICA TUS DOCUMENTOS',
+        text:'Ya solo falta el cargue en el SECOP II',
+        timer:3000,
+        showConfirmButton:false
+      });
+      openFolder();
+      return;
+    }
+
+    if(estado === 'INCOMPLETA'){
+      await Swal.fire({
+        icon:'info',
+        title:'COMPLETA TUS DOCUMENTOS',
+        text:'Recuerda de nuevo tomar la opcíon REPORTAR CUENTA DRIVE en el Menú Principal',
+        timer:4000,
+        showConfirmButton:false
+      });
+      openFolder();
+      return;
+    }
+
+    if(estado === 'INGRESADA'){
+      await Swal.fire({
+        icon:'info',
+        title:'REVISA TUS DOCUMENTOS',
+        text:'Revisa que todo esté correcto',
+        timer:4000,
+        showConfirmButton:false
+      });
+      openFolder();
+      return;
+    }
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+  
 /* ================== FIN ================== */
 </script>
 </body>
