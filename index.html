@@ -784,21 +784,36 @@
       <input id="ic-nuevoSaldo" type="text" readonly placeholder="$ 0" />
 
       <label>N° de Planilla</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa que el Número de Planilla coincida</b>
+        </div>
       <input id="ic-planilla" type="tel" inputmode="numeric" placeholder="Planilla ya pagada">
 
       <label>Mes Relacionado en la Planilla</label>
       <select id="ic-mesPlanilla"></select>
 
       <label>Base de Cotización</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa en tu Planilla IBC</b>
+        </div>
       <input id="ic-base" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
 
       <label>Aportes a Salud</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa en tu Planilla Aportes Salud, sin intereses</b>
+        </div>
       <input id="ic-salud" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
 
       <label>Aportes a Pensión</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa en tu Planilla Aportes Pensión, sin intereses<br><br>Si NO realizas aportes escribe 0</b>
+        </div>
       <input id="ic-fondo" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
 
       <label>Aportes a ARL</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa en tu Planilla Aportes Riesgos, sin intereses<br><br>Si la entidad realiza los aportes por ser Tipo 3, 4 0 5; escribe el valor que consignado por la entidad</b>
+        </div>
       <input id="ic-riesgos" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
 
       <input id="ic-solidario" type="text" readonly style="display:none;">
@@ -812,21 +827,36 @@
     <div id="ic-planilla2-wrap" class="narrow hidden" style="margin-top:8px;">
       <h3 class="center" style="margin-top:6px;color:#333;">RELACIÓN DE PAGO PLANILLA ANEXA</h3>
       <label>N° de Planilla Anexa</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa que el Número de Planilla coincida</b>
+        </div>
       <input id="ic-planilla2" type="tel" inputmode="numeric" placeholder="Planilla ya pagada (opcional)">
 
       <label>Mes Relacionado en la Planilla Anexa</label>
       <select id="ic-mesPlanilla2"></select>
 
       <label>Base de Cotización (Anexa)</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa en tu Planilla IBC</b>
+        </div>
       <input id="ic-base2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
 
       <label>Aportes a Salud (Anexa)</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa en tu Planilla Aportes Salud, sin intereses</b>
+        </div>
       <input id="ic-salud2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
 
       <label>Aportes a Pensión (Anexa)</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa en tu Planilla Aportes Pensión, sin intereses<br><br>Si NO realizas aportes escribe 0</b>
+        </div>
       <input id="ic-fondo2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
 
       <label>Aportes a ARL (Anexa)</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Revisa en tu Planilla Aportes Riesgos, sin intereses<br><br>Si la entidad realiza los aportes por ser Tipo 3, 4 0 5; escribe el valor que consignado por la entidad</b>
+        </div>
       <input id="ic-riesgos2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
 
       <input id="ic-solidario2" type="text" readonly style="display:none;">
@@ -838,6 +868,11 @@
     </div>
 
     <h3 class="center" style="margin-top:12px;color:#333;">RELACIÓN DE ACTIVIDADES</h3>
+
+     <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>DESCRIPCIÓN DETALLADA CON LOS CASOS QUE APLIQUE:</b><br><b>1.</b> En tus Activudades relaciona metas del Plan de Desarrollo (Si Aplica)<br><b>2.</b> Lugares de realización de actividades (barrios, veredas, conjuntos, oficina, etc.)<br><b>3.</b> Relación de Cantidades (Atención al Público, Revisiones, limpiezas, estudios, creación de archivos, recepción y envío de Documentos, visitas, reuniones, suministros entregados, trabajos realizados, etc.)<br><b>4.</b> Personas Impactadas por la Actividad<br><b>5.</b> Medios de Corroboración de la Información (Link Fanpage, Link Drive con permiso, descripción de archivos, etc.)<br><br>Esta información debe evidenciarse en el anexo fotográfico y estar relacionada en algún archivo entregado al supervisor.<br><br><b>PRE-AVISOS:</b><br><b>1.</b> No copies las mismas actividades en cada cuenta (están bajo seguimiento)<br><b>2.</b> Las cuentas que no cumplan los parámetros según los casos, serán devueltas.<br><b>3. Un informe de cuenta tiene el mismo valor que un Informe de Gestión, por tal razón, los supervisores no pueden aprobar cuentas que no cumplan con los críterios.</b>
+        </div>
+    
     <div id="ic-oblig-wrap" class="narrow"></div>
 
     <div class="btn-row spaced">
@@ -1545,7 +1580,7 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     // Bloqueos por estado BJ
     const bj = String(base.estado||'').toUpperCase();
     if (bj==='DEVUELTA' || bj==='INGRESADA'){
-      await Swal.fire({icon:'info',title:'OPCIÓN NO VÁLIDA POR AHORA',text:'Toma la opción CORREGIR CUENTA',timer:5000,showConfirmButton:false});
+      await Swal.fire({icon:'info',title:'OPCIÓN NO VÁLIDA POR AHORA',html:'Toma la opción <b>CORREGIR CUENTA</b>',timer:5000,showConfirmButton:false});
       showView('view-inicio'); 
       return;
     }
@@ -1663,7 +1698,7 @@ function renderIngresarCuenta(){
 
     const ta = document.createElement('textarea');
     ta.id = 'ic-act-' + idx;
-    ta.rows = 4;
+    ta.rows = 5;
     ta.placeholder = 'Describe la(s) actividad(es) que quieres guardar, recuerda todo el esquema explicado en la parte superior.';
     ta.value = actVal;
 
@@ -2004,7 +2039,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
       Swal.fire({
         icon:'success',
         title:'PROCESO FINALIZADO',
-        html:'Tus documentos se han generado y la cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI ÚLTIMA CUENTA DRIVE</b> en el Menú Principal',
+        html:'Tus documentos se han generado y la cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal',
         timer: 4000, 
         showConfirmButton: false
       });
@@ -2523,7 +2558,7 @@ document.getElementById('btn-instalar').addEventListener('click', async ()=>{
       >
       <div>Debes esperar unos segundos mientras el sistema instala la App.</div>
       <div style="margin-top:10px;">
-        <b>Ya puedes salir de esta vista, aparecerá en la pantalla principal de este dispositivo.</b>
+        <b>Al desaparecer este aviso, puedes salir de esta vista. La App aparecerá en la pantalla principal de este dispositivo.</b>
       </div>
     </div>
   `,
