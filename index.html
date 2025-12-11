@@ -1786,7 +1786,6 @@ function renderIngresarCuenta(){
   const wrap = document.getElementById('ic-oblig-wrap');
   wrap.innerHTML = '';
   const n = Math.max(1, IC_STATE.obligaciones.length);
-  IC_STATE.evidFiles = new Array(n).fill(null);
 
   for(let i=0;i<n && i<26;i++){
     const idx = i + 1;
@@ -1816,15 +1815,7 @@ function renderIngresarCuenta(){
     inp.accept = 'image/*';
     inp.id = 'ic-evi-' + idx;
 
-    const prev = document.createElement('img');
-    prev.id = 'ic-evi-prev-' + idx;
-    prev.style.display = 'none';
-    prev.style.maxWidth = '100%';
-    prev.style.borderRadius = '10px';
-    prev.style.border = '1.5px solid #d8e4ff';
-    prev.style.marginTop = '8px';
 
-     let previewUrl = '';
    const prev = document.createElement('img');
 prev.id = 'ic-evi-prev-' + idx;
 prev.className = 'evi-preview';
