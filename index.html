@@ -2035,20 +2035,23 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   }
 
   // Evidencias (1 por obligación) a dataURL
-  let previewUrl = '';
-    inp.addEventListener('change', (e)=>{
-      const file = e.target.files && e.target.files[0];
-      IC_STATE.evidFiles[i] = file || null;
-      revokeObjUrl(previewUrl); previewUrl = '';
-      if(file){
-        previewUrl = URL.createObjectURL(file);
-        prev.src = previewUrl;
-        prev.style.display = 'block';
-      }else{
-        prev.src = '';
-        prev.style.display = 'none';
-      }
-    });
+    // Evidencias (1 por obligación) → comprimir y validar peso
+  const evidenciasData = [];
+  for(let i=0;i<Math.min(26,n);i++){
+    const f = IC_STATE.evidFiles[i] || null;
+    if(!f){ evidenciasData.push(''); continue; }
+
+    const { dataUrl, sizeMB } = await compressImageToDataUrl(f);
+    if(sizeMB > MAX_IMAGE_MB){
+      await Swal.fire({
+        icon:'warning',
+        title:'Imagen muy pesada',
+        text:`La evidencia ${i+1} aún supera ${MAX_IMAGE_MB} MB. Usa una foto más liviana o reduce su resolución.`
+      });
+      return;
+    }
+    evidenciasData.push(dataUrl);
+  }
 
   // Cálculos
   const saldo = numPure(required.saldo);
