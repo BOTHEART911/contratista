@@ -3200,12 +3200,23 @@ function icConfirmarRadicado(){
       return;
     }
 
+    if(estado === 'REPORTADA'){
+      const r = await Swal.fire({
+        icon:'info',
+        title:'YA REPORTASTE TU CUENTA',
+        html:'Ahora debes esperar que tu Supervisor la Revise<br><br>Si la Reportaste sin revisar o completar los Documentos, evita este reproceso en el próximo reporte.',
+        confirmButtonText:'OK'
+      });
+      if(r.isConfirmed) openFolder();
+      return;
+    }
+
     if(estado === 'INGRESADA'){
       const r = await Swal.fire({
         icon:'info',
         title:'REVISA TUS DOCUMENTOS',
         html:'Verifica que los Datos estén correctos<br><b>Anexa</b><br>Planilla(s) de Aportes<br>Baucher del Pago de Aportes<br>Documentos solictados (Si Aplica)',
-        confirmButtonText:'OK'
+        confirmButtonText:'IR A MI CARPETA DRIVE'
       });
       if(r.isConfirmed) openFolder();
       return;
