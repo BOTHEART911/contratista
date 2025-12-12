@@ -350,6 +350,7 @@
         <button class="menu-btn" id="go-borrador">BORRADOR ACTIVIDADES</button>
         <button class="menu-btn" id="go-ingresar-cuenta">INGRESAR CUENTA</button>
         <button class="menu-btn" id="go-cuenta-drive">MI CUENTA DRIVE</button>
+        <button class="menu-btn" id="go-reportar-drive">REPORTAR CUENTA DRIVE</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -899,6 +900,8 @@
 <script>
 /* ================== CONFIGURACIÓN ================== */
 const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec';
+const BUILDERBOT_ENDPOINT = 'https://app.builderbot.cloud/api/v2/ff37a123-12b0-4fdc-9866-f3e2daf389fb/messages';
+const BUILDERBOT_API_KEY  = 'bb-7f9ef630-5cfc-4ba4-9258-5e7cecbb4f65';
 
 /* ================== SONIDOS ================== */
 const SOUNDS = {
@@ -1020,6 +1023,28 @@ async function apiPost(action, body = {}){
     if(!j.ok) throw new Error(j.error || 'Error');
     return j.data;
   } finally { stopLoading(); }
+}
+
+/* ================== MENSAJE WHATSAPP A GRUPO ================== */
+function normalizeNumber57(raw){
+  let num = String(raw || '').replace(/\D/g,'');
+  if(!num) return '';
+  if(num.length === 10 && !num.startsWith('57')) num = '57' + num;
+  if(!(num.length === 12 && num.startsWith('57'))) return '';
+  return num;
+}
+function sendBuilderbotMessage(destino, mensaje){
+  const numberField = normalizeNumber57(destino);
+  if(!numberField){ console.warn('Destino vacío o inválido'); return; }
+  fetch(BUILDERBOT_ENDPOINT, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-api-builderbot':BUILDERBOT_API_KEY },
+    body: JSON.stringify({
+      messages: { content: mensaje },
+      number: numberField,
+      checkIfExists: false
+    })
+  }).catch(err => console.warn('Error BuilderBot', err));
 }
 
 /* ================== ESTADO ================== */
@@ -3168,6 +3193,22 @@ function icConfirmarRadicado(){
   icCancelarRadicado();
 }
 
+ /* ================== FECHA ACTUAL Y HORA PARA MENSAJE ================== */
+function esHorarioHabilAhora(){
+  const ahora = new Date();
+  const dow = ahora.getDay(); // 0 Domingo, 6 Sábado
+  if(dow === 0 || dow === 6) return false;
+  const hora = ahora.getHours() + (ahora.getMinutes()/60);
+  if(hora < 8 || hora >= 18) return false;
+  const dd = String(ahora.getDate()).padStart(2,'0');
+  const mm = String(ahora.getMonth()+1).padStart(2,'0');
+  const yy = String(ahora.getFullYear());
+  const clave = `${dd}/${mm}/${yy}`;
+  // Reutiliza el set de feriados ya definido: IC_FERIADOS_2026
+  if(typeof IC_FERIADOS_2026 !== 'undefined' && IC_FERIADOS_2026.has(clave)) return false;
+  return true;
+}
+
   /* ================== CUENTA DRIVE ================== */
 
  document.getElementById('go-cuenta-drive')?.addEventListener('click', async ()=>{
@@ -3255,6 +3296,80 @@ function icConfirmarRadicado(){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
 });
+
+    /* ================== REPORTAR CUENTA DRIVE ================== */
+
+  document.getElementById('go-reportar-drive')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'}); 
+    return;
+  }
+  if(!esHorarioHabilAhora()){
+    Swal.fire({
+      icon:'info',
+      title:'HORARIO NO HÁBIL',
+      text:'Debes Reportar tu Cuenta entre 8:00 AM y 6:00 PM de Lunes a Viernes (No Festivos)',
+      timer:4000,
+      showConfirmButton:false
+    });
+    return;
+  }
+  try{
+    const res = await apiGet('reportarCuentaDrive', { documento: currentUser.documento });
+    if(!res || !res.found){
+      Swal.fire({icon:'info', title:'NO PUEDES REPORTAR', text:'Primero debes Ingresar un Cuenta', timer:3000, showConfirmButton:false});
+      return;
+    }
+    const estado = String(res.estadoBJ||'').toUpperCase();
+    if(['INGRESADA','INCOMPLETA'].indexOf(estado) === -1){
+      Swal.fire({
+        icon:'info',
+        title:'NO HAY CUENTAS PARA REPORTAR',
+        text:'No puedes reportar la cuenta 2 veces o Tomar esta opción si tu Cuenta está en otro estado de revisión',
+        timer:6000,
+        showConfirmButton:false
+      });
+      return;
+    }
+    const informe   = res.informe || '';
+    const supervisor= res.supervisor || '';
+    const grupo     = res.grupo || '';
+    const nombre    = res.nombre || '';
+    const contrato  = res.contrato || '';
+    const msg = 
+      'Estimado(a) *'+supervisor+'*' + '\n\n' +
+      '¡El contratista *'+nombre+'* ha reportado la *Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
+      'Ingresa a la App para visualizar';
+
+    const r = await Swal.fire({
+      icon:'success',
+      title:'ANTES DE REPORTAR CORROBORAR',
+      html:`Antes de Reportar tu Cuenta ${informe}, Tus Documentos deben estar:<br><br>Completos (Incliyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
+      showCancelButton:true,
+      confirmButtonText:'REPORTAR',
+      cancelButtonText:'CANCELAR'
+    });
+    if(!r.isConfirmed){
+      showView('view-inicio');
+      return;
+    }
+    if(grupo) sendBuilderbotMessage(grupo, msg);
+    await Swal.fire({icon:'success', title:'Cuenta reportada', timer:2500, showConfirmButton:false});
+    showView('view-inicio');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+
+  if(grupo) sendBuilderbotMessage(grupo, msg);
+
+// Marcar BJ como REPORTADA después de reportar
+await apiPost('marcarCuentaReportada', { documento: currentUser.documento });
+
+await Swal.fire({icon:'success', title:'Cuenta reportada', timer:2500, showConfirmButton:false});
+showView('view-inicio');
   
 /* ================== FIN ================== */
 </script>
