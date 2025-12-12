@@ -1644,6 +1644,8 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento });
 
     // Bloqueos por estado BJ
+     const bj = String(base.estado||'').toUpperCase();
+    
    if (bj === 'DEVUELTA') {
     await Swal.fire({
       icon:'info',
