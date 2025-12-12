@@ -897,6 +897,42 @@
     </div>
   </div>
 </section>
+
+     /* ================== VISTA REPORTAR PLAN DE PAGOS ================== */
+
+  <section id="view-plan-pagos-report" class="view">
+  <div class="card narrow">
+    <h2 style="color:var(--primary)">REPORTE DE PLAN DE PAGOS</h2>
+    <p class="helper">
+      Selecciona la Fecha del último pago recibido por la Entidad.<br>
+      Revisa mensajes de texto o movimiento de tu Cuenta Bancaria para mayor exactitud.
+    </p>
+
+    <label>Fecha de Último Pago</label>
+    <input id="pago" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerPago()">
+
+    <!-- Modal Fecha Pago (año fijo 2026) -->
+    <div id="pagoModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
+      <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
+        <h3 style="margin:0 0 8px 0;">Selecciona la fecha</h3>
+        <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+          <div><small>Día</small><select id="pagoDia" size="10"></select></div>
+          <div><small>Mes</small><select id="pagoMes" size="12"></select></div>
+          <div><small>Año</small><select id="pagoAnio" size="3" disabled><option selected>2026</option></select></div>
+        </div>
+        <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+          <button type="button" class="btn btn-cancel" onclick="cancelarPickerPago()">Cancelar</button>
+          <button type="button" class="btn btn-ok" onclick="confirmarPickerPago()">Ok</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row spaced">
+      <button id="plan-pagos-regresar" class="danger">Regresar</button>
+      <button id="plan-pagos-reportar" class="btn-primary">REPORTAR</button>
+    </div>
+  </div>
+</section>
     
 <script>
 /* ================== CONFIGURACIÓN ================== */
@@ -2767,41 +2803,7 @@ async function cargarPersonalesLectura(){
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
 }
 
-    /* ================== VISTA REPORTAR PLAN DE PAGOS ================== */
-
-  <section id="view-plan-pagos-report" class="view">
-  <div class="card narrow">
-    <h2 style="color:var(--primary)">REPORTE DE PLAN DE PAGOS</h2>
-    <p class="helper">
-      Selecciona la Fecha del último pago recibido por la Entidad.<br>
-      Revisa mensajes de texto o movimiento de tu Cuenta Bancaria para mayor exactitud.
-    </p>
-
-    <label>Fecha de Último Pago</label>
-    <input id="pago" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerPago()">
-
-    <!-- Modal Fecha Pago (año fijo 2026) -->
-    <div id="pagoModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
-      <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
-        <h3 style="margin:0 0 8px 0;">Selecciona la fecha</h3>
-        <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
-          <div><small>Día</small><select id="pagoDia" size="10"></select></div>
-          <div><small>Mes</small><select id="pagoMes" size="12"></select></div>
-          <div><small>Año</small><select id="pagoAnio" size="3" disabled><option selected>2026</option></select></div>
-        </div>
-        <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
-          <button type="button" class="btn btn-cancel" onclick="cancelarPickerPago()">Cancelar</button>
-          <button type="button" class="btn btn-ok" onclick="confirmarPickerPago()">Ok</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="btn-row spaced">
-      <button id="plan-pagos-regresar" class="danger">Regresar</button>
-      <button id="plan-pagos-reportar" class="btn-primary">REPORTAR</button>
-    </div>
-  </div>
-</section>
+   
   
 /* ================== PWA AVANZADO ================== */
 let deferredPrompt = null;
