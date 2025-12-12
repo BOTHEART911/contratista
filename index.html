@@ -1662,8 +1662,10 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     await Swal.fire({
       icon:'info',
       title:'NO PUEDES ACUMULAR CUENTAS',
-      text:'Tu Supervisor no ha firmado tu cuenta anterior',
-      timer:5000,
+      html:'Tu Supervisor no ha firmado y Contración no ha Aprobado tu cuenta anterior<br><br>
+      Puedes ir adelantado el registro de las Actividades de la siguiente cuenta desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
+      No dejes acumulular cuentas',
+      timer:8000,
       showConfirmButton:false
     });
     showView('view-inicio');
@@ -1674,8 +1676,10 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     await Swal.fire({
       icon:'info',
       title:'DEBES ESPERAR UN POCO MÁS',
-      text:'La oficina de Contratación no ha Aprobado tu anterior cuenta',
-      timer:5000,
+      html:'La oficina de Contratación no ha Aprobado tu anterior cuenta<br><br>
+      Puedes ir adelantado el registro de las Actividades de la siguiente cuenta desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
+      No dejes acumulular cuentas',
+      timer:8000,
       showConfirmButton:false
     });
     showView('view-inicio');
