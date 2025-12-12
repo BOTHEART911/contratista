@@ -3353,18 +3353,18 @@ function esHorarioHabilAhora(){
       '¡El contratista *'+nombre+'* ha reportado la *Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
       'Ingresa a la App para visualizar';
 
-    const r = await Swal.fire({
-      icon:'success',
-      title:'ANTES DE REPORTAR TU CUENTA ${informe}',
-      html:`Corrobora que tus Documentos estén:<br><br>Completos (Incliyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
-      showCancelButton:true,
-      confirmButtonText:'REPORTAR',
-      cancelButtonText:'CANCELAR'
-    });
-    if(!r.isConfirmed){
-      showView('view-inicio');
-      return;
-    }
+const r = await Swal.fire({
+  icon:'success',
+  title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
+  html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
+  showCancelButton: true,
+  confirmButtonText: 'REPORTAR',
+  cancelButtonText: 'CANCELAR'
+});
+if(!r.isConfirmed){
+  showView('view-inicio');
+  return;
+}
     if(grupo) sendBuilderbotMessage(grupo, msg);
     await apiPost('marcarCuentaReportada', { documento: currentUser.documento });
     await Swal.fire({icon:'success', title:'Cuenta reportada', timer:2500, showConfirmButton:false});
