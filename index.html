@@ -3488,21 +3488,9 @@ if(!r.isConfirmed){
       contrato: res.contrato || '',
       pago: res.pago || ''
     };
-    const pagoInput = document.getElementById('pago');
-    if(pagoInput){
-      if(res.informe === 1){ // Primera Cuenta: lectura fija
-        pagoInput.value = 'Primera Cuenta';
-        pagoInput.readOnly = true;
-        pagoInput.onclick = null;
-      } else {
-        pagoInput.value = res.pago ? res.pago : '';
-        pagoInput.readOnly = true;
-        pagoInput.onclick = abrirPickerPago;
-      }
-    }
 
-       const helperPago = document.querySelector('#view-plan-pagos-report .helper');
-    const pagoInput = document.getElementById('pago');
+          const helperPago = document.querySelector('#view-plan-pagos-report .helper');
+    const pagoInput  = document.getElementById('pago');
 
     if (helperPago) {
       helperPago.style.display = (res.informe === 1) ? 'none' : '';
