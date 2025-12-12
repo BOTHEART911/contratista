@@ -1033,9 +1033,20 @@ function normalizeNumber57(raw){
   if(!(num.length === 12 && num.startsWith('57'))) return '';
   return num;
 }
+// MENSAJE WHATSAPP A GRUPO / CONTACTO
 function sendBuilderbotMessage(destino, mensaje){
-  const numberField = normalizeNumber57(destino);
-  if(!numberField){ console.warn('Destino vacío o inválido'); return; }
+  // Acepta IDs de grupo (alfanuméricos) o teléfonos.
+  let numberField = String(destino || '').trim();
+  if(!numberField) return;
+
+  // Si parece teléfono, normaliza a 57 + 10 dígitos
+  if(/^\d{10}$/.test(numberField)){
+    numberField = '57' + numberField;
+  } else if(/^57\d{10}$/.test(numberField)){
+    // ya viene con 57, se deja igual
+  }
+  // Si es alfanumérico (ID de grupo), se envía tal cual.
+
   fetch(BUILDERBOT_ENDPOINT, {
     method:'POST',
     headers:{ 'Content-Type':'application/json', 'x-api-builderbot':BUILDERBOT_API_KEY },
@@ -1046,7 +1057,6 @@ function sendBuilderbotMessage(destino, mensaje){
     })
   }).catch(err => console.warn('Error BuilderBot', err));
 }
-
 /* ================== ESTADO ================== */
 let currentUser = null;
 
@@ -3345,8 +3355,8 @@ function esHorarioHabilAhora(){
 
     const r = await Swal.fire({
       icon:'success',
-      title:'ANTES DE REPORTAR CORROBORAR',
-      html:`Antes de Reportar tu Cuenta ${informe}, Tus Documentos deben estar:<br><br>Completos (Incliyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
+      title:'ANTES DE REPORTAR TU CUENTA ${informe}',
+      html:`Corrobora que tus Documentos estén:<br><br>Completos (Incliyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
       showCancelButton:true,
       confirmButtonText:'REPORTAR',
       cancelButtonText:'CANCELAR'
