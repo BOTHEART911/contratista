@@ -351,6 +351,7 @@
         <button class="menu-btn" id="go-ingresar-cuenta">INGRESAR CUENTA</button>
         <button class="menu-btn" id="go-cuenta-drive">MI CUENTA DRIVE</button>
         <button class="menu-btn" id="go-reportar-drive">REPORTAR CUENTA DRIVE</button>
+        <button class="menu-btn" id="go-reportar-plan">REPORTAR PLAN DE PAGOS</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -2766,6 +2767,42 @@ async function cargarPersonalesLectura(){
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
 }
 
+    /* ================== VISTA REPORTAR PLAN DE PAGOS ================== */
+
+  <section id="view-plan-pagos-report" class="view">
+  <div class="card narrow">
+    <h2 style="color:var(--primary)">REPORTE DE PLAN DE PAGOS</h2>
+    <p class="helper">
+      Selecciona la Fecha del último pago recibido por la Entidad.<br>
+      Revisa mensajes de texto o movimiento de tu Cuenta Bancaria para mayor exactitud.
+    </p>
+
+    <label>Fecha de Último Pago</label>
+    <input id="pago" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerPago()">
+
+    <!-- Modal Fecha Pago (año fijo 2026) -->
+    <div id="pagoModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
+      <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
+        <h3 style="margin:0 0 8px 0;">Selecciona la fecha</h3>
+        <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+          <div><small>Día</small><select id="pagoDia" size="10"></select></div>
+          <div><small>Mes</small><select id="pagoMes" size="12"></select></div>
+          <div><small>Año</small><select id="pagoAnio" size="3" disabled><option selected>2026</option></select></div>
+        </div>
+        <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+          <button type="button" class="btn btn-cancel" onclick="cancelarPickerPago()">Cancelar</button>
+          <button type="button" class="btn btn-ok" onclick="confirmarPickerPago()">Ok</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row spaced">
+      <button id="plan-pagos-regresar" class="danger">Regresar</button>
+      <button id="plan-pagos-reportar" class="btn-primary">REPORTAR</button>
+    </div>
+  </div>
+</section>
+  
 /* ================== PWA AVANZADO ================== */
 let deferredPrompt = null;
 let __installStartShown = false;    // bandera: ya mostramos "App instalándose"
@@ -3203,6 +3240,37 @@ function icConfirmarRadicado(){
   icCancelarRadicado();
 }
 
+  // FECHA PLAN DE PAGOS
+  let PLANPAGO_STATE = { informe:'', supervisor:'', grupo:'', nombre:'', contrato:'', pago:'' };
+
+(function initPickerPago(){
+  const d = document.getElementById('pagoDia');
+  const m = document.getElementById('pagoMes');
+  if(d && !d.childElementCount){
+    for(let i=1;i<=31;i++){ const o=document.createElement('option'); o.value=String(i).padStart(2,'0'); o.textContent=o.value; d.appendChild(o); }
+  }
+  if(m && !m.childElementCount){
+    const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    for(let i=0;i<12;i++){ const o=document.createElement('option'); o.value=String(i+1).padStart(2,'0'); o.textContent=mesesNombres[i]; m.appendChild(o); }
+  }
+})();
+function abrirPickerPago(){
+  const modal=document.getElementById('pagoModal');
+  if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
+}
+function cancelarPickerPago(){
+  const modal=document.getElementById('pagoModal');
+  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+}
+function confirmarPickerPago(){
+  const dSel=document.getElementById('pagoDia')?.value||'01';
+  const mSel=document.getElementById('pagoMes')?.value||'01';
+  const val = `${dSel}/${mSel}/2026`;
+  const input=document.getElementById('pago');
+  if(input) input.value = val;
+  cancelarPickerPago();
+}
+
  /* ================== FECHA ACTUAL Y HORA PARA MENSAJE ================== */
 function esHorarioHabilAhora(){
   const ahora = new Date();
@@ -3373,6 +3441,127 @@ if(!r.isConfirmed){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
 });
+
+  /* ================== REPORTAR PLAN DE PAGOS ================== */
+
+  document.getElementById('go-reportar-plan')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+  if(!esHorarioHabilAhora()){
+    Swal.fire({
+      icon:'info',
+      title:'HORARIO NO HÁBIL',
+      text:'Debes Reportar tu Cuenta entre 8:00 AM y 6:00 PM de Lunes a Viernes (No Festivos)',
+      timer:4000,
+      showConfirmButton:false
+    });
+    return;
+  }
+  try{
+    const res = await apiGet('reportarPlanPagos', { documento: currentUser.documento });
+    if(!res || !res.found){
+      Swal.fire({icon:'info', title:'NO PUEDES REPORTAR', text:'Primero debes Ingresar un Cuenta', timer:3000, showConfirmButton:false});
+      return;
+    }
+    const estado = String(res.estadoBJ||'').toUpperCase();
+    if(estado !== 'APROBADA'){
+      Swal.fire({
+        icon:'info',
+        title:'NO HAY PLAN DE PAGOS PARA REPORTAR',
+        text:'No puedes reportar Plan de Pagos sin que la cuenta anterior esté APROBADA',
+        timer:6000,
+        showConfirmButton:false
+      });
+      return;
+    }
+    PLANPAGO_STATE = {
+      informe: res.informe || '',
+      supervisor: res.supervisor || '',
+      grupo: res.grupo || '',
+      nombre: res.nombre || '',
+      contrato: res.contrato || '',
+      pago: res.pago || ''
+    };
+    const pagoInput = document.getElementById('pago');
+    if(pagoInput){
+      if(res.informe === 1){ // Primera Cuenta: lectura fija
+        pagoInput.value = 'Primera Cuenta';
+        pagoInput.readOnly = true;
+        pagoInput.onclick = null;
+      } else {
+        pagoInput.value = res.pago ? res.pago : '';
+        pagoInput.readOnly = true;
+        pagoInput.onclick = abrirPickerPago;
+      }
+    }
+
+    const helperPago = document.querySelector('#view-plan-pagos-report .helper');
+const pagoInput = document.getElementById('pago');
+
+if(helperPago){
+  helperPago.style.display = (res.informe === 1) ? 'none' : '';
+}
+
+if(pagoInput){
+  if(res.informe === 1){ // Primera Cuenta: lectura fija
+    pagoInput.value = 'Primera Cuenta';
+    pagoInput.readOnly = true;
+    pagoInput.onclick = null;
+  } else {
+    pagoInput.value = res.pago ? res.pago : '';
+    pagoInput.readOnly = true;
+    pagoInput.onclick = abrirPickerPago;
+  }
+}
+    
+    showView('view-plan-pagos-report');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+
+  
+  document.getElementById('plan-pagos-regresar')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
+document.getElementById('plan-pagos-reportar')?.addEventListener('click', async ()=>{
+  const pagoVal = document.getElementById('pago')?.value?.trim() || '';
+  const informe = PLANPAGO_STATE.informe || '';
+  const supervisor = PLANPAGO_STATE.supervisor || '';
+  const grupo = PLANPAGO_STATE.grupo || '';
+  const nombre = PLANPAGO_STATE.nombre || '';
+  const contrato = PLANPAGO_STATE.contrato || '';
+
+  const r = await Swal.fire({
+    icon:'success',
+    title:`ANTES DE REPORTAR EL PLAN DE PAGOS ${informe}`,
+    html:`Corrobora lo siguiente en el Secop II:<br><br>1. Subida de Cuenta Unificada a Plan de Pagos<br>2. Planilla Validada<br>3. Estado Enviado a la entidad<br><br>¡Evita los Reprocesos!`,
+    showCancelButton:true,
+    confirmButtonText:'REPORTAR',
+    cancelButtonText:'CANCELAR'
+  });
+  if(!r.isConfirmed){
+    showView('view-inicio');
+    return;
+  }
+
+  const msg =
+    'Estimado(a) *'+supervisor+'*' + '\n\n' +
+    '¡El contratista *'+nombre+'* ha reportado el PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
+    'Ingresa a la App para visualizar';
+
+  if(grupo) sendBuilderbotMessage(grupo, msg);
+  await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, pago: pagoVal });
+  await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
+  showView('view-inicio');
+});
+  
   
 /* ================== FIN ================== */
 </script>
