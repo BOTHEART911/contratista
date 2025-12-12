@@ -1644,17 +1644,41 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento });
 
     // Bloqueos por estado BJ
-    const bj = String(base.estado||'').toUpperCase();
-    if (bj==='DEVUELTA' || bj==='INGRESADA'){
-      await Swal.fire({icon:'info',title:'OPCIÓN NO VÁLIDA POR AHORA',html:'Toma la opción <b>CORREGIR CUENTA</b>',timer:5000,showConfirmButton:false});
-      showView('view-inicio'); 
-      return;
-    }
-    if (bj==='REVISADA POR SUPERVISOR'){
-      await Swal.fire({icon:'info',title:'DEBES ESPERAR UN POCO MÁS',text:'La oficina de Contratación no ha Aprobado tu anterior cuenta',timer:5000,showConfirmButton:false});
-      showView('view-inicio'); 
-      return;
-    }
+   if (bj === 'DEVUELTA') {
+    await Swal.fire({
+      icon:'info',
+      title:'OPCIÓN NO VÁLIDA POR AHORA',
+      html:'Toma la opción <b>CORREGIR CUENTA</b>',
+      timer:5000,
+      showConfirmButton:false
+    });
+    showView('view-inicio');
+    return;
+  }
+
+  if (bj === 'INGRESADA' || bj === 'REPORTADA') {
+    await Swal.fire({
+      icon:'info',
+      title:'NO PUEDES ACUMULAR CUENTAS',
+      text:'Tu Supervisor no ha firmado tu cuenta anterior',
+      timer:5000,
+      showConfirmButton:false
+    });
+    showView('view-inicio');
+    return;
+  }
+
+  if (bj === 'REVISADA POR SUPERVISOR') {
+    await Swal.fire({
+      icon:'info',
+      title:'DEBES ESPERAR UN POCO MÁS',
+      text:'La oficina de Contratación no ha Aprobado tu anterior cuenta',
+      timer:5000,
+      showConfirmButton:false
+    });
+    showView('view-inicio');
+    return;
+  }
 
     // Cargar estado único
     IC_STATE.informe       = Number(base.informe||1);
