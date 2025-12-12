@@ -163,6 +163,13 @@
   width: 90%;
   max-width: 520px;
 }
+    
+ /* Modal de fecha centrado en Plan de Pagos */
+    #pagoModal{
+  align-items: center !important;
+  justify-content: center !important;
+  padding-bottom: 0 !important;
+}
 
     /* INSERT: Badge “Ver Noticias” + estilos de lista/detalle de COMUNICADOS */
     .notif-wrap{ position:relative; display:inline-block; }
@@ -3502,7 +3509,7 @@ if(!r.isConfirmed){
         pagoInput.readOnly = true;
         pagoInput.onclick = null;
       } else {
-        pagoInput.value = res.pago ? res.pago : '';
+        pagoInput.value = '';         
         pagoInput.readOnly = true;
         pagoInput.onclick = abrirPickerPago;
       }
