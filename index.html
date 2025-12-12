@@ -3427,6 +3427,7 @@ function esHorarioHabilAhora(){
     const nombre    = res.nombre || '';
     const contrato  = res.contrato || '';
     const msg =
+      '> REPORTA DE CUENTA 📁 + '\n\n' +
       'Estimado(a) *'+supervisor+'*' + '\n\n' +
       '¡El contratista *'+nombre+'* ha reportado la *Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
       'Ingresa a la App para visualizar';
@@ -3550,8 +3551,9 @@ document.getElementById('plan-pagos-reportar')?.addEventListener('click', async 
   }
 
   const msg =
+    '> PLAN DE PAGOS 🖥+ '\n\n' +
     'Estimado(a) *'+supervisor+'*' + '\n\n' +
-    '¡El contratista *'+nombre+'* ha reportado el PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
+    '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
     'Ingresa a la App para visualizar';
 
   if(grupo) sendBuilderbotMessage(grupo, msg);
