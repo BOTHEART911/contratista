@@ -3356,20 +3356,13 @@ function esHorarioHabilAhora(){
       return;
     }
     if(grupo) sendBuilderbotMessage(grupo, msg);
+    await apiPost('marcarCuentaReportada', { documento: currentUser.documento });
     await Swal.fire({icon:'success', title:'Cuenta reportada', timer:2500, showConfirmButton:false});
     showView('view-inicio');
   }catch(e){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
 });
-
-  if(grupo) sendBuilderbotMessage(grupo, msg);
-
-// Marcar BJ como REPORTADA después de reportar
-await apiPost('marcarCuentaReportada', { documento: currentUser.documento });
-
-await Swal.fire({icon:'success', title:'Cuenta reportada', timer:2500, showConfirmButton:false});
-showView('view-inicio');
   
 /* ================== FIN ================== */
 </script>
