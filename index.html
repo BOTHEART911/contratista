@@ -980,9 +980,9 @@ if (window.Swal && typeof Swal.fire === 'function'){
 
   /* ================== IMÁGENES (preview y compresión) ================== */
 const MAX_IMAGE_MB = 5;
-const MAX_IMG_DIM  = 1600;   // px lado mayor para evidencias/firmas
-const JPEG_QUALITY = 0.78;
-const EVI_SELECT_MAX_MB = 10;
+const MAX_IMG_DIM  = 1280;   // px lado mayor para evidencias/firmas (antes 1600)
+const JPEG_QUALITY = 0.70;   // antes 0.78
+const EVI_SELECT_MAX_MB = 8; // límite inicial de selección (antes 10 MB)
 
 function revokeObjUrl(url){ try{ if(url) URL.revokeObjectURL(url); }catch(_){ } }
 
@@ -1830,6 +1830,14 @@ function bindCOPFormatters(){
     el.addEventListener('blur',  ()=>formatCOPInstant(el));
   });
 }
+
+  let IC_PREVIEW_URLS = []; // almacena object URLs para previews y poder revocarlos
+function revokeAllIcPreviews(){
+  for(const url of IC_PREVIEW_URLS){
+    try{ URL.revokeObjectURL(url); }catch(_){}
+  }
+  IC_PREVIEW_URLS = [];
+}
   
 /* Render de la vista */
 function renderIngresarCuenta(){
@@ -1946,6 +1954,9 @@ inp.addEventListener('change', async (e)=>{
   IC_STATE.evidFiles[i] = null;
   IC_STATE.evidData[i]  = '';
   IC_STATE.evidSizes[i] = 0;
+  // revoca URL previa
+  try{ URL.revokeObjectURL(IC_PREVIEW_URLS[i]); }catch(_){}
+  IC_PREVIEW_URLS[i] = '';
   prev.src = '';
   prev.style.display = 'none';
 
@@ -1963,6 +1974,7 @@ inp.addEventListener('change', async (e)=>{
   }
 
   try{
+    // Comprime usando el helper existente
     const { dataUrl, sizeMB } = await compressImageToDataUrl(file);
     if(sizeMB > MAX_IMAGE_MB){
       await Swal.fire({
@@ -1973,11 +1985,20 @@ inp.addEventListener('change', async (e)=>{
       inp.value = '';
       return;
     }
-    IC_STATE.evidFiles[i] = null;      // ya no guardamos el File
-    IC_STATE.evidData[i]  = dataUrl;   // usamos el dataURL comprimido
+
+    // Guarda dataUrl para envío
+    IC_STATE.evidData[i]  = dataUrl;
     IC_STATE.evidSizes[i] = sizeMB;
 
-    prev.src = dataUrl;
+    // Genera un blob para la preview y usa objectURL (menos RAM que dataURL en <img>)
+    const blob = await (async()=>{
+      const res = await fetch(dataUrl);
+      return await res.blob();
+    })();
+    const objUrl = URL.createObjectURL(blob);
+    IC_PREVIEW_URLS[i] = objUrl;
+
+    prev.src = objUrl;
     prev.style.display = 'block';
   }catch(err){
     inp.value = '';
@@ -2012,30 +2033,30 @@ inp.addEventListener('change', async (e)=>{
     if(el){ el.value=''; }
   });
 
-  // Limpiar actividades y evidencias previas
+ // Limpiar actividades y evidencias previas
   const wrap = document.getElementById('ic-oblig-wrap');
-    IC_STATE.evidData = [];
-IC_STATE.evidSizes = [];
-IC_STATE.evidFiles = [];
+  IC_STATE.evidData = [];
+  IC_STATE.evidSizes = [];
+  IC_STATE.evidFiles = [];
+  revokeAllIcPreviews(); // revoca las previews en memoria
   if(wrap){ wrap.innerHTML=''; }
 
   // Reset estado local mínimo
   IC_STATE = {
     informe: 1,
     total: '',
-     obligaciones: [],
-  actividades: [],
-  evidFiles: [],
-  evidData: [],
-  evidSizes: [],
+    obligaciones: [],
+    actividades: [],
+    evidFiles: [],
+    evidData: [],
+    evidSizes: [],
     cuentaExiste: false,
     nextMode: false,
     contrato: '',
     carpetaContratista: '',
     rowTarget: null,
-    nombre: ''   // oculto
+    nombre: ''
   };
-}
 
 /* Fechas: picker reutilizando tu base con targets distintos */
 let __icPickerTarget = null; // 'inicio'|'fin'
@@ -2156,7 +2177,8 @@ function abrirPickerRadicadoLimitado(){
 /* Volver con sonido */
 document.getElementById('ic-volver')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
-  resetIngresarCuentaView();  
+  revokeAllIcPreviews();
+  resetIngresarCuentaView();
   showView('view-inicio');
 });
 
