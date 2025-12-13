@@ -1921,8 +1921,17 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     const block = document.createElement('div');
     block.className = 'oblig-block';
 
-    const p = document.createElement('p');
+        const p = document.createElement('p');
     p.innerHTML = `<b>Obligación ${idx}:</b> ${oblig}`;
+
+    const lab = document.createElement('label');
+    lab.textContent = 'Actividades por Obligación ' + idx + ':';
+
+    const ta = document.createElement('textarea');
+    ta.id = 'ic-act-' + idx;
+    ta.rows = 5;
+    ta.placeholder = 'Describe la(s) actividad(es) que quieres ingresar, recuerda todo el esquema explicado al empezar esta sección.';
+    ta.value = actVal;
 
     const labE = document.createElement('label');
     labE.textContent = 'Evidencia Actividades ' + idx + ' (opcional)';
