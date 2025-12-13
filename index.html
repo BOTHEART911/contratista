@@ -980,9 +980,9 @@ if (window.Swal && typeof Swal.fire === 'function'){
 
   /* ================== IMÁGENES (preview y compresión) ================== */
 const MAX_IMAGE_MB = 5;
-const MAX_IMG_DIM  = 1280;   // px lado mayor para evidencias/firmas (antes 1600)
-const JPEG_QUALITY = 0.70;   // antes 0.78
-const EVI_SELECT_MAX_MB = 8; // límite inicial de selección (antes 10 MB)
+const MAX_IMG_DIM  = 1600;   // px lado mayor para evidencias/firmas
+const JPEG_QUALITY = 0.78;
+const EVI_SELECT_MAX_MB = 10;
 
 function revokeObjUrl(url){ try{ if(url) URL.revokeObjectURL(url); }catch(_){ } }
 
@@ -1154,6 +1154,12 @@ function bindNumericSanitizer(id, maxLen){
     const raw = (el.value || '').replace(/\D/g,'');
     el.value = maxLen ? raw.slice(0, maxLen) : raw;
   });
+}
+
+  // Helper simple: detecta si es móvil (iOS/Android)
+function isMobileDevice(){
+  const ua = (navigator.userAgent || '').toLowerCase();
+  return /android|iphone|ipad|ipod|opera mini|iemobile|mobile/.test(ua);
 }
 
 /* ================== LOGIN ================== */
@@ -1690,6 +1696,8 @@ function monthNameDMY(dmy){
   
 function pad2(n){ return String(n).padStart(2,'0'); }
 
+  const IS_MOBILE_INGRESAR = isMobileDevice(); // true en móviles, false en desktop
+
 /* Estado local */
 let IC_STATE = {
   informe: 1,
@@ -1708,7 +1716,7 @@ let IC_STATE = {
   saldoQ: '',
   supervisor: ''
 };
-  
+
 /* Botón menú: INGRESAR CUENTA (con sonido y navegación) */
 document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
@@ -1830,14 +1838,6 @@ function bindCOPFormatters(){
     el.addEventListener('blur',  ()=>formatCOPInstant(el));
   });
 }
-
-  let IC_PREVIEW_URLS = []; // almacena object URLs para previews y poder revocarlos
-function revokeAllIcPreviews(){
-  for(const url of IC_PREVIEW_URLS){
-    try{ URL.revokeObjectURL(url); }catch(_){}
-  }
-  IC_PREVIEW_URLS = [];
-}
   
 /* Render de la vista */
 function renderIngresarCuenta(){
@@ -1924,15 +1924,6 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     const p = document.createElement('p');
     p.innerHTML = `<b>Obligación ${idx}:</b> ${oblig}`;
 
-    const lab = document.createElement('label');
-    lab.textContent = 'Actividades por Obligación ' + idx + ':';
-
-    const ta = document.createElement('textarea');
-    ta.id = 'ic-act-' + idx;
-    ta.rows = 5;
-    ta.placeholder = 'Describe la(s) actividad(es) que quieres ingresar, recuerda todo el esquema explicado al empezar esta sección.';
-    ta.value = actVal;
-
     const labE = document.createElement('label');
     labE.textContent = 'Evidencia Actividades ' + idx + ' (opcional)';
 
@@ -1941,81 +1932,90 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     inp.accept = 'image/*';
     inp.id = 'ic-evi-' + idx;
 
+    // Botón VER (solo se muestra en móvil); en desktop lo ocultamos
+    const verBtn = document.createElement('button');
+    verBtn.type = 'button';
+    verBtn.textContent = 'VER';
+    verBtn.className = 'chip';
+    verBtn.style.marginTop = '6px';
+    verBtn.style.display = IS_MOBILE_INGRESAR ? '' : 'none';
 
-   const prev = document.createElement('img');
-prev.id = 'ic-evi-prev-' + idx;
-prev.className = 'evi-preview';
-prev.loading = 'lazy';
-prev.style.display = 'none';
+    // Preview inline (solo desktop)
+    const prev = document.createElement('img');
+    prev.id = 'ic-evi-prev-' + idx;
+    prev.className = 'evi-preview';
+    prev.loading = 'lazy';
+    prev.style.display = IS_MOBILE_INGRESAR ? 'none' : 'none'; // en desktop se activará al tener data
 
-inp.addEventListener('change', async (e)=>{
-  const file = e.target.files && e.target.files[0];
-  // limpiar estado previo
-  IC_STATE.evidFiles[i] = null;
-  IC_STATE.evidData[i]  = '';
-  IC_STATE.evidSizes[i] = 0;
-  // revoca URL previa
-  try{ URL.revokeObjectURL(IC_PREVIEW_URLS[i]); }catch(_){}
-  IC_PREVIEW_URLS[i] = '';
-  prev.src = '';
-  prev.style.display = 'none';
+    // Handler de carga/compresión
+    inp.addEventListener('change', async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      IC_STATE.evidData[i]  = '';
+      IC_STATE.evidSizes[i] = 0;
+      prev.src = '';
+      prev.style.display = IS_MOBILE_INGRESAR ? 'none' : 'none';
 
-  if(!file){ return; }
+      if(!file){ return; }
 
-  // Límite temprano por peso original
-  if(file.size > EVI_SELECT_MAX_MB * 1024 * 1024){
-    await Swal.fire({
-      icon:'warning',
-      title:`Imagen ${idx} muy pesada`,
-      text:`Elige una foto menor a ${EVI_SELECT_MAX_MB} MB.`
+      if(file.size > EVI_SELECT_MAX_MB * 1024 * 1024){
+        await Swal.fire({
+          icon:'warning',
+          title:`Imagen ${idx} muy pesada`,
+          text:`Elige una foto menor a ${EVI_SELECT_MAX_MB} MB.`
+        });
+        inp.value = '';
+        return;
+      }
+
+      try{
+        const { dataUrl, sizeMB } = await compressImageToDataUrl(file);
+        if(sizeMB > MAX_IMAGE_MB){
+          await Swal.fire({
+            icon:'warning',
+            title:`Imagen ${idx} aún supera ${MAX_IMAGE_MB} MB`,
+            text:'Usa una foto más liviana o baja la resolución antes de cargarla.'
+          });
+          inp.value = '';
+          return;
+        }
+        IC_STATE.evidData[i]  = dataUrl;
+        IC_STATE.evidSizes[i] = sizeMB;
+
+        // Desktop: muestra inline
+        if(!IS_MOBILE_INGRESAR){
+          prev.src = dataUrl;
+          prev.style.display = 'block';
+        }
+      }catch(err){
+        inp.value = '';
+        prev.src = '';
+        prev.style.display = 'none';
+        await Swal.fire({ icon:'error', title:'Error con la imagen', text:String(err.message||err) });
+      }
     });
-    inp.value = '';
-    return;
-  }
 
-  try{
-    // Comprime usando el helper existente
-    const { dataUrl, sizeMB } = await compressImageToDataUrl(file);
-    if(sizeMB > MAX_IMAGE_MB){
-      await Swal.fire({
-        icon:'warning',
-        title:`Imagen ${idx} aún supera ${MAX_IMAGE_MB} MB`,
-        text:'Usa una foto más liviana o baja la resolución antes de cargarla.'
+    // Botón VER: abre alerta con la imagen guardada (solo móvil)
+    verBtn.addEventListener('click', ()=>{
+      const dataUrl = IC_STATE.evidData[i] || '';
+      if(!dataUrl){
+        Swal.fire({icon:'info', title:'Sin imagen', text:'Primero carga una imagen para esta evidencia.'});
+        return;
+      }
+      Swal.fire({
+        title: `Evidencia ${idx}`,
+        html: `<img src="${dataUrl}" alt="Evidencia ${idx}" style="max-width:100%;max-height:70vh;border-radius:10px;border:1.5px solid #d8e4ff;">`,
+        width: '90%',
+        allowOutsideClick: true
       });
-      inp.value = '';
-      return;
-    }
+    });
 
-    // Guarda dataUrl para envío
-    IC_STATE.evidData[i]  = dataUrl;
-    IC_STATE.evidSizes[i] = sizeMB;
-
-    // Genera un blob para la preview y usa objectURL (menos RAM que dataURL en <img>)
-    const blob = await (async()=>{
-      const res = await fetch(dataUrl);
-      return await res.blob();
-    })();
-    const objUrl = URL.createObjectURL(blob);
-    IC_PREVIEW_URLS[i] = objUrl;
-
-    prev.src = objUrl;
-    prev.style.display = 'block';
-  }catch(err){
-    inp.value = '';
-    prev.src = '';
-    prev.style.display = 'none';
-    await Swal.fire({ icon:'error', title:'Error con la imagen', text:String(err.message||err) });
-  }
-});
-
-    // AÑADE TODOS LOS ELEMENTOS AL BLOQUE EN ORDEN
     block.appendChild(p);
     block.appendChild(lab);
     block.appendChild(ta);
     block.appendChild(labE);
     block.appendChild(inp);
     block.appendChild(prev);
-
+    block.appendChild(verBtn);
     wrap.appendChild(block);
   }
 }
@@ -2033,31 +2033,30 @@ inp.addEventListener('change', async (e)=>{
     if(el){ el.value=''; }
   });
 
- // Limpiar actividades y evidencias previas
+  // Limpiar actividades y evidencias previas
   const wrap = document.getElementById('ic-oblig-wrap');
-  IC_STATE.evidData = [];
-  IC_STATE.evidSizes = [];
-  IC_STATE.evidFiles = [];
-  revokeAllIcPreviews(); // revoca las previews en memoria
+    IC_STATE.evidData = [];
+IC_STATE.evidSizes = [];
+IC_STATE.evidFiles = [];
   if(wrap){ wrap.innerHTML=''; }
 
   // Reset estado local mínimo
   IC_STATE = {
     informe: 1,
     total: '',
-    obligaciones: [],
-    actividades: [],
-    evidFiles: [],
-    evidData: [],
-    evidSizes: [],
+     obligaciones: [],
+  actividades: [],
+  evidFiles: [],
+  evidData: [],
+  evidSizes: [],
     cuentaExiste: false,
     nextMode: false,
     contrato: '',
     carpetaContratista: '',
     rowTarget: null,
-    nombre: ''
+    nombre: ''   // oculto
   };
-    }
+}
 
 /* Fechas: picker reutilizando tu base con targets distintos */
 let __icPickerTarget = null; // 'inicio'|'fin'
@@ -2178,8 +2177,7 @@ function abrirPickerRadicadoLimitado(){
 /* Volver con sonido */
 document.getElementById('ic-volver')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
-  revokeAllIcPreviews();
-  resetIngresarCuentaView();
+  resetIngresarCuentaView();  
   showView('view-inicio');
 });
 
