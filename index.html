@@ -3637,52 +3637,36 @@ document.getElementById('plan-pagos-reportar')?.addEventListener('click', async 
   }
 
   try{
-    const res = await apiGet('getestadocuenta', { documento: currentUser.documento });
+    const res = await apiGet('getEstadoCuenta', { documento: currentUser.documento });
 
-    if(!res || res.found === false){
-      const reason = (res && res.reason) || '';
-      if(reason === 'none' || reason === 'empty' || reason === 'doc'){
-        Swal.fire({ icon:'info', title:'NO HAY REPORTES', text:'No haz Ingresado Cuentas aún', timer:3000, showConfirmButton:false });
-        return;
-      }
-      if(reason === 'first'){
+    if(!res?.found){
+      if(res?.reason === 'first'){
         Swal.fire({ icon:'info', title:'APENAS ES TU PRIMERA CUENTA', text:'Aún no hay estados para esta', timer:3000, showConfirmButton:false });
-        return;
+      }else{
+        Swal.fire({ icon:'info', title:'NO HAY REPORTES', text:'No haz Ingresado Cuentas aún', timer:3000, showConfirmButton:false });
       }
-      // Fallback
-      Swal.fire({ icon:'info', title:'NO HAY REPORTES', text:'No haz Ingresado Cuentas aún', timer:3000, showConfirmButton:false });
       return;
     }
 
-    const estado = String(res.estado || '').toUpperCase();
-    switch(estado){
-      case 'DEVUELTA':
-        Swal.fire({ icon:'info', title:'CUENTA DEVUELTA', text:'Tu última Cuenta fue DEVUELTA, debes corregirla y volver a Reportarla', timer:6000, showConfirmButton:false });
-        break;
-      case 'REVISADA POR SUPERVISOR':
-        Swal.fire({ icon:'success', title:'REVISADA POR SUPERVISOR', text:'Tu última Cuenta ya fue revisada por tu Supervisor(a) y a la espera de aprobación por la oficina de Contratación', timer:7000, showConfirmButton:false });
-        break;
-      case 'APROBADA':
-        Swal.fire({ icon:'success', title:'Cuenta APROBADA', text:'Tu última Cuenta ya fue APROBADA por la oficina de Contratación, Realiza Plan de Pagos', timer:7000, showConfirmButton:false });
-        break;
-      case 'PLAN DE PAGOS':
-        Swal.fire({ icon:'info', title:'Pendiente PLAN DE PAGOS', text:'Tu última Cuenta está pendiente de Aprobación de PLAN DE PAGOS por tu Supervisor(a)', timer:7000, showConfirmButton:false });
-        break;
-      case 'CERRADA':
-        Swal.fire({ icon:'success', title:'PLAN DE PAGOS ACEPTADO', text:'Tu última Cuenta fue Aceptada en PLAN DE PAGOS por tu Supervisor(a) y en espera de ORDEN DE PAGO por la Oficina de Contabilidad', timer:7000, showConfirmButton:false });
-        break;
-      case 'ORDEN DE PAGO':
-        Swal.fire({ icon:'success', title:'ORDEN DE PAGO EMITADA', text:'Tu última Cuenta tiene ORDEN DE PAGO por la Oficina de Contabilidad y en espera de EGRESO por la oficina de Hacienda', timer:7000, showConfirmButton:false });
-        break;
-      case 'EGRESO':
-        Swal.fire({ icon:'success', title:'EGRESO EMITIDO', text:'Tu última Cuenta ya fue EGRESADA por la oficina de Hacienda', timer:5000, showConfirmButton:false });
-        break;
-      default:
-        Swal.fire({ icon:'info', title:'NO HAY REPORTES', text:'No haz Ingresado Cuentas aún', timer:3000, showConfirmButton:false });
-        break;
+    const estado = String(res.estado||'').toUpperCase();
+    const alerts = {
+      'DEVUELTA':             { icon:'info',    title:'CUENTA DEVUELTA',           text:'Tu última Cuenta fue DEVUELTA, debes corregirla y volver a Reportarla', timer:6000 },
+      'REVISADA POR SUPERVISOR': { icon:'success', title:'REVISADA POR SUPERVISOR', text:'Tu última Cuenta ya fue revisada por tu Supervisor(a) y a la espera de aprobación por la oficina de Contratación', timer:7000 },
+      'APROBADA':             { icon:'success', title:'Cuenta APROBADA',           text:'Tu última Cuenta ya fue APROBADA por la oficina de Contratación, Realiza Plan de Pagos', timer:7000 },
+      'PLAN DE PAGOS':        { icon:'info',    title:'Pendiente PLAN DE PAGOS',   text:'Tu última Cuenta está pendiente de Aprobación de PPLAN DE PAGOS por tu Supervisor(a)', timer:7000 },
+      'CERRADA':              { icon:'success', title:'PLAN DE PAGOS ACEPTADO',    text:'Tu última Cuenta fue Aceptada en PLAN DE PAGOS por tu Supervisor(a) y en espera de ORDEN DE PAGO por la Oficina de Contabilidad', timer:7000 },
+      'ORDEN DE PAGO':        { icon:'success', title:'ORDEN DE PAGO EMITADA',     text:'Tu última Cuenta tiene ORDEN DE PAGO por la Oficina de Contabilidad y en espera de EGRESO por la oficina de Hacienda', timer:7000 },
+      'EGRESO':               { icon:'success', title:'EGRESO EMITIDO',            text:'Tu última Cuenta ya fue EGRESADA por la oficina de Hacienda', timer:5000 }
+    };
+
+    const cfg = alerts[estado];
+    if(cfg){
+      Swal.fire({ icon:cfg.icon, title:cfg.title, text:cfg.text, timer:cfg.timer, showConfirmButton:false });
+    }else{
+      Swal.fire({ icon:'info', title:'Estado', text:estado || 'Sin estado', timer:4000, showConfirmButton:false });
     }
   }catch(e){
-    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }
 });
   
