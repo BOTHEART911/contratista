@@ -1509,7 +1509,7 @@ document.getElementById('go-estado-cuenta')?.addEventListener('click', async ()=
 });
 
 function mostrarEstadoCuenta(res){
-  // Casos de no encontrado / primera vez
+  // Casos sin hallazgo
   if(!res || res.found === false){
     if(res?.reason === 'first'){
       Swal.fire({ icon:'info', title:'APENAS ES TU PRIMERA CUENTA', text:'Aún no hay estados para esta', timer:3000, showConfirmButton:false });
@@ -1519,31 +1519,83 @@ function mostrarEstadoCuenta(res){
     return;
   }
 
-  const estado = String(res.estado||'').toUpperCase();
+  // Hallazgo con estado
+  const estado   = String(res.estado||'').toUpperCase();
+  const informe  = res.informe || '';
+  const valorCOP = formatCOPView(res.valor || 0);
+
   switch(estado){
     case 'DEVUELTA':
-      Swal.fire({ icon:'info', title:'CUENTA DEVUELTA', text:'Tu última Cuenta fue DEVUELTA, debes corregirla y volver a Reportarla', timer:6000, showConfirmButton:false });
+      Swal.fire({
+        icon:'info',
+        title:'CUENTA DEVUELTA',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> fue DEVUELTA<br><br>Debes corregirla y volver a Reportarla`,
+        timer:8000,
+        showConfirmButton:false
+      });
       break;
     case 'REVISADA POR SUPERVISOR':
-      Swal.fire({ icon:'success', title:'REVISADA POR SUPERVISOR', text:'Tu última Cuenta ya fue revisada por tu Supervisor(a) y a la espera de aprobación por la oficina de Contratación', timer:7000, showConfirmButton:false });
+      Swal.fire({
+        icon:'success',
+        title:'REVISADA POR SUPERVISOR',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> ya fue revisada por tu Supervisor(a)<br><br>A la espera de aprobación por la oficina de Contratación`,
+        timer:8000,
+        showConfirmButton:false
+      });
       break;
     case 'APROBADA':
-      Swal.fire({ icon:'success', title:'Cuenta APROBADA', text:'Tu última Cuenta ya fue APROBADA por la oficina de Contratación, Realiza Plan de Pagos', timer:7000, showConfirmButton:false });
+      Swal.fire({
+        icon:'success',
+        title:'Cuenta APROBADA',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> ya fue APROBADA por la oficina de Contratación<br><br>Realiza Plan de Pagos en el SECOP II`,
+        timer:8000,
+        showConfirmButton:false
+      });
       break;
     case 'PLAN DE PAGOS':
-      Swal.fire({ icon:'info', title:'Pendiente PLAN DE PAGOS', text:'Tu última Cuenta está pendiente de Aprobación de PPLAN DE PAGOS por tu Supervisor(a)', timer:7000, showConfirmButton:false });
+      Swal.fire({
+        icon:'info',
+        title:'Pendiente PLAN DE PAGOS',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> está pendiente de Aceptación de PLAN DE PAGOS por tu Supervisor(a)`,
+        timer:8000,
+        showConfirmButton:false
+      });
       break;
     case 'CERRADA':
-      Swal.fire({ icon:'success', title:'PLAN DE PAGOS ACEPTADO', text:'Tu última Cuenta fue Aceptada en PLAN DE PAGOS por tu Supervisor(a) y en espera de ORDEN DE PAGO por la Oficina de Contabilidad', timer:7000, showConfirmButton:false });
+      Swal.fire({
+        icon:'success',
+        title:'PLAN DE PAGOS ACEPTADO',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> fue Aceptada en PLAN DE PAGOS por tu Supervisor(a)<br><br>A la espera de ORDEN DE PAGO por la Oficina de Contabilidad`,
+        timer:8000,
+        showConfirmButton:false
+      });
       break;
     case 'ORDEN DE PAGO':
-      Swal.fire({ icon:'success', title:'ORDEN DE PAGO EMITADA', text:'Tu última Cuenta tiene ORDEN DE PAGO por la Oficina de Contabilidad y en espera de EGRESO por la oficina de Hacienda', timer:7000, showConfirmButton:false });
+      Swal.fire({
+        icon:'success',
+        title:'ORDEN DE PAGO EMITADA',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> tiene ORDEN DE PAGO por la Oficina de Contabilidad<br><br>A la espera de EGRESO por la oficina de Hacienda`,
+        timer:8000,
+        showConfirmButton:false
+      });
       break;
     case 'EGRESO':
-      Swal.fire({ icon:'success', title:'EGRESO EMITIDO', text:'Tu última Cuenta ya fue EGRESADA por la oficina de Hacienda', timer:5000, showConfirmButton:false });
+      Swal.fire({
+        icon:'success',
+        title:'EGRESO EMITIDO',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> ya fue EGRESADA por la oficina de Hacienda`,
+        timer:7000,
+        showConfirmButton:false
+      });
       break;
     default:
-      Swal.fire({ icon:'info', title:'Estado: '+estado, text:'Tu última Cuenta está en estado: '+estado, timer:5000, showConfirmButton:false });
+      Swal.fire({
+        icon:'info',
+        title:'Estado: '+estado,
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> está en estado: ${estado}`,
+        timer:5000,
+        showConfirmButton:false
+      });
       break;
   }
 }
