@@ -1517,8 +1517,8 @@ function getEstadoCuenta(documento){
     }
   }
 
-  if(!foundDoc) return { found:false, reason:'none' };        // Nunca ha ingresado cuentas
-  if(latestEstado === null) return { found:false, reason:'first' }; // Solo tiene su primera cuenta en ingreso/borrador
+  if(!foundDoc) return { found:false, reason:'none' };        // nunca ha ingresado cuentas
+  if(latestEstado === null) return { found:false, reason:'first' }; // solo está en ingreso/borrador
 
   return { found:true, estado: latestEstado };
 }
