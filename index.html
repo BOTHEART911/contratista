@@ -3022,8 +3022,19 @@ document.getElementById('btn-instalar').addEventListener('click', async ()=>{
   if(isIOS()){
     Swal.fire({
       icon:'info',
-      title:'Para Instalar en tu Iphone',
-      html:'1) Toca Compartir (cuadro con flecha en la parte inferior).<br>2) Elige "Agregar a pantalla de inicio".<br>3) Confirma "Agregar".'
+      title: '¡Para Instalar en tu Iphone!',
+  html: `
+    <div style="text-align:center; margin-top:8px;">
+      <img
+        src="https://res.cloudinary.com/dqqeavica/image/upload/v1765744300/instalacion_ios_hiosrs.gif"
+        alt="Instalación de IOS"
+        style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
+      >
+      <div style="margin-top:10px;">
+        <b>1.</b> Toca Compartir.<br><b>2.</b> Elige "Agregar a pantalla de inicio".<br><b>3.</b> Confirma "Agregar".
+      </div>
+    </div>
+  `,
     });
     return;
   }
