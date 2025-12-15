@@ -1962,6 +1962,10 @@ function renderIngresarCuenta(){
   const sup = document.getElementById('ic-supervisor');
 if (sup) sup.value = IC_STATE.supervisor || '';
 
+  // Precargar correo Editor de forma oculta
+  const ed = document.getElementById('ic-editor-email');    
+  if (ed) ed.value = IC_STATE.editorEmail || '';         
+
   // Precargar SALDO ACTUAL con Q (editable)
   const saldoEl = document.getElementById('ic-saldo');
   if(saldoEl){
