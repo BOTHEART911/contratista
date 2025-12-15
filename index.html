@@ -3406,7 +3406,9 @@ function icConfirmarRadicado(){
 
   const dInicio = parseDMY(inicioVal);
   const dFin    = parseDMY(finVal);
-  const dSel    = parseDMY(selVal);
+  const dFechaSel = parseDMY(selVal);
+
+  
   
 
   if(!dia || !mes || !anio){ showPickerSelectAlert(); return; }
