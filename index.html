@@ -3384,7 +3384,8 @@ function icCancelarRadicado(){
   const m=document.getElementById('icRadicadoModal');
   if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
 }
-function icConfirmarRadicado(){
+  
+async function icConfirmarRadicado(){
   const dSel = document.getElementById('icRadDia');
   const mSel = document.getElementById('icRadMes');
   const aSel = document.getElementById('icRadAnio');
