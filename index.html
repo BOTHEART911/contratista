@@ -3404,9 +3404,9 @@ function icConfirmarRadicado(){
     return new Date(y, m - 1, d);
   }
 
-  const dInicio = parseDMY(inicioVal);
+   const dInicio = parseDMY(inicioVal);
   const dFin    = parseDMY(finVal);
-  const dSel    = parseDMY(selVal);
+  const dFecha  = parseDMY(selVal);
   
 // Impide Fecha de Radicación en medio de Periodo Relacionado
   if(dInicio && dFin && dSel && dSel >= dInicio && dSel <= dFin){
