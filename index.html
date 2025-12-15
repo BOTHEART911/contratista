@@ -2431,11 +2431,37 @@ for(let i=0;i<Math.min(26,n);i++){
   };
 
   // Resumen breve para confirmar
-  const resumen = [
+    // Resumen breve para confirmar (incluye campos visibles, excepto actividades/evidencias)
+  const resumenParts = [
     `<b>Informe:</b> ${body.informe} de ${body.total}`,
     `<b>Periodo:</b> ${body.inicioRatificar} — ${body.finRatificar}`,
-    `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`
-  ].join('<br>');
+    `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`,
+    `<b>Saldo Actual:</b> ${formatCOPView(body.saldoActual)}`,
+    `<b>Valor por Cobrar:</b> ${formatCOPView(body.cobro)}`,
+    `<b>Nuevo Saldo:</b> ${formatCOPView(body.nuevoSaldo)}`,
+    `<b>Planilla:</b> ${body.planilla || '-'}`,
+    `<b>Mes Planilla:</b> ${body.mesPlanilla || '-'}`,
+    `<b>Base de Cotización:</b> ${formatCOPView(body.base)}`,
+    `<b>Aportes Salud:</b> ${formatCOPView(body.salud)}`,
+    `<b>Aportes Pensión:</b> ${formatCOPView(body.fondo)}`,
+    `<b>Aportes ARL:</b> ${formatCOPView(body.riesgos)}`,
+    `<b>Aporte Solidario:</b> ${formatCOPView(body.solidario)}`,
+    `<b>Aporte (entidad):</b> ${body.aporte || '-'}`
+  ];
+
+  // Solo mostrar campos de Planilla Anexa si tienen algún valor
+  if (body.planilla2 || body.mesPlanilla2 || body.base2 || body.salud2 || body.fondo2 || body.riesgos2 || body.solidario2 || body.aporte2) {
+    if (body.planilla2)     resumenParts.push(`<b>Planilla Anexa:</b> ${body.planilla2}`);
+    if (body.mesPlanilla2)  resumenParts.push(`<b>Mes Planilla Anexa:</b> ${body.mesPlanilla2}`);
+    if (body.base2)         resumenParts.push(`<b>Base Anexa:</b> ${formatCOPView(body.base2)}`);
+    if (body.salud2)        resumenParts.push(`<b>Salud Anexa:</b> ${formatCOPView(body.salud2)}`);
+    if (body.fondo2)        resumenParts.push(`<b>Pensión Anexa:</b> ${formatCOPView(body.fondo2)}`);
+    if (body.riesgos2)      resumenParts.push(`<b>ARL Anexa:</b> ${formatCOPView(body.riesgos2)}`);
+    if (body.solidario2)    resumenParts.push(`<b>Aporte Solidario Anexo:</b> ${formatCOPView(body.solidario2)}`);
+    if (body.aporte2)       resumenParts.push(`<b>Aporte Anexo (entidad):</b> ${body.aporte2}`);
+  }
+
+  const resumen = resumenParts.join('<br>');
 
   const rs = await Swal.fire({
     icon:'info', title:'Resumen de Ingreso', html:resumen,
