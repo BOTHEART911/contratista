@@ -3393,6 +3393,39 @@ function icConfirmarRadicado(){
   const mes  = (mSel?.value || __icRadMonth || '').trim();
   const anio = (aSel?.value || __icRadYear  || '').trim();
 
+    // Validación: la fecha de radicación no puede estar dentro del periodo relacionado
+  const inicioVal = document.getElementById('ic-inicio')?.value || '';
+  const finVal    = document.getElementById('ic-fin')?.value    || '';
+  const selVal    = `${dia}/${mes}/${anio}`;
+
+  function parseDMY(str){
+    const [d,m,y] = str.split('/').map(Number);
+    if(!d || !m || !y) return null;
+    return new Date(y, m - 1, d);
+  }
+
+  const dInicio = parseDMY(inicioVal);
+  const dFin    = parseDMY(finVal);
+  const dSel    = parseDMY(selVal);
+  
+// Impide Fecha de Radicación en medio de Periodo Relacionado
+  if(dInicio && dFin && dSel && dSel >= dInicio && dSel <= dFin){
+    await Swal.fire({
+      icon: 'info',
+      title: 'NO PUEDES RADICAR EN ESTA FECHA',
+      html: 'La Fecha de radicación seleccionada no puede estar dentro del periodo relacionado<br>Debes seleccionar al menos un (1) día hábil después de la Fecha de Fin de Periodo relacionado',
+      confirmButtonText: 'OK'
+    });
+    const input = document.getElementById('ic-radicado');
+    const dOut  = document.getElementById('ic-diaRad');
+    const mOut  = document.getElementById('ic-mesRad');
+    if(input) input.value = '';
+    if(dOut)  dOut.value  = '';
+    if(mOut)  mOut.value  = '';
+    icCancelarRadicado();
+    return;
+  }
+
   if(!dia || !mes || !anio){ showPickerSelectAlert(); return; }
 
   const idx = Math.max(1,Math.min(12,parseInt(mes||'1',10))) - 1;
