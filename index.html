@@ -3408,7 +3408,23 @@ function icConfirmarRadicado(){
   const dFin    = parseDMY(finVal);
   const dFechaSel = parseDMY(selVal);
 
-  
+  // Impide Fecha de Radicación en medio de Periodo Relacionado
+  if(dInicio && dFin && dSel && dSel >= dInicio && dSel <= dFin){
+    await Swal.fire({
+      icon: 'info',
+      title: 'NO PUEDES RADICAR EN ESTA FECHA',
+      html: 'La Fecha de radicación seleccionada no puede estar dentro del periodo relacionado<br>Debes seleccionar al menos un (1) día hábil después de la Fecha de Fin de Periodo relacionado',
+      confirmButtonText: 'OK'
+    });
+    const input = document.getElementById('ic-radicado');
+    const dOut  = document.getElementById('ic-diaRad');
+    const mOut  = document.getElementById('ic-mesRad');
+    if(input) input.value = '';
+    if(dOut)  dOut.value  = '';
+    if(mOut)  mOut.value  = '';
+    icCancelarRadicado();
+    return;
+  }
   
 
   if(!dia || !mes || !anio){ showPickerSelectAlert(); return; }
