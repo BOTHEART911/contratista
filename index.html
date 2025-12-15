@@ -920,6 +920,7 @@
 
     <label>Fecha de Último Pago</label>
     <input id="pago" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerPago()">
+    <input id="plan-correo" type="hidden" />
 
     <!-- Modal Fecha Pago (año fijo 2026) -->
     <div id="pagoModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
@@ -3654,8 +3655,12 @@ if(!r.isConfirmed){
       grupo: res.grupo || '',
       nombre: res.nombre || '',
       contrato: res.contrato || '',
-      pago: res.pago || ''
+      pago: res.pago || '',
+      correo: res.correo || ''
     };
+
+    const correoHidden = document.getElementById('plan-correo');
+    if(correoHidden) correoHidden.value = PLANPAGO_STATE.correo || '';
 
           const helperPago = document.querySelector('#view-plan-pagos-report .helper');
     const pagoInput  = document.getElementById('pago');
