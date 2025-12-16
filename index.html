@@ -1907,8 +1907,10 @@ document.getElementById('go-corregir-cuenta')?.addEventListener('click', async (
     IC_STATE.editorEmail = '';
 
     // Guardar evidencias existentes (urls)
-    IC_STATE.evidData   = Array.isArray(base.evidencias) ? base.evidencias.slice() : [];
-    IC_STATE.evidSizes  = new Array(IC_STATE.evidData.length).fill(0);
+    IC_STATE.evidOriginalUrls = Array.isArray(base.evidencias) ? base.evidencias.slice() : [];
+    // evidData se usará para previews (dataURL o thumbnail)
+    IC_STATE.evidData  = IC_STATE.evidOriginalUrls.slice();
+    IC_STATE.evidSizes = new Array(IC_STATE.evidData.length).fill(0);
 
     // Pintar vista con modo corrección
     renderIngresarCuenta();
@@ -2090,6 +2092,15 @@ function bindCOPFormatters(){
     el.addEventListener('blur',  ()=>formatCOPInstant(el));
   });
 }
+
+// Convierte una URL de archivo de Drive a un thumbnail usable en <img src="">
+function driveUrlToThumb(url){
+  if(!url) return '';
+  const m = String(url).match(/\/d\/([a-zA-Z0-9_-]{10,})\//);
+  const id = m ? m[1] : '';
+  if(!id) return url; // si no extrae id, usa la url como está
+  return 'https://drive.google.com/thumbnail?sz=w800&id=' + id;
+}
   
 /* Render de la vista */
 function renderIngresarCuenta(){
@@ -2228,24 +2239,24 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     verBtn.style.marginTop = '6px';
     verBtn.style.display = IS_MOBILE_INGRESAR ? '' : 'none';
 
-    // Preview inline (solo desktop)
+        // Preview inline (solo desktop)
     const prev = document.createElement('img');
     prev.id = 'ic-evi-prev-' + idx;
     prev.className = 'evi-preview';
     prev.loading = 'lazy';
     prev.style.display = IS_MOBILE_INGRESAR ? 'none' : 'none'; // en desktop se activará al tener data
 
-        // Si estamos en corrección y hay URL existente, mostrarla
+    // Si estamos en corrección y hay URL existente, mostrarla como thumbnail
     if(IC_MODE === 'correccion'){
-      const existingUrl = (IC_STATE.evidData && IC_STATE.evidData[i]) ? IC_STATE.evidData[i] : '';
-      if(existingUrl){
-        if(!IS_MOBILE_INGRESAR){
-          prev.src = existingUrl;
-          prev.style.display = 'block';
-        }
+      const existingUrl = (IC_STATE.evidOriginalUrls && IC_STATE.evidOriginalUrls[i]) ? IC_STATE.evidOriginalUrls[i] : '';
+      if(existingUrl && !IS_MOBILE_INGRESAR){
+        prev.src = driveUrlToThumb(existingUrl);
+        prev.style.display = 'block';
+        // Para el botón VER queremos seguir usando la URL original
+        IC_STATE.evidData[i] = existingUrl;
       }
     }
-
+    
     // Handler de carga/compresión
     inp.addEventListener('change', async (e)=>{
       const file = e.target.files && e.target.files[0];
