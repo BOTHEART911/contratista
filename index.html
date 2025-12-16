@@ -359,6 +359,7 @@
         <button class="menu-btn" id="go-ingresar-cuenta">INGRESAR CUENTA</button>
         <button class="menu-btn" id="go-cuenta-drive">MI CUENTA DRIVE</button>
         <button class="menu-btn" id="go-reportar-drive">REPORTAR CUENTA</button>
+        <button class="menu-btn" id="go-corregir-cuenta">CORREGIR CUENTA</button>
         <button class="menu-btn" id="go-reportar-plan">PLAN DE PAGOS</button>
         <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
         <div style="height:24px"></div>
@@ -689,10 +690,11 @@
 
     <section id="view-ingresar-cuenta" class="view">
   <div class="card narrow">
-    <h2 style="color:var(--primary)">CREACIÓN DE CUENTA</h2>
+    <h2 id="ic-title" style="color:var(--primary)">CREACIÓN DE CUENTA</h2>
     <h3 class="center" style="margin-top:6px;color:#333;">RELACIÓN DE PAGO</h3>
 
-    <p class="helper">
+    <p id="ic-desc" class="helper">
+      <!-- el texto se setea desde JS según el modo -->
       INFORME:
       <span id="ic-informe" class="chip">1</span>
       &nbsp; DE:
@@ -1789,6 +1791,10 @@ function bindQuery(inputId, datalistId){
 
     /* ================== INGRESAR CUENTA ================== */
 
+  // Modo de operación de la vista de cuenta: ingreso o corrección
+let IC_MODE = 'ingreso';   // 'ingreso' | 'correccion'
+let IC_EDIT_ROW = null;    // fila en CUENTAS cuando es corrección
+  
   /* Constantes y helpers */
 const IC_SOLIDARIO_UMBRAL = 5694000;
 const MESES_LIT = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
@@ -1830,6 +1836,136 @@ let IC_STATE = {
   supervisor: ''
 };
 
+/* Botón menú: CORREGIR CUENTA */
+document.getElementById('go-corregir-cuenta')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+
+  IC_MODE = 'correccion';
+  IC_EDIT_ROW = null;
+
+  try{
+    const base = await apiGet('getCorreccionCuentaData', { documento: currentUser.documento });
+
+    // No hay ninguna fila para este documento
+    if(!base || base.found === false){
+      await Swal.fire({
+        icon:'info',
+        title:'NO PUEDES CORREGIR',
+        text:'No tienes cuentas ingresadas',
+        timer:3000,
+        showConfirmButton:false
+      });
+      return;
+    }
+
+    const estado = String(base.estado||'').toUpperCase();
+
+    // Encontrado pero no corregible
+    if(base.corregible === false){
+      if(estado === 'INCOMPLETA'){
+        await Swal.fire({
+          icon:'info',
+          title:'DEBES COMPLETAR',
+          html:'Toma la opción <b>MI CUENTA DRIVE</b> y completa los Documentos',
+          timer:6000,
+          showConfirmButton:false
+        });
+      }else{
+        await Swal.fire({
+          icon:'info',
+          title:'OPCIÓN NO VÁLIDA',
+          html:'tu anterior cuenta se encuentra en un Estado que no requiere Corrección',
+          timer:6000,
+          showConfirmButton:false
+        });
+      }
+      return;
+    }
+
+    // Corregible: INGRESADA o DEVUELTA
+    IC_EDIT_ROW = base.rowIndex || null;
+
+    // Llenar IC_STATE con datos de CUENTAS para precargar todos los campos
+    IC_STATE.informe = Number(base.informe||1);
+    IC_STATE.total   = String(base.totalInforme||'');
+
+    IC_STATE.saldoQ  = String(base.saldoActual||'');
+    IC_STATE.obligaciones = Array.isArray(base.obligaciones) ? base.obligaciones : [];
+    IC_STATE.actividades  = Array.isArray(base.actividades)  ? base.actividades  : [];
+    IC_STATE.cuentaExiste = true;
+    IC_STATE.nextMode     = false;
+
+    IC_STATE.contrato   = String(base.contrato||'').trim(); // puede venir vacío, no hace daño
+    IC_STATE.nombre     = ''; // no se necesita para corrección en esta vista
+    IC_STATE.supervisor = '';
+    IC_STATE.editorEmail = '';
+
+    // Guardar evidencias existentes (urls)
+    IC_STATE.evidData   = Array.isArray(base.evidencias) ? base.evidencias.slice() : [];
+    IC_STATE.evidSizes  = new Array(IC_STATE.evidData.length).fill(0);
+
+    // Pintar vista con modo corrección
+    renderIngresarCuenta();
+
+    // Precargar relación de pago
+    const saldoEl = document.getElementById('ic-saldo');
+    if(saldoEl){
+      saldoEl.value = String(base.saldoActual||'');
+    }
+    const cobroEl = document.getElementById('ic-cobro');
+    if(cobroEl){
+      cobroEl.value = String(base.cobro||'');
+    }
+    const nuevoSaldoEl = document.getElementById('ic-nuevoSaldo');
+    if(nuevoSaldoEl){
+      nuevoSaldoEl.value = formatCOPView(base.nuevoSaldo||0);
+    }
+
+    // Planilla principal
+    const planillaEl = document.getElementById('ic-planilla');
+    if(planillaEl) planillaEl.value = String(base.numeroPlanilla||'');
+    const mesPlanillaEl = document.getElementById('ic-mesPlanilla');
+    if(mesPlanillaEl && base.mesPlanilla){
+      mesPlanillaEl.value = String(base.mesPlanilla||'');
+    }
+
+    const baseEl = document.getElementById('ic-base');
+    if(baseEl) baseEl.value = String(base.base||'');
+    const saludEl = document.getElementById('ic-salud');
+    if(saludEl) saludEl.value = String(base.salud||'');
+    const fondoEl = document.getElementById('ic-fondo');
+    if(fondoEl) fondoEl.value = String(base.fondo||'');
+    const riesgosEl = document.getElementById('ic-riesgos');
+    if(riesgosEl) riesgosEl.value = String(base.riesgos||'');
+
+    // Planilla anexa
+    const plan2El = document.getElementById('ic-planilla2');
+    const mes2El  = document.getElementById('ic-mesPlanilla2');
+    const base2El = document.getElementById('ic-base2');
+    const sal2El  = document.getElementById('ic-salud2');
+    const fon2El  = document.getElementById('ic-fondo2');
+    const rie2El  = document.getElementById('ic-riesgos2');
+
+    if(plan2El)  plan2El.value  = String(base.numeroPlanilla2||'');
+    if(mes2El)   mes2El.value   = String(base.mesPlanilla2||'');
+    if(base2El)  base2El.value  = String(base.base2||'');
+    if(sal2El)   sal2El.value   = String(base.salud2||'');
+    if(fon2El)   fon2El.value   = String(base.fondo2||'');
+    if(rie2El)   rie2El.value   = String(base.riesgos2||'');
+
+    showView('view-ingresar-cuenta');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+
+  
 /* Botón menú: INGRESAR CUENTA (con sonido y navegación) */
 document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
@@ -1840,7 +1976,9 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     return;
   }
 
-  try{
+ try{
+IC_MODE = 'ingreso';
+  IC_EDIT_ROW = null;
     // Usa una sola llamada optimizada del backend (CONTRATISTAS + CUENTAS)
     const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento });
 
@@ -1955,9 +2093,32 @@ function bindCOPFormatters(){
   
 /* Render de la vista */
 function renderIngresarCuenta(){
-  // Informe y total
+  // Ajustar título y descripción según modo
+  const titleEl = document.getElementById('ic-title');
+  const descEl  = document.getElementById('ic-desc');
+  if(IC_MODE === 'correccion'){
+    if(titleEl) titleEl.textContent = 'CORRECCIÓN DE CUENTA';
+    if(descEl)  descEl.innerHTML = `
+      Edita los campos teniendiendo en cuenta las observaciones.<br><br>
+      INFORME:
+      <span id="ic-informe" class="chip">${String(IC_STATE.informe||1)}</span>
+      &nbsp; DE:
+      <input id="ic-total" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
+    `;
+  }else{
+    if(titleEl) titleEl.textContent = 'CREACIÓN DE CUENTA';
+    if(descEl)  descEl.innerHTML = `
+      INFORME:
+      <span id="ic-informe" class="chip">${String(IC_STATE.informe||1)}</span>
+      &nbsp; DE:
+      <input id="ic-total" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
+    `;
+  }
+
+  // Reasignar referencias de informe/total ahora que se re-renderizó HTML
   document.getElementById('ic-informe').textContent = String(IC_STATE.informe||1);
-  const tot = document.getElementById('ic-total'); if(tot) tot.value = IC_STATE.total||'';
+  const tot = document.getElementById('ic-total'); 
+  if(tot) tot.value = IC_STATE.total||'';
 
 // Precargar supervisor de forma oculta
   const sup = document.getElementById('ic-supervisor');
@@ -2074,6 +2235,17 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     prev.loading = 'lazy';
     prev.style.display = IS_MOBILE_INGRESAR ? 'none' : 'none'; // en desktop se activará al tener data
 
+        // Si estamos en corrección y hay URL existente, mostrarla
+    if(IC_MODE === 'correccion'){
+      const existingUrl = (IC_STATE.evidData && IC_STATE.evidData[i]) ? IC_STATE.evidData[i] : '';
+      if(existingUrl){
+        if(!IS_MOBILE_INGRESAR){
+          prev.src = existingUrl;
+          prev.style.display = 'block';
+        }
+      }
+    }
+
     // Handler de carga/compresión
     inp.addEventListener('change', async (e)=>{
       const file = e.target.files && e.target.files[0];
@@ -2123,7 +2295,7 @@ if (sup) sup.value = IC_STATE.supervisor || '';
 
     // Botón VER: abre alerta con la imagen guardada (solo móvil)
     verBtn.addEventListener('click', ()=>{
-      const dataUrl = IC_STATE.evidData[i] || '';
+       const dataUrl = IC_STATE.evidData[i] || '';
       if(!dataUrl){
         Swal.fire({icon:'info', title:'Sin imagen', text:'Primero carga una imagen para esta evidencia.'});
         return;
@@ -2485,8 +2657,9 @@ for(let i=0;i<Math.min(26,n);i++){
     didOpen: () => { Swal.showLoading(); }
   });
 
-  try{
-    const r = await apiPost('saveNuevaCuenta', body);
+   try{
+    const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
+    const r = await apiPost(action, body);
     await Swal.close();
     if(r && r.success){
       Swal.fire({
