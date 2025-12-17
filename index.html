@@ -2677,31 +2677,36 @@ for(let i=0;i<Math.min(26,n);i++){
   const prevLoaderDisplay = loader?.style.display;
   if(loader){ loader.classList.add('hidden'); loader.style.display = 'none'; }
 
-  const waitSwal = Swal.fire({
-    title: 'CREANDO TUS DOCUMENTOS...',
-    html: 'Por favor espera un par de minutos mientras termina el proceso.<br>No salgas de la App.',
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
+  // Texto distinto según sea ingreso o corrección
+const isCorrection = (IC_MODE === 'correccion');
+const waitSwal = Swal.fire({
+  title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
+  html: 'Por favor espera un par de minutos mientras termina el proceso.<br>No salgas de la App.',
+  allowOutsideClick: false,
+  allowEscapeKey: false,
+  didOpen: () => { Swal.showLoading(); }
+});
 
    try{
     const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
     const r = await apiPost(action, body);
     await Swal.close();
-    if(r && r.success){
-      Swal.fire({
-        icon:'success',
-        title:'PROCESO FINALIZADO',
-        html:'La cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisarlos',
-        timer: 6000, 
-        showConfirmButton: false
-      });
-      resetIngresarCuentaView();
-      showView('view-inicio');
-    } else {
-      Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
-    }
+   if(r && r.success){
+  const isCorrection = (IC_MODE === 'correccion');
+  Swal.fire({
+    icon:'success',
+    title:'PROCESO FINALIZADO',
+    html: isCorrection
+      ? 'La cuenta quedó <b>CORREGIDA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Corregidos'
+      : 'La cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Creados',
+    timer: 6000,
+    showConfirmButton: false
+  });
+  resetIngresarCuentaView();
+  showView('view-inicio');
+} else {
+  Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
+}
   }catch(e){
     await Swal.close();
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
