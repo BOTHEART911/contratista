@@ -1906,12 +1906,14 @@ document.getElementById('go-corregir-cuenta')?.addEventListener('click', async (
     IC_STATE.supervisor = '';
     IC_STATE.editorEmail = '';
 
-    // Guardar evidencias existentes (urls)
-    IC_STATE.evidOriginalUrls = Array.isArray(base.evidencias) ? base.evidencias.slice() : [];
-    // evidData se usará para previews (dataURL o thumbnail)
-    IC_STATE.evidData  = IC_STATE.evidOriginalUrls.slice();
-    IC_STATE.evidSizes = new Array(IC_STATE.evidData.length).fill(0);
+   // Guardar evidencias existentes (urls) tal cual vienen de BK..CJ
+IC_STATE.evidOriginalUrls = Array.isArray(base.evidencias) ? base.evidencias.slice() : [];
 
+// evidData SOLO guardará dataURL nuevas que el usuario cargue en esta corrección.
+// Se inicializa vacío para NO confundir URL vieja con “data nueva”.
+IC_STATE.evidData  = new Array(IC_STATE.evidOriginalUrls.length).fill('');
+IC_STATE.evidSizes = new Array(IC_STATE.evidOriginalUrls.length).fill(0);
+    
     // Pintar vista con modo corrección
     renderIngresarCuenta();
 
@@ -2246,16 +2248,45 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     prev.loading = 'lazy';
     prev.style.display = IS_MOBILE_INGRESAR ? 'none' : 'none'; // en desktop se activará al tener data
 
-    // Si estamos en corrección y hay URL existente, mostrarla como thumbnail
-    if(IC_MODE === 'correccion'){
-      const existingUrl = (IC_STATE.evidOriginalUrls && IC_STATE.evidOriginalUrls[i]) ? IC_STATE.evidOriginalUrls[i] : '';
-      if(existingUrl && !IS_MOBILE_INGRESAR){
-        prev.src = driveUrlToThumb(existingUrl);
-        prev.style.display = 'block';
-        // Para el botón VER queremos seguir usando la URL original
-        IC_STATE.evidData[i] = existingUrl;
-      }
+    // Si estamos en corrección y hay URL existente, mostrarla como thumbnail,
+// PERO NO tocar evidData (solo se llena cuando el usuario sube una nueva imagen)
+if(IC_MODE === 'correccion'){
+  const existingUrl = (IC_STATE.evidOriginalUrls && IC_STATE.evidOriginalUrls[i]) ? IC_STATE.evidOriginalUrls[i] : '';
+  if(existingUrl && !IS_MOBILE_INGRESAR){
+    prev.src = driveUrlToThumb(existingUrl);
+    prev.style.display = 'block';
+  }
+
+  // En móvil, el botón VER debe usar la URL original si no hay data nueva
+  verBtn.addEventListener('click', ()=>{
+    const dataUrl = IC_STATE.evidData[i] || existingUrl;
+    if(!dataUrl){
+      Swal.fire({icon:'info', title:'Sin imagen', text:'Primero carga una imagen para esta evidencia.'});
+      return;
     }
+    Swal.fire({
+      title: `Evidencia ${idx}`,
+      html: `<img src="${driveUrlToThumb(dataUrl)}" alt="Evidencia ${idx}" style="max-width:100%;max-height:70vh;border-radius:10px;border:1.5px solid #d8e4ff;">`,
+      width: '90%',
+      allowOutsideClick: true
+    });
+  });
+} else {
+  // En modo ingreso original, el botón VER usa solo data nueva
+  verBtn.addEventListener('click', ()=>{
+    const dataUrl = IC_STATE.evidData[i] || '';
+    if(!dataUrl){
+      Swal.fire({icon:'info', title:'Sin imagen', text:'Primero carga una imagen para esta evidencia.'});
+      return;
+    }
+    Swal.fire({
+      title: `Evidencia ${idx}`,
+      html: `<img src="${dataUrl}" alt="Evidencia ${idx}" style="max-width:100%;max-height:70vh;border-radius:10px;border:1.5px solid #d8e4ff;">`,
+      width: '90%',
+      allowOutsideClick: true
+    });
+  });
+}
     
     // Handler de carga/compresión
     inp.addEventListener('change', async (e)=>{
@@ -2302,21 +2333,6 @@ if (sup) sup.value = IC_STATE.supervisor || '';
         prev.style.display = 'none';
         await Swal.fire({ icon:'error', title:'Error con la imagen', text:String(err.message||err) });
       }
-    });
-
-    // Botón VER: abre alerta con la imagen guardada (solo móvil)
-    verBtn.addEventListener('click', ()=>{
-       const dataUrl = IC_STATE.evidData[i] || '';
-      if(!dataUrl){
-        Swal.fire({icon:'info', title:'Sin imagen', text:'Primero carga una imagen para esta evidencia.'});
-        return;
-      }
-      Swal.fire({
-        title: `Evidencia ${idx}`,
-        html: `<img src="${dataUrl}" alt="Evidencia ${idx}" style="max-width:100%;max-height:70vh;border-radius:10px;border:1.5px solid #d8e4ff;">`,
-        width: '90%',
-        allowOutsideClick: true
-      });
     });
 
     block.appendChild(p);
@@ -2538,12 +2554,13 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     actividades.push((el && el.value) ? el.value.trim() : '');
   }
 
-  // Evidencias (1 por obligación) a dataURL
-    // Evidencias (1 por obligación) → comprimir y validar peso
-  const evidenciasData = [];
+ // Evidencias (1 por obligación) → SOLO enviamos dataURL nuevas.
+// Si está vacío, el backend conservará la URL existente de BK..CJ.
+const evidenciasData = [];
 for(let i=0;i<Math.min(26,n);i++){
   const dataUrl = IC_STATE.evidData[i] || '';
   const sz = IC_STATE.evidSizes[i] || 0;
+
   if(dataUrl && sz > MAX_IMAGE_MB){
     await Swal.fire({
       icon:'warning',
@@ -2552,7 +2569,7 @@ for(let i=0;i<Math.min(26,n);i++){
     });
     return;
   }
-  evidenciasData.push(dataUrl);
+  evidenciasData.push(dataUrl); // '' => no se reemplaza; dataUrl => sí se reemplaza
 }
 
   // Cálculos
