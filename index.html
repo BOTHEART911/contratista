@@ -254,6 +254,272 @@
   width: 90%;
   max-width: 520px;
 }
+
+      /* ================== CALENDARIO INSTITUCIONAL (CONTRATISTA) ================== */
+  .cal-wrapper{
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .cal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+  .cal-title{
+    font-weight:800;
+    font-size:1.1rem;
+    color:var(--primary);
+  }
+  .cal-nav-group{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .cal-pill-btn{
+    border-radius:999px;
+    padding:8px 14px;
+    border:2px solid var(--primary);
+    background:#fff;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .cal-pill-btn.active{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary-2);
+  }
+  .cal-filter-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .cal-filter-input{
+    border-radius:999px;
+    padding:8px 12px;
+    border:1.5px solid #ccc;
+    min-width:220px;
+  }
+
+  .cal-grid{
+    margin-top:10px;
+    border-radius:16px;
+    background:rgba(255,255,255,.8);
+    border:2px solid #ddd;
+    overflow:hidden;
+  }
+  .cal-month-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    border-top:1px solid #eee;
+  }
+  .cal-weekdays{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    background:#f7fafc;
+    border-bottom:1px solid #eee;
+  }
+  .cal-weekday,
+  .cal-day-header{
+    padding:6px 4px;
+    text-align:center;
+    font-size:.8rem;
+    font-weight:700;
+    color:#555;
+  }
+  .cal-day-cell{
+    min-height:86px;
+    border-right:1px solid #f1f1f1;
+    border-bottom:1px solid #f1f1f1;
+    padding:4px;
+    box-sizing:border-box;
+    position:relative;
+    background:#fff;
+  }
+  .cal-day-cell.other-month{
+    background:#f9fafb;
+  }
+  .cal-day-number{
+    font-size:.78rem;
+    font-weight:700;
+    color:#111;
+  }
+  .cal-day-number.today{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;
+    height:22px;
+    border-radius:999px;
+    background:var(--primary);
+    color:#fff;
+  }
+
+  .cal-event-chip{
+    margin-top:2px;
+    padding:1px 2px;
+    border-radius:8px;
+    font-size:clamp(.32rem, 0.7vw, .58rem);
+    line-height:1.1;
+    cursor:pointer;
+    color:#111;
+    box-shadow:0 1px 3px rgba(0,0,0,.16);
+  }
+  .cal-event-chip .cal-evt-title{
+    font-weight:800;
+    display:block;
+    font-size:clamp(.34rem, 0.8vw, .66rem);
+  }
+  .cal-event-chip .cal-evt-time{
+    font-weight:600;
+    font-size:clamp(.30rem, 0.65vw, .56rem);
+  }
+
+  /* Colores por secretaría (fondos claros distintos) */
+  .sec-despacho{
+    background:#fee2e2;
+    border:1px solid #f87171;
+  }
+  .sec-gobierno{
+    background:#dbeafe;
+    border:1px solid #60a5fa;
+  }
+  .sec-hacienda{
+    background:#fef3c7;
+    border:1px solid #facc15;
+  }
+  .sec-educacion{
+    background:#dcfce7;
+    border:1px solid #22c55e;
+  }
+  .sec-planeacion{
+    background:#ede9fe;
+    border:1px solid #a855f7;
+  }
+  .sec-agro{
+    background:#f5f3ff;
+    border:1px solid #8b5cf6;
+  }
+  .sec-salud{
+    background:#cffafe;
+    border:1px solid #06b6d4;
+  }
+  .sec-default{
+    background:#e5e7eb;
+    border:1px solid #9ca3af;
+  }
+
+  .cal-day-view,
+  .cal-week-view{
+    border-top:1px solid #eee;
+  }
+  .cal-day-header-row,
+  .cal-week-header-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:6px 10px;
+    background:#f7fafc;
+    border-bottom:1px solid #eee;
+    font-size:.85rem;
+    font-weight:700;
+  }
+  .cal-day-body,
+  .cal-week-body{
+    padding:8px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .cal-year-grid{
+    border-top:1px solid #eee;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:10px;
+    padding:10px;
+  }
+  .cal-year-month{
+    border-radius:12px;
+    background:#f9fafb;
+    padding:8px;
+    box-sizing:border-box;
+  }
+  .cal-year-month h4{
+    margin:0 0 4px;
+    font-size:.8rem;
+    text-align:center;
+    color:#111;
+  }
+  .cal-year-month table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.7rem;
+    text-align:center;
+  }
+  .cal-year-month th{
+    font-weight:700;
+    color:#666;
+    padding:2px 0;
+  }
+  .cal-year-month td{
+    padding:2px 0;
+    color:#111;
+  }
+  .cal-year-dot{
+    width:6px;
+    height:6px;
+    border-radius:999px;
+    display:inline-block;
+    margin-left:2px;
+    background:#22c55e;
+  }
+
+  .cal-footer-actions{
+    margin-top:14px;
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  /* Picker modales para fechas en calendario/solicitud prensa */
+  .picker-modal-cal{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding-top:32px;
+    background:rgba(0,0,0,.5);
+    z-index:9999;
+  }
+  .picker-modal-cal[aria-hidden="false"]{
+    display:flex;
+  }
+  .picker-box-cal{
+    width:90%;
+    max-width:520px;
+    background:#fff;
+    border-radius:8px;
+    padding:16px;
+    box-shadow:0 8px 18px rgba(0,0,0,.18);
+  }
+  .picker-grid-cal{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin:12px 0;
+  }
+
+  /* Forzar que el modal de FECHA DE PUBLICACIÓN quede pegado abajo en solicitud prensa */
+  #spPublicacionFechaModal{
+    align-items:flex-end;
+    justify-content:center;
+    padding-top:0;
+    padding-bottom:16px;
+  }
   </style>
 </head>
 <body>
@@ -361,6 +627,8 @@
         <button class="menu-btn" id="go-reportar-drive">REPORTAR CUENTA</button>
         <button class="menu-btn" id="go-corregir-cuenta">CORREGIR CUENTA</button>
         <button class="menu-btn" id="go-reportar-plan">PLAN DE PAGOS</button>
+        <button class="menu-btn" id="go-calendario">CALENDARIO INSTITUCIONAL</button>
+        <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
         <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
@@ -946,6 +1214,195 @@
     </div>
   </div>
 </section>
+
+        <!-- VISTA CALENDARIO INSTITUCIONAL -->
+    <section id="view-calendario" class="view">
+      <div class="card">
+        <div class="cal-wrapper">
+          <h2 style="color:var(--primary)">ACTIVIDADES INSTITUCIONALES ALCALDÍA DE FLANDES</h2>
+
+          <div class="cal-header">
+            <div>
+              <div class="cal-title" id="cal-title-text">Mes actual</div>
+              <p class="muted" style="margin:2px 0 0;">Vista interactiva de eventos programados y completados</p>
+            </div>
+            <div class="cal-nav-group">
+              <button id="cal-btn-today" class="cal-pill-btn">Hoy</button>
+              <button id="cal-prev" class="cal-pill-btn" aria-label="Anterior">‹</button>
+              <button id="cal-next" class="cal-pill-btn" aria-label="Siguiente">›</button>
+            </div>
+            <div class="cal-filter-wrap">
+              <button id="cal-filter-toggle" class="cal-pill-btn">Filtrar</button>
+              <input id="cal-filter-input" class="cal-filter-input" type="text" placeholder="Filtrar por evento, secretaría o responsable" style="display:none;">
+            </div>
+            <div class="cal-nav-group">
+              <button id="cal-view-day" class="cal-pill-btn">Día</button>
+              <button id="cal-view-week" class="cal-pill-btn">Semana</button>
+              <button id="cal-view-month" class="cal-pill-btn active">Mes</button>
+              <button id="cal-view-year" class="cal-pill-btn">Año</button>
+            </div>
+          </div>
+
+          <div id="cal-container" class="cal-grid">
+            <div style="padding:14px; text-align:center; font-size:.9rem;" class="muted">
+              Cargando calendario…
+            </div>
+          </div>
+
+          <div class="cal-footer-actions">
+            <button id="cal-btn-back" class="danger">Regresar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA DETALLE DE EVENTO (solo lectura) -->
+    <section id="view-evento-detalle" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary)">DETALLES DEL EVENTO</h2>
+        <div id="evento-detalle-body" class="narrow"></div>
+        <div class="btn-row spaced" style="margin-top:14px;">
+          <button id="evento-detalle-volver" class="danger">Regresar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA SOLICITUD PRENSA -->
+    <section id="view-solicitud-prensa" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary)">REQUERIMIENTO A EQUIPO DE COMUNICACIONES</h2>
+        <p class="helper">Debes tener el aval de tu Supervisor(a) para realizar esta solicitud.</p>
+
+        <label for="sp-nombreEvento">Nombre del Evento (Opcional)</label>
+        <textarea id="sp-nombreEvento" rows="2" placeholder="Título descriptivo del evento (opcional)"></textarea>
+
+        <label>Fecha del Evento (Opcional)</label>
+        <input
+          id="sp-fechaEvento"
+          type="text"
+          placeholder="dd/mm/aaaa"
+          readonly
+        />
+
+        <label for="sp-horaInicio">Hora de Inicio (Opcional)</label>
+        <input id="sp-horaInicio" type="time">
+
+        <label for="sp-horaTerminacion">Hora de Terminación (Opcional)</label>
+        <input id="sp-horaTerminacion" type="time">
+
+        <label>Requerimientos (al menos uno seleccionado)</label>
+        <div id="sp-requerimientos" class="cal-checklist">
+          <label class="cal-check-item">
+            <input type="checkbox" value="Cubrimiento Fotográfico">
+            <span>Cubrimiento Fotográfico</span>
+          </label>
+          <label class="cal-check-item">
+            <input type="checkbox" value="Cubrimiento Video">
+            <span>Cubrimiento Video</span>
+          </label>
+          <label class="cal-check-item">
+            <input type="checkbox" value="Diseño Pieza Publicitaria">
+            <span>Diseño Pieza Publicitaria</span>
+          </label>
+          <label class="cal-check-item">
+            <input type="checkbox" value="Perifoneo">
+            <span>Perifoneo</span>
+          </label>
+          <label class="cal-check-item">
+            <input type="checkbox" value="Apoyo Publicitario">
+            <span>Apoyo Publicitario</span>
+          </label>
+          <label class="cal-check-item">
+            <input type="checkbox" value="Producción Multimedia">
+            <span>Producción Multimedia</span>
+          </label>
+          <label class="cal-check-item">
+            <input type="checkbox" value="Publicación Página Web">
+            <span>Publicación Página Web</span>
+          </label>
+        </div>
+
+        <label for="sp-otros">Otros (Opcional)</label>
+        <textarea id="sp-otros" rows="2" placeholder="Requerimientos adicionales (opcional)"></textarea>
+
+        <label for="sp-lugar">Lugar del Evento (Opcional)</label>
+        <textarea id="sp-lugar" rows="2" placeholder="Lugar o puntos de encuentro (opcional)"></textarea>
+
+        <label for="sp-detalles">Detalles del Evento o Requerimiento</label>
+        <textarea id="sp-detalles" rows="6" placeholder="Describe el objetivo, participantes, logística u otra información relevante"></textarea>
+
+        <label>Fecha de Entrega o Publicación</label>
+        <input
+          id="sp-publicacion"
+          type="text"
+          placeholder="dd/mm/aaaa"
+          readonly
+        />
+
+        <label for="sp-cargo">Cargo que tienes en tu Secretaría</label>
+        <textarea id="sp-cargo" rows="2" placeholder="Escribe tu cargo en la Secretaría"></textarea>
+
+        <!-- Campos ocultos: nombre, secretaria, contacto -->
+        <input id="sp-nombre" type="hidden" />
+        <input id="sp-secretaria" type="hidden" />
+        <input id="sp-contacto" type="hidden" />
+
+        <div class="btn-row spaced" style="margin-top:14px;">
+          <button id="sp-enviar" class="btn-primary">Enviar Solicitud</button>
+          <button id="sp-volver" class="danger">Regresar</button>
+        </div>
+      </div>
+
+      <!-- Modal Fecha del Evento (parte superior) -->
+      <div id="spEventoFechaModal" class="picker-modal-cal" aria-hidden="true">
+        <div class="picker-box-cal">
+          <h3 style="margin:0 0 8px 0;">Selecciona la Fecha del Evento</h3>
+          <div class="picker-grid-cal">
+            <div>
+              <small>Día</small>
+              <select id="spEvtDia" size="10"></select>
+            </div>
+            <div>
+              <small>Mes</small>
+              <select id="spEvtMes" size="12"></select>
+            </div>
+            <div>
+              <small>Año</small>
+              <select id="spEvtAnio" size="10"></select>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button type="button" class="btn" id="spEvtFechaCancelar">Cancelar</button>
+            <button type="button" class="btn-primary" id="spEvtFechaOk">Ok</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Fecha de Entrega/Publicación (parte inferior) -->
+      <div id="spPublicacionFechaModal" class="picker-modal-cal" aria-hidden="true">
+        <div class="picker-box-cal">
+          <h3 style="margin:0 0 8px 0;">Selecciona la Fecha de Entrega o Publicación</h3>
+          <div class="picker-grid-cal">
+            <div>
+              <small>Día</small>
+              <select id="spPubDia" size="10"></select>
+            </div>
+            <div>
+              <small>Mes</small>
+              <select id="spPubMes" size="12"></select>
+            </div>
+            <div>
+              <small>Año</small>
+              <select id="spPubAnio" size="10"></select>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button type="button" class="btn" id="spPubFechaCancelar">Cancelar</button>
+            <button type="button" class="btn-primary" id="spPubFechaOk">Ok</button>
+          </div>
+        </div>
+      </div>
+    </section>
     
 <script>
 /* ================== CONFIGURACIÓN ================== */
@@ -1494,6 +1951,856 @@ document.addEventListener('DOMContentLoaded', ()=>{
   label.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openList(); } });
 });
 
+  /* ================== CALENDARIO INSTITUCIONAL (CONTRATISTA) ================== */
+
+const CAL_API_ACTION_LIST = 'listEventosCalendario';
+const CAL_API_ACTION_GET  = 'getEventoCalendario';
+
+let CAL_EVENTS = [];
+let CAL_CURRENT_VIEW = 'month';
+let CAL_CURRENT_DATE = new Date();
+let CAL_SELECTED_EVENT = null;
+
+const CAL_MONTHS_SHORT = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+const CAL_WEEKDAYS_SHORT = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+
+function calPad2(n){
+  return String(n).padStart(2,'0');
+}
+function calFormatDMY(d){
+  if(!d) return '';
+  const dd = calPad2(d.getDate());
+  const mm = calPad2(d.getMonth()+1);
+  const yy = d.getFullYear();
+  return dd + '/' + mm + '/' + yy;
+}
+function calParseDMY(str){
+  if(!str) return null;
+  const p = String(str).split('/');
+  if(p.length !== 3) return null;
+  const d = parseInt(p[0],10);
+  const m = parseInt(p[1],10);
+  const y = parseInt(p[2],10);
+  if(!d || !m || !y) return null;
+  const dt = new Date(y,m-1,d);
+  if(isNaN(dt.getTime())) return null;
+  return dt;
+}
+function calMinutesFromTimeStr(str){
+  if(!str) return 0;
+  const p = String(str).split(' ');
+  const hm = (p[0]||'').split(':');
+  let h = parseInt(hm[0]||'0',10);
+  const m = parseInt(hm[1]||'0',10);
+  const ampm = (p[1]||'AM').toUpperCase();
+  if(ampm === 'PM' && h < 12) h += 12;
+  if(ampm === 'AM' && h === 12) h = 0;
+  if(isNaN(h) || isNaN(m)) return 0;
+  return h*60 + m;
+}
+function calStatusColorClass(estado, secretaria){
+  const v = String(secretaria||'').trim().toUpperCase();
+  if(v === 'DESPACHO MUNICIPAL') return 'cal-event-chip sec-despacho';
+  if(v === 'SECRETARÍA DE GOBIERNO Y SERVICIOS ADMINISTRATIVOS') return 'cal-event-chip sec-gobierno';
+  if(v === 'SECRETARÍA DE HACIENDA') return 'cal-event-chip sec-hacienda';
+  if(v === 'SECRETARÍA DE EDUCACIÓN, DESARROLLO ECONÓMICO Y SOCIAL') return 'cal-event-chip sec-educacion';
+  if(v === 'SECRETARÍA DE PLANEACIÓN E INFRAESTRUCTURA') return 'cal-event-chip sec-planeacion';
+  if(v === 'SECRETARÍA DE ASUNTOS AGROPECUARIOS') return 'cal-event-chip sec-agro';
+  if(v === 'SECRETARÍA DE SALUD') return 'cal-event-chip sec-salud';
+  return 'cal-event-chip sec-default';
+}
+function calEventMatchesFilter(ev, query){
+  if(!query) return true;
+  const q = query.toLowerCase();
+  return [
+    ev.nombreEvento,
+    ev.secretaria,
+    ev.nombre,
+    ev.lugar,
+    ev.detalles
+  ].some(v => String(v||'').toLowerCase().includes(q));
+}
+function calUpdateTitle(){
+  const titleEl = document.getElementById('cal-title-text');
+  if(!titleEl) return;
+  if(CAL_CURRENT_VIEW === 'year'){
+    titleEl.textContent = CAL_CURRENT_DATE.getFullYear();
+    return;
+  }
+  if(CAL_CURRENT_VIEW === 'week'){
+    const start = calStartOfWeek(CAL_CURRENT_DATE);
+    const end = calEndOfWeek(CAL_CURRENT_DATE);
+    const label = CAL_MONTHS_SHORT[start.getMonth()] + ' ' + start.getDate() +
+      ' – ' + CAL_MONTHS_SHORT[end.getMonth()] + ' ' + end.getDate() +
+      ' ' + end.getFullYear();
+    titleEl.textContent = label;
+    return;
+  }
+  if(CAL_CURRENT_VIEW === 'day'){
+    const d = CAL_CURRENT_DATE;
+    const label = d.getDate() + ' ' + CAL_MONTHS_SHORT[d.getMonth()] + ' ' + d.getFullYear();
+    titleEl.textContent = label;
+    return;
+  }
+  const d = CAL_CURRENT_DATE;
+  titleEl.textContent = d.toLocaleDateString('es-CO', { month:'long', year:'numeric' }).toUpperCase();
+}
+function calStartOfWeek(d){
+  const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = dt.getDay();
+  const diff = (day + 7 - 0) % 7;
+  dt.setDate(dt.getDate() - diff);
+  return dt;
+}
+function calEndOfWeek(d){
+  const start = calStartOfWeek(d);
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+  return end;
+}
+function calEventsOnDay(isoDMY){
+  return CAL_EVENTS.filter(ev => ev.fechaEvento === isoDMY);
+}
+function calRender(){
+  const cont = document.getElementById('cal-container');
+  if(!cont) return;
+  const filterVal = document.getElementById('cal-filter-input')?.value.trim().toLowerCase() || '';
+  cont.innerHTML = '';
+  calUpdateTitle();
+
+  if(CAL_CURRENT_VIEW === 'month'){
+    calRenderMonth(cont, filterVal);
+  }else if(CAL_CURRENT_VIEW === 'week'){
+    calRenderWeek(cont, filterVal);
+  }else if(CAL_CURRENT_VIEW === 'day'){
+    calRenderDay(cont, filterVal);
+  }else if(CAL_CURRENT_VIEW === 'year'){
+    calRenderYear(cont, filterVal);
+  }
+}
+function calRenderMonth(cont, filterVal){
+  const header = document.createElement('div');
+  header.className = 'cal-weekdays';
+  CAL_WEEKDAYS_SHORT.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-weekday';
+    el.textContent = d;
+    header.appendChild(el);
+  });
+  cont.appendChild(header);
+
+  const grid = document.createElement('div');
+  grid.className = 'cal-month-grid';
+
+  const year = CAL_CURRENT_DATE.getFullYear();
+  const month = CAL_CURRENT_DATE.getMonth();
+  const firstDay = new Date(year,month,1);
+  const startWeekDay = firstDay.getDay();
+  const daysInMonth = new Date(year,month+1,0).getDate();
+
+  const prevMonthDays = (startWeekDay + 7 - 0) % 7;
+  const totalCells = prevMonthDays + daysInMonth;
+  const cells = totalCells <= 35 ? 35 : 42;
+
+  const todayDMY = calFormatDMY(new Date());
+
+  for(let i=0; i<cells; i++){
+    const cell = document.createElement('div');
+    cell.className = 'cal-day-cell';
+    const dayOffset = i - prevMonthDays + 1;
+    let cellDate;
+    let inThisMonth = true;
+
+    if(dayOffset < 1){
+      cellDate = new Date(year, month, dayOffset);
+      inThisMonth = false;
+    }else if(dayOffset > daysInMonth){
+      cellDate = new Date(year, month, dayOffset);
+      inThisMonth = false;
+    }else{
+      cellDate = new Date(year, month, dayOffset);
+    }
+
+    const iso = calFormatDMY(cellDate);
+    if(!inThisMonth) cell.classList.add('other-month');
+
+    const headerNum = document.createElement('div');
+    headerNum.className = 'cal-day-number';
+
+    if(iso === todayDMY){
+      headerNum.classList.add('today');
+      headerNum.textContent = cellDate.getDate();
+    }else{
+      headerNum.textContent = cellDate.getDate();
+    }
+
+    cell.appendChild(headerNum);
+
+    const events = calEventsOnDay(iso).filter(ev => calEventMatchesFilter(ev, filterVal));
+    events.sort((a,b)=> calMinutesFromTimeStr(a.horaInicio||'') - calMinutesFromTimeStr(b.horaInicio||''));
+
+    events.forEach(ev => {
+      const chip = document.createElement('div');
+      chip.className = calStatusColorClass(ev.estado, ev.secretaria);
+
+      const title = document.createElement('span');
+      title.className = 'cal-evt-title';
+      title.textContent = ev.secretaria || '';
+
+      const time = document.createElement('span');
+      time.className = 'cal-evt-time';
+      time.textContent = (ev.horaInicio||'') + ' - ' + (ev.horaTerminacion||'');
+
+      chip.appendChild(title);
+      chip.appendChild(time);
+
+      chip.addEventListener('click', ()=> calOpenEventForView(ev.codigo));
+      cell.appendChild(chip);
+    });
+
+    grid.appendChild(cell);
+  }
+  cont.appendChild(grid);
+}
+function calRenderDay(cont, filterVal){
+  const header = document.createElement('div');
+  header.className = 'cal-day-header-row';
+  const d = CAL_CURRENT_DATE;
+  header.textContent = d.toLocaleDateString('es-CO',{ weekday:'long', day:'numeric', month:'long', year:'numeric' }).toUpperCase();
+  cont.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'cal-day-body';
+
+  const iso = calFormatDMY(d);
+  const events = calEventsOnDay(iso).filter(ev => calEventMatchesFilter(ev, filterVal));
+  events.sort((a,b)=> calMinutesFromTimeStr(a.horaInicio||'') - calMinutesFromTimeStr(b.horaInicio||''));
+
+  if(!events.length){
+    const p = document.createElement('p');
+    p.className = 'muted';
+    p.textContent = 'Sin eventos para este día.';
+    body.appendChild(p);
+  }else{
+    events.forEach(ev => {
+      const chip = document.createElement('div');
+      chip.className = calStatusColorClass(ev.estado, ev.secretaria);
+
+      const title = document.createElement('span');
+      title.className = 'cal-evt-title';
+      title.textContent = ev.secretaria || '';
+
+      const time = document.createElement('span');
+      time.className = 'cal-evt-time';
+      time.textContent = (ev.horaInicio||'') + ' - ' + (ev.horaTerminacion||'');
+
+      const desc = document.createElement('div');
+      desc.style.fontSize = '.72rem';
+      desc.textContent = ev.nombreEvento || '';
+
+      chip.appendChild(title);
+      chip.appendChild(time);
+      chip.appendChild(desc);
+
+      chip.addEventListener('click', ()=> calOpenEventForView(ev.codigo));
+      body.appendChild(chip);
+    });
+  }
+
+  cont.appendChild(body);
+}
+function calRenderWeek(cont, filterVal){
+  const start = calStartOfWeek(CAL_CURRENT_DATE);
+  const end = calEndOfWeek(CAL_CURRENT_DATE);
+
+  const header = document.createElement('div');
+  header.className = 'cal-week-header-row';
+  header.textContent = 'Semana del ' +
+    start.getDate() + ' ' + CAL_MONTHS_SHORT[start.getMonth()] +
+    ' al ' +
+    end.getDate() + ' ' + CAL_MONTHS_SHORT[end.getMonth()] +
+    ' ' + end.getFullYear();
+  cont.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'cal-week-body';
+
+  for(let i=0;i<7;i++){
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const iso = calFormatDMY(d);
+
+    const row = document.createElement('div');
+    row.style.borderRadius = '10px';
+    row.style.padding = '6px 8px';
+    row.style.background = '#f9fafb';
+    row.style.marginBottom = '6px';
+
+    const head = document.createElement('div');
+    head.style.display = 'flex';
+    head.style.alignItems = 'center';
+    head.style.justifyContent = 'space-between';
+
+    const left = document.createElement('span');
+    left.style.fontWeight = '700';
+    left.style.fontSize = '.8rem';
+    left.textContent = CAL_WEEKDAYS_SHORT[d.getDay()] + ' ' + d.getDate() + ' ' + CAL_MONTHS_SHORT[d.getMonth()];
+
+    head.appendChild(left);
+    row.appendChild(head);
+
+    const evs = calEventsOnDay(iso).filter(ev => calEventMatchesFilter(ev, filterVal));
+    evs.sort((a,b)=> calMinutesFromTimeStr(a.horaInicio||'') - calMinutesFromTimeStr(b.horaInicio||''));
+
+    if(!evs.length){
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.style.fontSize = '.72rem';
+      p.textContent = 'Sin eventos';
+      row.appendChild(p);
+    }else{
+      evs.forEach(ev => {
+        const chip = document.createElement('div');
+        chip.className = calStatusColorClass(ev.estado, ev.secretaria);
+
+        const title = document.createElement('span');
+        title.className = 'cal-evt-title';
+        title.textContent = ev.secretaria || '';
+
+        const time = document.createElement('span');
+        time.className = 'cal-evt-time';
+        time.textContent = (ev.horaInicio||'') + ' - ' + (ev.horaTerminacion||'');
+
+        chip.appendChild(title);
+        chip.appendChild(time);
+        chip.addEventListener('click', ()=> calOpenEventForView(ev.codigo));
+        row.appendChild(chip);
+      });
+    }
+
+    body.appendChild(row);
+  }
+
+  cont.appendChild(body);
+}
+function calRenderYear(cont, filterVal){
+  const grid = document.createElement('div');
+  grid.className = 'cal-year-grid';
+
+  const year = CAL_CURRENT_DATE.getFullYear();
+  const eventsByMonth = {};
+  CAL_EVENTS.forEach(ev => {
+    const d = calParseDMY(ev.fechaEvento);
+    if(!d || d.getFullYear() !== year) return;
+    const m = d.getMonth();
+    if(!eventsByMonth[m]) eventsByMonth[m] = [];
+    if(calEventMatchesFilter(ev, filterVal)){
+      eventsByMonth[m].push(ev);
+    }
+  });
+
+  for(let m=0;m<12;m++){
+    const box = document.createElement('div');
+    box.className = 'cal-year-month';
+
+    const h4 = document.createElement('h4');
+    h4.textContent = new Date(year,m,1).toLocaleDateString('es-CO',{ month:'long' }).toUpperCase();
+    box.appendChild(h4);
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+    CAL_WEEKDAYS_SHORT.forEach(d => {
+      const th = document.createElement('th');
+      th.textContent = d.charAt(0);
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    const first = new Date(year,m,1);
+    const startDay = first.getDay();
+    const daysInMonth = new Date(year,m+1,0).getDate();
+
+    let day = 1;
+    let done = false;
+    while(!done){
+      const tr = document.createElement('tr');
+      for(let wd=0; wd<7; wd++){
+        const td = document.createElement('td');
+        if(wd < startDay && day === 1){
+          td.textContent = '';
+        }else if(day > daysInMonth){
+          td.textContent = '';
+          done = true;
+        }else{
+          td.textContent = day;
+          const dmy = calFormatDMY(new Date(year,m,day));
+          const hasEvent = (eventsByMonth[m]||[]).some(ev => ev.fechaEvento === dmy);
+          if(hasEvent){
+            const dot = document.createElement('span');
+            dot.className = 'cal-year-dot';
+            td.appendChild(dot);
+          }
+          day++;
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+    box.appendChild(table);
+    grid.appendChild(box);
+  }
+
+  cont.appendChild(grid);
+}
+function calNormalizeEvent(ev){
+  const out = Object.assign({}, ev||{});
+  out.codigo = String(out.codigo||'');
+  out.fechaEvento = String(out.fechaEvento||'');
+  out.nombreEvento = String(out.nombreEvento||'');
+  out.secretaria = String(out.secretaria||'');
+  out.estado = String(out.estado||'').toUpperCase() || 'PROGRAMADO';
+  out.horaInicio = String(out.horaInicio||'');
+  out.horaTerminacion = String(out.horaTerminacion||'');
+  out.detalles = String(out.detalles||'');
+  out.lugar = String(out.lugar||'');
+  out.nombre = String(out.nombre||'');
+  out.contacto = String(out.contacto||'');
+  out.cargo = String(out.cargo||'');
+  return out;
+}
+async function calLoadEvents(){
+  try{
+    const list = await apiGet(CAL_API_ACTION_LIST, {});
+    CAL_EVENTS = Array.isArray(list) ? list.map(ev => calNormalizeEvent(ev)) : [];
+  }catch(e){
+    CAL_EVENTS = [];
+    Swal.fire({icon:'error',title:'Error cargando calendario',text:String(e.message||e)});
+  }
+}
+async function calOpenEventForView(codigo){
+  try{
+    const data = await apiGet(CAL_API_ACTION_GET, { codigo });
+    if(!data){
+      Swal.fire({icon:'info',title:'Evento no encontrado'});
+      return;
+    }
+    const ev = calNormalizeEvent(data);
+    CAL_SELECTED_EVENT = ev;
+    const body = document.getElementById('evento-detalle-body');
+    const lines = [
+      '<p><b>Nombre del Evento:</b> ' + (ev.nombreEvento || 'No Ingresado') + '</p>',
+      '<p><b>Fecha:</b> ' + (ev.fechaEvento || 'No Ingresado') + '</p>',
+      '<p><b>Inicia:</b> ' + (ev.horaInicio || 'No Ingresado') + '</p>',
+      '<p><b>Finaliza:</b> ' + (ev.horaTerminacion || 'No Ingresado') + '</p>',
+      '<p><b>Lugar:</b> ' + (ev.lugar || 'No Ingresado') + '</p>',
+      '<p><b>Responsable:</b> ' + (ev.nombre || 'No Ingresado') + '</p>',
+      '<p><b>Secretaría:</b> ' + (ev.secretaria || 'No Ingresado') + '</p>',
+      '<p><b>Cargo:</b> ' + (ev.cargo || 'No Ingresado') + '</p>'
+    ];
+    body.innerHTML = lines.join('');
+    showView('view-evento-detalle');
+  }catch(e){
+    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
+  }
+}
+
+/* Navegación Calendario */
+document.getElementById('go-calendario')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  await calLoadEvents();
+  CAL_CURRENT_VIEW = 'month';
+  CAL_CURRENT_DATE = new Date();
+  calSyncViewButtons();
+  showView('view-calendario');
+  calRender();
+});
+document.getElementById('cal-btn-back')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+document.getElementById('evento-detalle-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-calendario');
+});
+function calSyncViewButtons(){
+  ['cal-view-day','cal-view-week','cal-view-month','cal-view-year'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('active');
+  });
+  if(CAL_CURRENT_VIEW === 'day') document.getElementById('cal-view-day')?.classList.add('active');
+  if(CAL_CURRENT_VIEW === 'week') document.getElementById('cal-view-week')?.classList.add('active');
+  if(CAL_CURRENT_VIEW === 'month') document.getElementById('cal-view-month')?.classList.add('active');
+  if(CAL_CURRENT_VIEW === 'year') document.getElementById('cal-view-year')?.classList.add('active');
+}
+document.getElementById('cal-btn-today')?.addEventListener('click', ()=>{
+  CAL_CURRENT_DATE = new Date();
+  calRender();
+});
+document.getElementById('cal-prev')?.addEventListener('click', ()=>{
+  if(CAL_CURRENT_VIEW === 'year'){
+    CAL_CURRENT_DATE.setFullYear(CAL_CURRENT_DATE.getFullYear()-1);
+  }else if(CAL_CURRENT_VIEW === 'month'){
+    CAL_CURRENT_DATE.setMonth(CAL_CURRENT_DATE.getMonth()-1);
+  }else if(CAL_CURRENT_VIEW === 'week'){
+    CAL_CURRENT_DATE.setDate(CAL_CURRENT_DATE.getDate()-7);
+  }else if(CAL_CURRENT_VIEW === 'day'){
+    CAL_CURRENT_DATE.setDate(CAL_CURRENT_DATE.getDate()-1);
+  }
+  calRender();
+});
+document.getElementById('cal-next')?.addEventListener('click', ()=>{
+  if(CAL_CURRENT_VIEW === 'year'){
+    CAL_CURRENT_DATE.setFullYear(CAL_CURRENT_DATE.getFullYear()+1);
+  }else if(CAL_CURRENT_VIEW === 'month'){
+    CAL_CURRENT_DATE.setMonth(CAL_CURRENT_DATE.getMonth()+1);
+  }else if(CAL_CURRENT_VIEW === 'week'){
+    CAL_CURRENT_DATE.setDate(CAL_CURRENT_DATE.getDate()+7);
+  }else if(CAL_CURRENT_VIEW === 'day'){
+    CAL_CURRENT_DATE.setDate(CAL_CURRENT_DATE.getDate()+1);
+  }
+  calRender();
+});
+document.getElementById('cal-view-day')?.addEventListener('click', ()=>{
+  CAL_CURRENT_VIEW = 'day';
+  calSyncViewButtons();
+  calRender();
+});
+document.getElementById('cal-view-week')?.addEventListener('click', ()=>{
+  CAL_CURRENT_VIEW = 'week';
+  calSyncViewButtons();
+  calRender();
+});
+document.getElementById('cal-view-month')?.addEventListener('click', ()=>{
+  CAL_CURRENT_VIEW = 'month';
+  calSyncViewButtons();
+  calRender();
+});
+document.getElementById('cal-view-year')?.addEventListener('click', ()=>{
+  CAL_CURRENT_VIEW = 'year';
+  calSyncViewButtons();
+  calRender();
+});
+document.getElementById('cal-filter-toggle')?.addEventListener('click', ()=>{
+  const input = document.getElementById('cal-filter-input');
+  if(!input) return;
+  const visible = input.style.display !== 'none';
+  if(visible){
+    input.style.display = 'none';
+    input.value = '';
+    calRender();
+  }else{
+    input.style.display = '';
+    input.focus();
+  }
+});
+document.getElementById('cal-filter-input')?.addEventListener('input', ()=>{
+  calRender();
+});
+
+  /* ================== SOLICITUD PRENSA (CONTRATISTA) ================== */
+
+function spPad2(n){ return String(n).padStart(2,'0'); }
+
+function spInitSimplePicker(dSelId,mSelId,aSelId){
+  const dSel = document.getElementById(dSelId);
+  const mSel = document.getElementById(mSelId);
+  const aSel = document.getElementById(aSelId);
+  if(dSel && !dSel.childElementCount){
+    for(let d=1; d<=31; d++){
+      const opt = document.createElement('option');
+      opt.value = spPad2(d);
+      opt.textContent = opt.value;
+      dSel.appendChild(opt);
+    }
+  }
+  if(mSel && !mSel.childElementCount){
+    const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    for(let i=0;i<12;i++){
+      const opt = document.createElement('option');
+      opt.value = spPad2(i+1);
+      opt.textContent = mesesNombres[i];
+      mSel.appendChild(opt);
+    }
+  }
+  if(aSel && !aSel.childElementCount){
+    for(let y=2025; y<=2030; y++){
+      const opt = document.createElement('option');
+      opt.value = String(y);
+      opt.textContent = String(y);
+      aSel.appendChild(opt);
+    }
+  }
+}
+
+// Inicializar pickers de solicitud prensa
+spInitSimplePicker('spEvtDia','spEvtMes','spEvtAnio');
+spInitSimplePicker('spPubDia','spPubMes','spPubAnio');
+
+document.getElementById('sp-fechaEvento')?.addEventListener('click', ()=>{
+  const m = document.getElementById('spEventoFechaModal');
+  if(m){
+    m.style.display = 'flex';
+    m.setAttribute('aria-hidden','false');
+  }
+});
+document.getElementById('spEvtFechaCancelar')?.addEventListener('click', ()=>{
+  const m = document.getElementById('spEventoFechaModal');
+  if(m){
+    m.style.display = 'none';
+    m.setAttribute('aria-hidden','true');
+  }
+});
+document.getElementById('spEvtFechaOk')?.addEventListener('click', ()=>{
+  const d = document.getElementById('spEvtDia')?.value || '01';
+  const m = document.getElementById('spEvtMes')?.value || '01';
+  const y = document.getElementById('spEvtAnio')?.value || String(new Date().getFullYear());
+  document.getElementById('sp-fechaEvento').value = d + '/' + m + '/' + y;
+  const modal = document.getElementById('spEventoFechaModal');
+  if(modal){
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden','true');
+  }
+});
+
+document.getElementById('sp-publicacion')?.addEventListener('click', ()=>{
+  const m = document.getElementById('spPublicacionFechaModal');
+  if(m){
+    m.style.display = 'flex';
+    m.setAttribute('aria-hidden','false');
+  }
+});
+document.getElementById('spPubFechaCancelar')?.addEventListener('click', ()=>{
+  const m = document.getElementById('spPublicacionFechaModal');
+  if(m){
+    m.style.display = 'none';
+    m.setAttribute('aria-hidden','true');
+  }
+});
+document.getElementById('spPubFechaOk')?.addEventListener('click', ()=>{
+  const d = document.getElementById('spPubDia')?.value || '01';
+  const m = document.getElementById('spPubMes')?.value || '01';
+  const y = document.getElementById('spPubAnio')?.value || String(new Date().getFullYear());
+  document.getElementById('sp-publicacion').value = d + '/' + m + '/' + y;
+  const modal = document.getElementById('spPublicacionFechaModal');
+  if(modal){
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden','true');
+  }
+});
+
+document.getElementById('sp-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
+// Abrir SOLICITUD PRENSA desde menú
+document.getElementById('go-solicitud-prensa')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+  try{
+    const d = await apiGet('getDatosPersonales', { documento: currentUser.documento });
+    // d.cumple ya se usa; aquí necesitamos estado ACTIVO desde hoja CONTRATISTAS.
+    // Usamos getInicio para validar estado CC?
+    const s = SS; // solo referencia lógica, en front no se usa (comentario explicativo)
+  }catch(_){}
+  try{
+    // Reutilizamos getDatosPersonales + getEstadoCuenta no exponen CC, así que pedimos al backend una acción específica.
+    const info = await apiGet('getSolicitudPrensaBase', { documento: currentUser.documento });
+    if(!info || !info.found){
+      await Swal.fire({
+        icon:'info',
+        title:'NO TIENES ACCESO A ESTA OPCIÓN',
+        text:'Tu información de contrato aún no está completa.',
+        timer:4000,
+        showConfirmButton:false
+      });
+      return;
+    }
+    if(String(info.estado||'').toUpperCase() !== 'ACTIVO'){
+      await Swal.fire({
+        icon:'info',
+        title:'CONTRATO INACTIVO',
+        text:'Solo los contratistas ACTIVO pueden usar esta opción.',
+        timer:4000,
+        showConfirmButton:false
+      });
+      return;
+    }
+    document.getElementById('sp-nombre').value = info.nombre || '';
+    document.getElementById('sp-secretaria').value = info.secretaria || '';
+    document.getElementById('sp-contacto').value = info.contacto || '';
+
+    // Limpiar campos visibles
+    document.getElementById('sp-nombreEvento').value = '';
+    document.getElementById('sp-fechaEvento').value = '';
+    document.getElementById('sp-horaInicio').value = '';
+    document.getElementById('sp-horaTerminacion').value = '';
+    document.getElementById('sp-otros').value = '';
+    document.getElementById('sp-lugar').value = '';
+    document.getElementById('sp-detalles').value = '';
+    document.getElementById('sp-publicacion').value = '';
+    document.getElementById('sp-cargo').value = '';
+    document.querySelectorAll('#sp-requerimientos input[type="checkbox"]').forEach(ch => ch.checked = false);
+
+    showView('view-solicitud-prensa');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+
+// Guardar solicitud prensa
+document.getElementById('sp-enviar')?.addEventListener('click', async ()=>{
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+  const nombreEvento = document.getElementById('sp-nombreEvento').value.trim();
+  const fechaEvento  = document.getElementById('sp-fechaEvento').value.trim();
+  const horaInicio   = document.getElementById('sp-horaInicio').value.trim();
+  const horaTerminacion = document.getElementById('sp-horaTerminacion').value.trim();
+  const otros        = document.getElementById('sp-otros').value.trim();
+  const lugar        = document.getElementById('sp-lugar').value.trim();
+  const detalles     = document.getElementById('sp-detalles').value.trim();
+  const publicacion  = document.getElementById('sp-publicacion').value.trim();
+  const cargo        = document.getElementById('sp-cargo').value.trim();
+  const nombre       = document.getElementById('sp-nombre').value.trim();
+  const secretaria   = document.getElementById('sp-secretaria').value.trim();
+  const contacto     = document.getElementById('sp-contacto').value.trim();
+
+  const checks = document.querySelectorAll('#sp-requerimientos input[type="checkbox"]');
+  const reqs = [];
+  checks.forEach(ch => { if(ch.checked) reqs.push(ch.value); });
+  const requerimientosStr = reqs.join(', ');
+
+  // Validaciones requeridos
+  if(!requerimientosStr){
+    Swal.fire({icon:'warning', title:'Selecciona al menos un requerimiento'});
+    return;
+  }
+  if(!detalles){
+    Swal.fire({icon:'warning', title:'Debes diligenciar los Detalles'});
+    return;
+  }
+  if(!publicacion){
+    Swal.fire({icon:'warning', title:'Debes seleccionar la Fecha de Entrega o Publicación'});
+    return;
+  }
+  if(!cargo){
+    Swal.fire({icon:'warning', title:'Debes diligenciar tu Cargo en la Secretaría'});
+    return;
+  }
+
+  // Convertir horas HH:MM a AM/PM si vienen
+  function hhmmToAmPm(str){
+    if(!str) return '';
+    const p = str.split(':');
+    let h = parseInt(p[0]||'0',10);
+    const m = parseInt(p[1]||'0',10);
+    if(isNaN(h) || isNaN(m)) return '';
+    let suf = 'AM';
+    let hh = h;
+    if(h >= 12){
+      suf = 'PM';
+      if(h > 12) hh = h - 12;
+    }
+    if(h === 0){
+      hh = 12;
+      suf = 'AM';
+    }
+    const hStr = ('0'+hh).slice(-2);
+    const mStr = ('0'+m).slice(-2);
+    return hStr + ':' + mStr + ' ' + suf;
+  }
+
+  const horaInicioAmPm = hhmmToAmPm(horaInicio);
+  const horaTermAmPm   = hhmmToAmPm(horaTerminacion);
+
+  // Formatear requerimientos como lista con " - "
+  let requerimientosLista = '';
+  if(reqs.length){
+    requerimientosLista = reqs.map(x => '- ' + x).join('\n');
+  }
+
+  // Resumen con "No Ingresado" para opcionales vacíos
+  function valOrNI(v){ return v ? v : 'No Ingresado'; }
+  const resumenHtml = [
+    '<b>Nombre del Evento:</b> ' + valOrNI(nombreEvento),
+    '<b>Fecha del Evento:</b> ' + valOrNI(fechaEvento),
+    '<b>Hora de Inicio:</b> ' + valOrNI(horaInicioAmPm),
+    '<b>Hora de Terminación:</b> ' + valOrNI(horaTermAmPm),
+    '<b>Requerimientos:</b> ' + (requerimientosStr || 'No Ingresado'),
+    '<b>Otros:</b> ' + valOrNI(otros),
+    '<b>Lugar del Evento:</b> ' + valOrNI(lugar),
+    '<b>Detalles:</b> ' + detalles,
+    '<b>Fecha de Entrega o Publicación:</b> ' + publicacion,
+    '<b>Cargo:</b> ' + cargo
+  ].join('<br>');
+
+  const rs = await Swal.fire({
+    icon:'info',
+    title:'Resumen de Solicitud',
+    html:resumenHtml,
+    showCancelButton:true,
+    confirmButtonText:'Confirmar',
+    cancelButtonText:'Editar',
+    soundTag:'resumen'
+  });
+  if(!rs.isConfirmed) return;
+
+  const body = {
+    nombreEvento,
+    fechaEvento,
+    horaInicio: horaInicioAmPm,
+    horaTerminacion: horaTermAmPm,
+    detalles,
+    requerimientos: requerimientosStr,
+    otros,
+    lugar,
+    publicacion,
+    nombre,
+    contacto,
+    secretaria,
+    cargo
+  };
+
+  try{
+    const r = await apiPost('guardarSolicitudPrensaBrief', body);
+    if(!r || !r.success){
+      Swal.fire({icon:'error', title:'Error al guardar', text:r && r.message ? r.message : 'Intenta nuevamente.'});
+      return;
+    }
+
+    // Enviar mensaje WhatsApp a contacto
+    const tel = normalizeNumber57(contacto);
+    if(tel){
+      const msg =
+        'Estimado(a) *' + (nombre || '') + '*\n\n' +
+        'He recibido tu solicitud, la revisaré en el menor tiempo posible y me pondré en contacto contigo para concretar detalles.\n' +
+        'Agradezco la comprensión en nuestros tiempos de respuesta según demanada o solicitudes.\n\n' +
+        'Muchas gracias por ser parte de este gran Equipo.\n\n' +
+        'Cordialmente;\n\n' +
+        '*Laura Daniela Ortiz*\n' +
+        '> Equipo de Comunicaciones Alcaldía de Flandes';
+      sendBuilderbotMessage(tel, msg);
+    }
+
+    Swal.fire({icon:'success', title:'Solicitud enviada', timer:2500, showConfirmButton:false});
+    showView('view-inicio');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+  
    /* ================== ESTADO DE CUENTA ================== */
 document.getElementById('go-estado-cuenta')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
