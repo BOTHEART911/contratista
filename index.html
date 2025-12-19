@@ -520,6 +520,30 @@
     padding-top:0;
     padding-bottom:16px;
   }
+
+      .cal-checklist{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .cal-check-item{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:rgba(255,255,255,.9);
+    border:1.5px solid #ccc;
+    font-size:.85rem;
+    color:#06402B;
+    box-shadow:0 1px 3px rgba(0,0,0,.12);
+  }
+  .cal-check-item input[type="checkbox"]{
+    width:16px;
+    height:16px;
+    accent-color:#06402B;
+  }
+    
   </style>
 </head>
 <body>
@@ -2390,16 +2414,34 @@ async function calOpenEventForView(codigo){
     const ev = calNormalizeEvent(data);
     CAL_SELECTED_EVENT = ev;
     const body = document.getElementById('evento-detalle-body');
-    const lines = [
-      '<p><b>Nombre del Evento:</b> ' + (ev.nombreEvento || 'No Ingresado') + '</p>',
-      '<p><b>Fecha:</b> ' + (ev.fechaEvento || 'No Ingresado') + '</p>',
-      '<p><b>Inicia:</b> ' + (ev.horaInicio || 'No Ingresado') + '</p>',
-      '<p><b>Finaliza:</b> ' + (ev.horaTerminacion || 'No Ingresado') + '</p>',
-      '<p><b>Lugar:</b> ' + (ev.lugar || 'No Ingresado') + '</p>',
-      '<p><b>Responsable:</b> ' + (ev.nombre || 'No Ingresado') + '</p>',
-      '<p><b>Secretaría:</b> ' + (ev.secretaria || 'No Ingresado') + '</p>',
-      '<p><b>Cargo:</b> ' + (ev.cargo || 'No Ingresado') + '</p>'
-    ];
+   const rawFecha = ev.fechaEvento || '';
+let fechaDet = 'No Ingresado';
+if (rawFecha) {
+  // Si ya viene en dd/mm/aaaa la dejamos igual
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawFecha.trim())) {
+    fechaDet = rawFecha.trim();
+  } else {
+    // Intenta parsear otros formatos de fecha (como Date.toString())
+    const d = new Date(rawFecha);
+    if (!isNaN(d.getTime())) {
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const yy = d.getFullYear();
+      fechaDet = dd + '/' + mm + '/' + yy;
+    }
+  }
+}
+
+const lines = [
+  '<p><b>Nombre del Evento:</b> ' + (ev.nombreEvento || 'No Ingresado') + '</p>',
+  '<p><b>Fecha:</b> ' + fechaDet + '</p>',
+  '<p><b>Inicia:</b> ' + (ev.horaInicio || 'No Ingresado') + '</p>',
+  '<p><b>Finaliza:</b> ' + (ev.horaTerminacion || 'No Ingresado') + '</p>',
+  '<p><b>Lugar:</b> ' + (ev.lugar || 'No Ingresado') + '</p>',
+  '<p><b>Responsable:</b> ' + (ev.nombre || 'No Ingresado') + '</p>',
+  '<p><b>Secretaría:</b> ' + (ev.secretaria || 'No Ingresado') + '</p>',
+  '<p><b>Cargo:</b> ' + (ev.cargo || 'No Ingresado') + '</p>'
+];
     body.innerHTML = lines.join('');
     showView('view-evento-detalle');
   }catch(e){
@@ -2510,6 +2552,8 @@ function spInitSimplePicker(dSelId,mSelId,aSelId){
   const dSel = document.getElementById(dSelId);
   const mSel = document.getElementById(mSelId);
   const aSel = document.getElementById(aSelId);
+
+  // Días 01..31
   if(dSel && !dSel.childElementCount){
     for(let d=1; d<=31; d++){
       const opt = document.createElement('option');
@@ -2518,6 +2562,8 @@ function spInitSimplePicker(dSelId,mSelId,aSelId){
       dSel.appendChild(opt);
     }
   }
+
+  // Meses con nombre
   if(mSel && !mSel.childElementCount){
     const mesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     for(let i=0;i<12;i++){
@@ -2527,13 +2573,14 @@ function spInitSimplePicker(dSelId,mSelId,aSelId){
       mSel.appendChild(opt);
     }
   }
+
+  // Año fijo 2026 (una sola opción seleccionada)
   if(aSel && !aSel.childElementCount){
-    for(let y=2025; y<=2030; y++){
-      const opt = document.createElement('option');
-      opt.value = String(y);
-      opt.textContent = String(y);
-      aSel.appendChild(opt);
-    }
+    const opt = document.createElement('option');
+    opt.value = '2026';
+    opt.textContent = '2026';
+    opt.selected = true;
+    aSel.appendChild(opt);
   }
 }
 
