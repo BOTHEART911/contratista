@@ -654,6 +654,7 @@
         <button class="menu-btn" id="go-calendario">CALENDARIO INSTITUCIONAL</button>
         <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
         <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
+        <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -2980,6 +2981,49 @@ function mostrarEstadoCuenta(res){
       break;
   }
 }
+
+    /* ================== GENERAR CERTIFICADO DE CONTRATO ================== */
+
+  document.getElementById('go-certificacion-contrato')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({ icon:'warning', title:'Sesión inválida', timer:3000, showConfirmButton:false });
+    return;
+  }
+
+  try{
+    const data = await apiGet('generarCertificacionContrato', { documento: currentUser.documento });
+    if(!data || !data.base64){
+      Swal.fire({ icon:'error', title:'Error', text:'No se pudo generar la certificación.' });
+      return;
+    }
+
+    const byteCharacters = atob(data.base64);
+    const byteArrays = [];
+    const sliceSize = 1024;
+    for(let offset = 0; offset < byteCharacters.length; offset += sliceSize){
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+      const byteNumbers = new Array(slice.length);
+      for(let i = 0; i < slice.length; i++){
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      byteArrays.push(new Uint8Array(byteNumbers));
+    }
+    const blob = new Blob(byteArrays, { type: data.contentType || 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = data.fileName || 'certificacion_contrato.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+});
   
   /* ================== BORRADOR ACTIVIDADES ================== */
 let BA_STATE = { informe:1, obligaciones:[], actividades:[], cuentaExiste:false, activo:false, nombre:'' };
