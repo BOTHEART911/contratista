@@ -2993,8 +2993,19 @@ function mostrarEstadoCuenta(res){
     return;
   }
 
+  // Mostrar aviso de generación (similar al de cuentas)
+  const waitSwal = Swal.fire({
+    title: 'GENERANDO CERTIFICACIÓN...',
+    html: 'Por favor espera unos segundos',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
   try{
     const data = await apiGet('generarCertificacionContrato', { documento: currentUser.documento });
+    await Swal.close();
+
     if(!data || !data.base64){
       Swal.fire({ icon:'error', title:'Error', text:'No se pudo generar la certificación.' });
       return;
@@ -3015,15 +3026,16 @@ function mostrarEstadoCuenta(res){
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = data.fileName || 'certificacion_contrato.pdf';
+    a.download = data.fileName || ('CERTIFICACIÓN CONTRATO N° ' + (currentUser.documento || '') + ' DE 2026.pdf');
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 5000);
   }catch(e){
+    await Swal.close();
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }
-});
+});;
   
   /* ================== BORRADOR ACTIVIDADES ================== */
 let BA_STATE = { informe:1, obligaciones:[], actividades:[], cuentaExiste:false, activo:false, nombre:'' };
