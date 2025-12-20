@@ -655,6 +655,7 @@
         <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
         <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
         <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
+        <button class="menu-btn" id="go-secop2">IR A SECOP II</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -2981,6 +2982,18 @@ function mostrarEstadoCuenta(res){
       break;
   }
 }
+
+  /* ================== IR A SECOP II ================== */
+
+  document.getElementById('go-secop2')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  window.open(
+    'https://community.secop.gov.co/STS/Users/Login/Index?SkinName=CCE&currentLanguage=es-CO&Page=login&Country=CO',
+    '_blank',
+    'noopener'
+  );
+});
 
     /* ================== GENERAR CERTIFICADO DE CONTRATO ================== */
 
