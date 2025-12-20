@@ -2993,7 +2993,10 @@ function mostrarEstadoCuenta(res){
     return;
   }
 
-  // Mostrar aviso de generación (similar al de cuentas)
+  // Desactivar loader global para esta operación
+  const prevSuppress = suppressLoader;
+  suppressLoader = true;
+
   const waitSwal = Swal.fire({
     title: 'GENERANDO CERTIFICACIÓN...',
     html: 'Por favor espera unos segundos',
@@ -3034,8 +3037,11 @@ function mostrarEstadoCuenta(res){
   }catch(e){
     await Swal.close();
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }finally{
+    // Restaurar el comportamiento normal del loader global
+    suppressLoader = prevSuppress;
   }
-});;
+});
   
   /* ================== BORRADOR ACTIVIDADES ================== */
 let BA_STATE = { informe:1, obligaciones:[], actividades:[], cuentaExiste:false, activo:false, nombre:'' };
