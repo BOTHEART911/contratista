@@ -4770,7 +4770,7 @@ function buildShareText(item){
   const waUrl    = waDigits ? ('wa.me/' + waDigits) : '';
 
   return (
-    '*Información de Contacto:*\n\n' +
+    '*INFORMACIÓN DE CONTACTO:*\n\n' +
     '*CONTACTO:* ' + (nombre || '-') + '\n' +
     '*DIRECCIÓN:* ' + (dir || '-') + '\n' +
     '*UBICACIÓN:* ' + (maps || '-') + '\n' +
@@ -4788,11 +4788,11 @@ function buildClipboardText(item){
   const tel      = item.telefono || '';
 
   return (
-    'CONTACTO: ' + (nombre || '-') + '\n' +
-    'DIRECCIÓN: ' + (dir || '-') + '\n' +
-    'CORREO: ' + (correo || '-') + '\n' +
-    'WHATSAPP: ' + (wa || '-') + '\n' +
-    'TELEFONO: ' + (tel || '-')
+    '*CONTACTO:* ' + (nombre || '-') + '\n' +
+    '*DIRECCIÓN:* ' + (dir || '-') + '\n' +
+    '*CORREO:* ' + (correo || '-') + '\n' +
+    '*WHATSAPP:* ' + (wa || '-') + '\n' +
+    '*TELEFONO:* ' + (tel || '-')
   );
 }
 
