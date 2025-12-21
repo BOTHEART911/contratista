@@ -2104,23 +2104,23 @@ document.getElementById('ovlClose').addEventListener('click', ()=>{
   const catButtons    = Array.from(document.querySelectorAll('.menu-cat-btn'));
   const catContainers = Array.from(document.querySelectorAll('.menu-cat-options'));
 
-  function showCategory(catId){
-    // Ocultar todas las opciones y quitar animación
+  function hideAllCategories(){
     catContainers.forEach(c =>{
       c.style.display = 'none';
       c.classList.remove('showing');
     });
-    // Quitar activo en todas las categorías
     catButtons.forEach(b => b.classList.remove('active'));
+  }
 
-    // Mostrar las opciones asociadas a la categoría clicada
+  function showCategory(catId){
+    hideAllCategories();
+
     const cont = document.getElementById(catId);
     const btn  = catButtons.find(b => b.dataset.cat === catId);
 
     if(cont){
       cont.style.display = 'flex';
-
-      // Reiniciar animación "desprenderse desde arriba"
+      // Reiniciar animación
       // eslint-disable-next-line no-unused-expressions
       cont.offsetHeight;
       cont.classList.add('showing');
@@ -2130,7 +2130,7 @@ document.getElementById('ovlClose').addEventListener('click', ()=>{
     }
   }
 
-  // Click en categoría
+  // Click en categoría (toggle: abrir/cerrar)
   catButtons.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = btn.dataset.cat;
@@ -2143,25 +2143,27 @@ document.getElementById('ovlClose').addEventListener('click', ()=>{
         }
       }catch(_){}
 
-      showCategory(id);
+      const cont = document.getElementById(id);
+      const isOpen = cont && cont.style.display === 'flex';
+
+      if(isOpen){
+        // Si ya está abierta, la cerramos
+        hideAllCategories();
+      }else{
+        // Si está cerrada, la mostramos y ocultamos las demás
+        showCategory(id);
+      }
     });
   });
 
-  // Mostrar por defecto la primera categoría al cargar
-  if(catButtons.length){
-    const firstId = catButtons[0].dataset.cat;
-    if(firstId) showCategory(firstId);
-  }
+  // Al cargar: NO abrir ninguna categoría (todas cerradas)
+  hideAllCategories();
 
-  // Cuando se abre el overlay con el botón MENÚ,
-  // vuelve a mostrar la primera categoría
+  // Cuando se abre el overlay con el botón MENÚ, mantener todas cerradas
   const openBtn = document.getElementById('btn-open-menu');
   if(openBtn){
     openBtn.addEventListener('click', ()=>{
-      if(catButtons.length){
-        const firstId = catButtons[0].dataset.cat;
-        if(firstId) showCategory(firstId);
-      }
+      hideAllCategories();
     });
   }
 })();
