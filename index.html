@@ -775,6 +775,7 @@
         <button class="menu-btn" id="go-directorio">DIRECTORIO INSTITUCIONAL</button>
         <button class="menu-btn" id="go-secop2">SECOP II</button>
         <button class="menu-btn" id="go-sia">SIA OBSERVA INVITADO</button>
+        <button class="menu-btn" id="go-admin">ALCALDÍA DE FLANDES</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -3186,6 +3187,18 @@ function mostrarEstadoCuenta(res){
   overlay.classList.remove('open');
   window.open(
     'https://siaobserva.auditoria.gov.co/guess/',
+    '_blank',
+    'noopener'
+  );
+});
+
+   /* ================== IR A ALCALDÍA DE FLANDES ================== */
+
+  document.getElementById('go-admin')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  window.open(
+    'https://www.flandes-tolima.gov.co/',
     '_blank',
     'noopener'
   );
