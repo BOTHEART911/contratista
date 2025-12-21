@@ -661,6 +661,76 @@
       gap:6px;
     }
   }
+
+    /* Estilos de Overlay Mneu */
+    .menu-sections{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin:10px 0 12px;
+}
+
+.menu-cat-btn{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  width:100%;
+  border-radius:999px;
+  font-weight:800;
+  font-size:0.9rem;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.menu-cat-btn span{
+  flex:1 1 auto;
+  text-align:left;
+}
+
+.menu-cat-icon{
+  width:26px;
+  height:26px;
+  flex:0 0 auto;
+  object-fit:contain;
+}
+
+/* Contenedores de opciones por categoría */
+.menu-cat-options{
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  margin:6px 0 10px;
+}
+
+/* Opciones internas un poco más compactas */
+.menu-cat-options .menu-btn{
+  font-weight:600;
+  font-size:0.86rem;
+}
+
+/* Estado activo de categoría */
+.menu-cat-btn.active{
+  background:#7de3ef;
+  color:#000;
+  border-color:#7de3ef;
+}
+
+    .menu-cat-options.showing{
+  animation: menuDropIn 0.22s ease-out;
+}
+
+@keyframes menuDropIn{
+  from{
+    opacity:0;
+    transform:translateY(-6px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
   </style>
 </head>
 <body>
@@ -752,34 +822,97 @@
     <div class="overlay" id="overlay">
       <div class="scrim" id="ovlClose"></div>
       <aside class="panel">
-        <div class="btn-row">
-          <button id="btn-ovl-back">ATRÁS</button>
-        </div>
-        <div class="image-center">
-          <img alt="banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766349498/slider_zcq18s.gif" style="max-width:180px;border-radius:10px;" />
-        </div>
-        <h3>Selecciona una opción</h3>
-        <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO</button>
-        <button class="menu-btn" id="go-personales">DATOS PERSONALES</button>
-        <button class="menu-btn" id="go-comunicados">COMUNICADOS</button>
-        <button class="menu-btn" id="go-borrador">BORRADOR ACTIVIDADES</button>
-        <button class="menu-btn" id="go-ingresar-cuenta">INGRESAR CUENTA</button>
-        <button class="menu-btn" id="go-cuenta-drive">MI CUENTA DRIVE</button>
-        <button class="menu-btn" id="go-reportar-drive">REPORTAR CUENTA</button>
-        <button class="menu-btn" id="go-corregir-cuenta">CORREGIR CUENTA</button>
-        <button class="menu-btn" id="go-reportar-plan">PLAN DE PAGOS</button>
-        <button class="menu-btn" id="go-calendario">CALENDARIO INSTITUCIONAL</button>
-        <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
-        <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
-        <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
-        <button class="menu-btn" id="go-directorio">DIRECTORIO INSTITUCIONAL</button>
-        <button class="menu-btn" id="go-secop2">SECOP II</button>
-        <button class="menu-btn" id="go-sia">SIA OBSERVA INVITADO</button>
-        <button class="menu-btn" id="go-admin">ALCALDÍA DE FLANDES</button>
-        <div style="height:24px"></div>
-        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
-        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
-      </aside>
+  <div class="btn-row">
+    <button id="btn-ovl-back">ATRÁS</button>
+  </div>
+
+  <div class="image-center">
+    <img alt="banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766349498/slider_zcq18s.gif" style="max-width:180px;border-radius:10px;" />
+  </div>
+
+  <h3>Selecciona una categoría</h3>
+
+  <!-- CATEGORÍAS -->
+  <div class="menu-sections">
+    <button class="menu-btn menu-cat-btn" data-cat="cat-datos">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347981/datos_de_procesos_liwzbm.png" alt="" class="menu-cat-icon">
+      <span>DATOS DE PROCESOS</span>
+    </button>
+
+    <button class="menu-btn menu-cat-btn" data-cat="cat-cuenta">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347980/procesos_de_cuenta_aoevkw.webp" alt="" class="menu-cat-icon">
+      <span>PROCESOS DE CUENTA</span>
+    </button>
+
+    <button class="menu-btn menu-cat-btn" data-cat="cat-tramites">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347980/tramites_y_solicitudes_c7ve14.webp" alt="" class="menu-cat-icon">
+      <span>TRÁMITES Y SOLICITUDES</span>
+    </button>
+
+    <button class="menu-btn menu-cat-btn" data-cat="cat-institucional">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347984/Institucional_pxbtrc.png" alt="" class="menu-cat-icon">
+      <span>INSTITUCIONAL</span>
+    </button>
+
+    <button class="menu-btn menu-cat-btn" data-cat="cat-sitios">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347981/sitios_web_jj8fgo.webp" alt="" class="menu-cat-icon">
+      <span>SITIOS WEB</span>
+    </button>
+
+    <button class="menu-btn menu-cat-btn" data-cat="cat-guia">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347980/manual_de_uso_n0zu32.webp" alt="" class="menu-cat-icon">
+      <span>GUÍA DE USO</span>
+    </button>
+  </div>
+
+  <!-- CONTENEDORES DE OPCIONES POR CATEGORÍA -->
+
+  <!-- DATOS DE PROCESOS -->
+  <div id="cat-datos" class="menu-cat-options">
+    <button class="menu-btn" id="go-contrato">DATOS DEL CONTRATO</button>
+    <button class="menu-btn" id="go-personales">DATOS PERSONALES</button>
+  </div>
+
+  <!-- PROCESOS DE CUENTA -->
+  <div id="cat-cuenta" class="menu-cat-options">
+    <button class="menu-btn" id="go-borrador">BORRADOR ACTIVIDADES</button>
+    <button class="menu-btn" id="go-ingresar-cuenta">INGRESAR CUENTA</button>
+    <button class="menu-btn" id="go-cuenta-drive">MI CUENTA DRIVE</button>
+    <button class="menu-btn" id="go-reportar-drive">REPORTAR CUENTA</button>
+    <button class="menu-btn" id="go-corregir-cuenta">CORREGIR CUENTA</button>
+    <button class="menu-btn" id="go-reportar-plan">PLAN DE PAGOS</button>
+    <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
+  </div>
+
+  <!-- TRÁMITES Y SOLICITUDES -->
+  <div id="cat-tramites" class="menu-cat-options">
+    <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
+    <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
+  </div>
+
+  <!-- INSTITUCIONAL -->
+  <div id="cat-institucional" class="menu-cat-options">
+    <button class="menu-btn" id="go-comunicados">COMUNICADOS</button>
+    <button class="menu-btn" id="go-calendario">CALENDARIO INSTITUCIONAL</button>
+    <button class="menu-btn" id="go-directorio">DIRECTORIO INSTITUCIONAL</button>
+  </div>
+
+  <!-- SITIOS WEB -->
+  <div id="cat-sitios" class="menu-cat-options">
+    <button class="menu-btn" id="go-secop2">SECOP II</button>
+    <button class="menu-btn" id="go-sia">SIA OBSERVA INVITADO</button>
+    <button class="menu-btn" id="go-admin">ALCALDÍA DE FLANDES</button>
+  </div>
+
+  <!-- GUÍA DE USO (sin opciones por ahora) -->
+  <div id="cat-guia" class="menu-cat-options">
+    <!-- Sin botones por ahora -->
+  </div>
+
+  <div style="height:24px"></div>
+  <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
+  <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+</aside>
     </div>
 
     <!-- VISTA REGISTRO -->
@@ -1958,7 +2091,72 @@ document.getElementById('ovlClose').addEventListener('click', ()=>{
   overlay.classList.remove('open');
 });
 
+  // Inicializar comportamiento del menú por categorías
+(function initOverlayCategories(){
+  const catButtons = Array.from(document.querySelectorAll('.menu-cat-btn'));
+  const catContainers = Array.from(document.querySelectorAll('.menu-cat-options'));
 
+  function showCategory(catId){
+    // Ocultar todas las opciones y quitar la clase de animación
+    catContainers.forEach(c =>{
+      c.style.display = 'none';
+      c.classList.remove('showing');
+    });
+    // Quitar activo en todas las categorías
+    catButtons.forEach(b => b.classList.remove('active'));
+
+    // Mostrar la elegida con animación
+    const cont = document.getElementById(catId);
+    const btn  = catButtons.find(b => b.dataset.cat === catId);
+    if(cont){
+      cont.style.display = 'flex';
+
+      // forzar reflujo para que la animación se reinicie cada vez
+      // que se cambia de categoría
+      // eslint-disable-next-line no-unused-expressions
+      cont.offsetHeight;
+
+      cont.classList.add('showing');
+    }
+    if(btn) btn.classList.add('active');
+  }
+
+  // Click en categoría
+  catButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.cat;
+      if(!id) return;
+
+      // Sonido back al seleccionar categoría
+      try{
+        if(typeof playSoundOnce === 'function' && SOUNDS && SOUNDS.back){
+          playSoundOnce(SOUNDS.back);
+        }
+      }catch(_){}
+
+      showCategory(id);
+    });
+  });
+
+  // Mostrar por defecto la primera categoría al abrir overlay
+  if(catButtons.length){
+    const firstId = catButtons[0].dataset.cat;
+    if(firstId) showCategory(firstId);
+  }
+
+  // Cuando se abre el menú desde el botón MENÚ, refrescar para que siempre
+  // aparezca la primera categoría visible con animación
+  const openBtn = document.getElementById('btn-open-menu');
+  if(openBtn){
+    openBtn.addEventListener('click', ()=>{
+      if(catButtons.length){
+        const firstId = catButtons[0].dataset.cat;
+        if(firstId) showCategory(firstId);
+      }
+    });
+  }
+})();
+  
 document.getElementById('go-contrato').addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
