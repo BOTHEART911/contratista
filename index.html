@@ -484,6 +484,16 @@
     flex-wrap:wrap;
   }
 
+    /* Solo ajusta el tamaño del texto informativo del calendario en pantallas pequeñas */
+
+@media (max-width: 480px){
+  /* Texto debajo del título del calendario institucional */
+  #view-calendario .muted{
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+}
+
   /* Picker modales para fechas en calendario/solicitud prensa */
   .picker-modal-cal{
     position:fixed;
