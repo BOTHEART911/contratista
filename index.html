@@ -4788,21 +4788,21 @@ function buildClipboardText(item){
   const tel      = item.telefono || '';
 
   return (
-    '*CONTACTO:* ' + (nombre || '-') + '\n' +
-    '*DIRECCIÓN:* ' + (dir || '-') + '\n' +
-    '*CORREO:* ' + (correo || '-') + '\n' +
-    '*WHATSAPP:* ' + (wa || '-') + '\n' +
-    '*TELEFONO:* ' + (tel || '-')
+    'CONTACTO: ' + (nombre || '-') + '\n' +
+    'DIRECCIÓN: ' + (dir || '-') + '\n' +
+    'CORREO: ' + (correo || '-') + '\n' +
+    'WHATSAPP: ' + (wa || '-') + '\n' +
+    'TELEFONO: ' + (tel || '-')
   );
 }
 
 async function showDirectorioShareDialog(item){
   const html =
-    'CONTACTO: ' + (item.nombre || '-') + '<br>' +
-    'DIRECCIÓN: ' + (item.direccion || '-') + '<br>' +
-    'CORREO: ' + (item.correo || '-') + '<br>' +
-    'WHATSAPP: ' + (item.whatsapp || '-') + '<br>' +
-    'TELEFONO: ' + (item.telefono || '-');
+    '<b>CONTACTO:</b> ' + (item.nombre || '-') + '<br>' +
+    '<b>DIRECCIÓN:</b> ' + (item.direccion || '-') + '<br>' +
+    '<b>CORREO:</b> ' + (item.correo || '-') + '<br>' +
+    '<b>WHATSAPP:</b> ' + (item.whatsapp || '-') + '<br>' +
+    '<b>TELEFONO:</b> ' + (item.telefono || '-');
 
   const result = await Swal.fire({
     icon:'success',
