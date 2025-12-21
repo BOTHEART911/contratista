@@ -543,6 +543,62 @@
     height:16px;
     accent-color:#06402B;
   }
+
+    .contact-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .contact-item{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      background: rgba(255,255,255,.9);
+      border:2px solid #ddd;
+      border-radius:16px;
+      padding:10px 12px;
+      box-shadow:0 6px 14px rgba(0,0,0,.12);
+    }
+    .contact-main{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .contact-name{
+      font-weight:900;
+      color:#06402B;
+    }
+    .contact-address{
+      font-size:.9rem;
+      color:#333;
+    }
+    .contact-actions-row{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:10px;
+      margin-top:6px;
+    }
+    .contact-actions-row a,
+    .contact-actions-row button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:40px;
+      height:40px;
+      border-radius:10px;
+      border:2px solid var(--primary);
+      background:#fff;
+      box-shadow:0 4px 10px rgba(0,0,0,.16);
+      cursor:pointer;
+    }
+    .contact-actions-row img{
+      width:22px;
+      height:22px;
+      object-fit:contain;
+      border-radius:6px;
+      background:#fff;
+    }
     
   </style>
 </head>
@@ -655,6 +711,7 @@
         <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
         <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
         <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
+        <button class="menu-btn" id="go-directorio">DIRECTORIO INSTITUCIONAL</button>
         <button class="menu-btn" id="go-secop2">IR A SECOP II</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
@@ -1452,6 +1509,17 @@
         </div>
       </div>
     </section>
+
+    <!-- VISTA DIRECTORIO INSTITUCIONAL -->
+    <section id="view-directorio" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary)">DIRECTORIO INSTITUCIONAL</h2>
+        <div id="dir-list" class="contact-list"></div>
+        <div class="btn-row spaced">
+          <button id="dir-volver" class="danger">Regresar</button>
+        </div>
+      </div>
+    </section>
     
 <script>
 /* ================== CONFIGURACIÓN ================== */
@@ -1808,6 +1876,24 @@ document.getElementById('go-personales').addEventListener('click', async ()=>{
   await cargarPersonalesLectura();
   showView('view-personales');
 });
+
+  document.getElementById('go-directorio')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({ icon:'warning', title:'Sesión inválida' });
+    return;
+  }
+  try{
+    const list = await apiGet('listDirectorio', {});
+    renderDirectorio(Array.isArray(list) ? list : []);
+    showView('view-directorio');
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+});
+
 
 /* ================== INICIO ================== */
 function thumbById(id){ return id ? ('https://drive.google.com/thumbnail?sz=w1000&id='+id) : ''; }
@@ -4644,7 +4730,227 @@ async function cargarPersonalesLectura(){
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
 }
 
-   
+   // ================== DIRECTORIO INSTITUCIONAL ==================
+const ICON_DIR_MAPS   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1760108968/ubicacion_zicnod.png';
+const ICON_DIR_MAIL   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1766266810/correo_czyyra.webp';
+const ICON_DIR_WA     = 'https://res.cloudinary.com/dqqeavica/image/upload/v1759166341/WhatsApp_mljaqm.webp';
+const ICON_DIR_TEL    = 'https://res.cloudinary.com/dqqeavica/image/upload/v1759952569/Llamada_hra2ch.webp';
+const ICON_DIR_SHARE  = 'https://res.cloudinary.com/dqqeavica/image/upload/v1766267125/compartir_szoxv7.webp';
+
+function normalizePhoneDigits(raw){
+  return String(raw || '').replace(/\D/g,'');
+}
+
+function openWhatsAppFromNumber(raw){
+  const digits = normalizePhoneDigits(raw);
+  if(!digits) return;
+  let num = digits;
+  if(/^\d{10}$/.test(num)){
+    num = '57' + num;
+  }
+  const url = 'https://wa.me/' + num;
+  window.open(url, '_blank');
+}
+
+function openTelFromNumber(raw){
+  const digits = normalizePhoneDigits(raw);
+  if(!digits) return;
+  window.location.href = 'tel:' + digits;
+}
+
+function buildShareText(item){
+  const nombre   = item.nombre   || '';
+  const dir      = item.direccion|| '';
+  const maps     = item.maps     || '';
+  const correo   = item.correo   || '';
+  const wa       = item.whatsapp || '';
+  const tel      = item.telefono || '';
+
+  const waDigits = normalizePhoneDigits(wa);
+  const waUrl    = waDigits ? ('wa.me/' + waDigits) : '';
+
+  return (
+    '*Información de Contacto:*\n\n' +
+    '*CONTACTO:* ' + (nombre || '-') + '\n' +
+    '*DIRECCIÓN:* ' + (dir || '-') + '\n' +
+    '*UBICACIÓN:* ' + (maps || '-') + '\n' +
+    '*CORREO:* ' + (correo || '-') + '\n' +
+    '*WHATSAPP:* ' + (waUrl || '-') + '\n' +
+    '*TELEFONO:* ' + (tel || '-')
+  );
+}
+
+function buildClipboardText(item){
+  const nombre   = item.nombre   || '';
+  const dir      = item.direccion|| '';
+  const correo   = item.correo   || '';
+  const wa       = item.whatsapp || '';
+  const tel      = item.telefono || '';
+
+  return (
+    'CONTACTO: ' + (nombre || '-') + '\n' +
+    'DIRECCIÓN: ' + (dir || '-') + '\n' +
+    'CORREO: ' + (correo || '-') + '\n' +
+    'WHATSAPP: ' + (wa || '-') + '\n' +
+    'TELEFONO: ' + (tel || '-')
+  );
+}
+
+async function showDirectorioShareDialog(item){
+  const html =
+    'CONTACTO: ' + (item.nombre || '-') + '<br>' +
+    'DIRECCIÓN: ' + (item.direccion || '-') + '<br>' +
+    'CORREO: ' + (item.correo || '-') + '<br>' +
+    'WHATSAPP: ' + (item.whatsapp || '-') + '<br>' +
+    'TELEFONO: ' + (item.telefono || '-');
+
+  const result = await Swal.fire({
+    icon:'success',
+    title:'Información de Contacto',
+    html:html,
+    showDenyButton:true,
+    showCancelButton:true,
+    confirmButtonText:'Copiar Portapapeles',
+    denyButtonText:'Compartir',
+    cancelButtonText:'Atrás'
+  });
+
+  if(result.isConfirmed){
+    const text = buildClipboardText(item);
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(text);
+      }
+      await Swal.fire({
+        icon:'success',
+        title:'Información Copiada',
+        timer:2000,
+        showConfirmButton:false
+      });
+    }catch(e){
+      await Swal.fire({
+        icon:'error',
+        title:'No se pudo copiar',
+        text:String(e.message||e)
+      });
+    }
+    return;
+  }
+
+  if(result.isDenied){
+    const shareText = buildShareText(item);
+    const esMovil = /android|iphone|ipad|mobile/i.test(navigator.userAgent || '');
+    const enc = encodeURIComponent(shareText);
+    const url = esMovil
+      ? 'whatsapp://send?text=' + enc
+      : 'https://api.whatsapp.com/send?text=' + enc;
+    window.open(url,'_blank');
+  }
+}
+
+function renderDirectorio(items){
+  const wrap = document.getElementById('dir-list');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  if(!items.length){
+    const p = document.createElement('p');
+    p.className = 'muted center';
+    p.textContent = 'No hay contactos institucionales disponibles.';
+    wrap.appendChild(p);
+    return;
+  }
+
+  items.forEach(it => {
+    const item = document.createElement('div');
+    item.className = 'contact-item';
+
+    const main = document.createElement('div');
+    main.className = 'contact-main';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'contact-name';
+    nameEl.textContent = it.nombre || '';
+
+    const addrEl = document.createElement('div');
+    addrEl.className = 'contact-address';
+    addrEl.textContent = it.direccion || '';
+
+    main.appendChild(nameEl);
+    main.appendChild(addrEl);
+    item.appendChild(main);
+
+    const actions = document.createElement('div');
+    actions.className = 'contact-actions-row';
+
+    // Maps (columna D)
+    if(it.maps){
+      const a = document.createElement('a');
+      a.href = it.maps;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      const img = document.createElement('img');
+      img.src = ICON_DIR_MAPS;
+      img.alt = '';
+      a.appendChild(img);
+      actions.appendChild(a);
+    }
+
+    // Correo (columna E)
+    if(it.correo){
+      const a = document.createElement('a');
+      a.href = 'mailto:' + it.correo;
+      const img = document.createElement('img');
+      img.src = ICON_DIR_MAIL;
+      img.alt = '';
+      a.appendChild(img);
+      actions.appendChild(a);
+    }
+
+    // WhatsApp (columna F)
+    if(it.whatsapp){
+      const a = document.createElement('a');
+      a.href = 'javascript:void(0)';
+      a.addEventListener('click', ()=> openWhatsAppFromNumber(it.whatsapp));
+      const img = document.createElement('img');
+      img.src = ICON_DIR_WA;
+      img.alt = '';
+      a.appendChild(img);
+      actions.appendChild(a);
+    }
+
+    // Teléfono (columna G)
+    if(it.telefono){
+      const a = document.createElement('a');
+      a.href = 'javascript:void(0)';
+      a.addEventListener('click', ()=> openTelFromNumber(it.telefono));
+      const img = document.createElement('img');
+      img.src = ICON_DIR_TEL;
+      img.alt = '';
+      a.appendChild(img);
+      actions.appendChild(a);
+    }
+
+    // Botón compartir (siempre)
+    const btnShare = document.createElement('button');
+    const imgShare = document.createElement('img');
+    imgShare.src = ICON_DIR_SHARE;
+    imgShare.alt = '';
+    btnShare.appendChild(imgShare);
+    btnShare.addEventListener('click', ()=> showDirectorioShareDialog(it));
+    actions.appendChild(btnShare);
+
+    item.appendChild(actions);
+    wrap.appendChild(item);
+  });
+}
+
+// Botón Regresar en vista directorio
+document.getElementById('dir-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
   
 /* ================== PWA AVANZADO ================== */
 let deferredPrompt = null;
