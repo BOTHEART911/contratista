@@ -484,20 +484,20 @@
     flex-wrap:wrap;
   }
 
-    @media (max-width: 480px){
-  /* Solo la lista de secretarías (cuadro rojo de tu captura) */
+   /* Solo reducir tamaño de la LEYENDA de secretarías en pantallas pequeñas */
+@media (max-width: 480px){
   .cal-legend{
-    font-size: 0.58rem;   /* más pequeño solo en móviles */
-    gap: 3px;
+    font-size: 0.45rem !important;
+    gap: 2px !important;
   }
 
   .cal-legend-item{
-    gap: 3px;
+    gap: 2px !important;
   }
 
   .cal-legend-dot{
-    width: 6px;
-    height: 6px;
+    width: 5px !important;
+    height: 5px !important;
   }
 }
 
