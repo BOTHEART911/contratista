@@ -773,7 +773,8 @@
         <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
         <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
         <button class="menu-btn" id="go-directorio">DIRECTORIO INSTITUCIONAL</button>
-        <button class="menu-btn" id="go-secop2">IR A SECOP II</button>
+        <button class="menu-btn" id="go-secop2">SECOP II</button>
+        <button class="menu-btn" id="go-sia">SIA OBSERVA INVITADO</button>
         <div style="height:24px"></div>
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1763921425/Digital_sw3wk9.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -1402,7 +1403,16 @@
             </div>
           </div>
 
-                    <div class="cal-legend">
+
+      <div id="cal-container" class="cal-grid">
+
+          <div id="cal-container" class="cal-grid">
+            <div style="padding:14px; text-align:center; font-size:.9rem;" class="muted">
+              Cargando calendario…
+            </div>
+          </div>
+
+         <div class="cal-legend">
             <span class="cal-legend-item">
               <span class="cal-legend-dot cal-legend-despacho"></span>
               DESPACHO MUNICIPAL
@@ -1431,14 +1441,6 @@
               <span class="cal-legend-dot cal-legend-salud"></span>
               SECRETARÍA DE SALUD
             </span>
-          </div>
-
-      <div id="cal-container" class="cal-grid">
-
-          <div id="cal-container" class="cal-grid">
-            <div style="padding:14px; text-align:center; font-size:.9rem;" class="muted">
-              Cargando calendario…
-            </div>
           </div>
 
           <div class="cal-footer-actions">
@@ -3174,6 +3176,18 @@ function mostrarEstadoCuenta(res){
   overlay.classList.remove('open');
   window.open(
     'https://community.secop.gov.co/STS/Users/Login/Index?SkinName=CCE&currentLanguage=es-CO&Page=login&Country=CO',
+    '_blank',
+    'noopener'
+  );
+});
+
+    /* ================== IR A SIA OBSERVA ================== */
+
+  document.getElementById('go-sia')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  window.open(
+    'https://siaobserva.auditoria.gov.co/guess/',
     '_blank',
     'noopener'
   );
