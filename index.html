@@ -599,7 +599,68 @@
       border-radius:6px;
       background:#fff;
     }
-    
+
+    /* Estilos de calendario */
+
+      .cal-legend{
+    margin-top:4px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    font-size:.75rem;
+    color:#6b7280; /* gris similar al texto “Vista interactiva…” */
+  }
+  .cal-legend-item{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  .cal-legend-dot{
+    width:10px;
+    height:10px;
+    border-radius:999px;
+    display:inline-block;
+    border:1px solid transparent;
+  }
+
+  /* Colores de las bolitas, armonizados con los chips existentes */
+  .cal-legend-despacho{
+    background:#fee2e2;       /* rosa pálido */
+    border-color:#f87171;
+  }
+  .cal-legend-gobierno{
+    background:#dbeafe;       /* azul cielo suave */
+    border-color:#60a5fa;
+  }
+  .cal-legend-hacienda{
+    background:#fef3c7;       /* amarillo crema */
+    border-color:#facc15;
+  }
+  .cal-legend-educacion{
+    background:#dcfce7;       /* verde menta claro */
+    border-color:#22c55e;
+  }
+  .cal-legend-planeacion{
+    background:#ede9fe;       /* lavanda pálido */
+    border-color:#a855f7;
+  }
+  .cal-legend-agro{
+    background:#f5f3ff;       /* malva muy pálido */
+    border-color:#8b5cf6;
+  }
+  .cal-legend-salud{
+    background:#cffafe;       /* cian muy claro */
+    border-color:#06b6d4;
+  }
+
+  @media (max-width: 700px){
+    .cal-legend{
+      font-size:.7rem;
+      gap:6px;
+    }
+  }
   </style>
 </head>
 <body>
@@ -1340,6 +1401,39 @@
               <button id="cal-view-year" class="cal-pill-btn">Año</button>
             </div>
           </div>
+
+                    <div class="cal-legend">
+            <span class="cal-legend-item">
+              <span class="cal-legend-dot cal-legend-despacho"></span>
+              DESPACHO MUNICIPAL
+            </span>
+            <span class="cal-legend-item">
+              <span class="cal-legend-dot cal-legend-gobierno"></span>
+              SECRETARÍA DE GOBIERNO Y SERVICIOS ADMINISTRATIVOS
+            </span>
+            <span class="cal-legend-item">
+              <span class="cal-legend-dot cal-legend-hacienda"></span>
+              SECRETARÍA DE HACIENDA
+            </span>
+            <span class="cal-legend-item">
+              <span class="cal-legend-dot cal-legend-educacion"></span>
+              SECRETARÍA DE EDUCACIÓN, DESARROLLO ECONÓMICO Y SOCIAL
+            </span>
+            <span class="cal-legend-item">
+              <span class="cal-legend-dot cal-legend-planeacion"></span>
+              SECRETARÍA DE PLANEACIÓN E INFRAESTRUCTURA
+            </span>
+            <span class="cal-legend-item">
+              <span class="cal-legend-dot cal-legend-agro"></span>
+              SECRETARÍA DE ASUNTOS AGROPECUARIOS
+            </span>
+            <span class="cal-legend-item">
+              <span class="cal-legend-dot cal-legend-salud"></span>
+              SECRETARÍA DE SALUD
+            </span>
+          </div>
+
+      <div id="cal-container" class="cal-grid">
 
           <div id="cal-container" class="cal-grid">
             <div style="padding:14px; text-align:center; font-size:.9rem;" class="muted">
