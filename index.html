@@ -2273,22 +2273,23 @@ function calRenderMonth(cont, filterVal){
     const events = calEventsOnDay(iso).filter(ev => calEventMatchesFilter(ev, filterVal));
     events.sort((a,b)=> calMinutesFromTimeStr(a.horaInicio||'') - calMinutesFromTimeStr(b.horaInicio||''));
 
-    events.forEach(ev => {
+        events.forEach(ev => {
       const chip = document.createElement('div');
       chip.className = calStatusColorClass(ev.estado, ev.secretaria);
 
       const title = document.createElement('span');
       title.className = 'cal-evt-title';
-      title.textContent = ev.secretaria || '';
+      // Mostrar el nombre del evento en lugar de la secretaría
+      title.textContent = ev.nombreEvento || '';
 
       const time = document.createElement('span');
       time.className = 'cal-evt-time';
-      time.textContent = (ev.horaInicio||'') + ' - ' + (ev.horaTerminacion||'');
+      time.textContent = (ev.horaInicio || '') + ' - ' + (ev.horaTerminacion || '');
 
       chip.appendChild(title);
       chip.appendChild(time);
 
-      chip.addEventListener('click', ()=> calOpenEventForView(ev.codigo));
+      chip.addEventListener('click', () => calOpenEventForView(ev.codigo));
       cell.appendChild(chip);
     });
 
@@ -2317,20 +2318,22 @@ function calRenderDay(cont, filterVal){
     body.appendChild(p);
   }else{
     events.forEach(ev => {
-      const chip = document.createElement('div');
+            const chip = document.createElement('div');
       chip.className = calStatusColorClass(ev.estado, ev.secretaria);
 
       const title = document.createElement('span');
       title.className = 'cal-evt-title';
-      title.textContent = ev.secretaria || '';
+      // En vista día también usamos nombreEvento como título
+      title.textContent = ev.nombreEvento || '';
 
       const time = document.createElement('span');
       time.className = 'cal-evt-time';
-      time.textContent = (ev.horaInicio||'') + ' - ' + (ev.horaTerminacion||'');
+      time.textContent = (ev.horaInicio || '') + ' - ' + (ev.horaTerminacion || '');
 
       const desc = document.createElement('div');
       desc.style.fontSize = '.72rem';
-      desc.textContent = ev.nombreEvento || '';
+      // Aquí puedes dejar un detalle adicional, por ejemplo la secretaría
+      desc.textContent = ev.secretaria || '';
 
       chip.appendChild(title);
       chip.appendChild(time);
@@ -2393,16 +2396,17 @@ function calRenderWeek(cont, filterVal){
       row.appendChild(p);
     }else{
       evs.forEach(ev => {
-        const chip = document.createElement('div');
+                const chip = document.createElement('div');
         chip.className = calStatusColorClass(ev.estado, ev.secretaria);
 
         const title = document.createElement('span');
         title.className = 'cal-evt-title';
-        title.textContent = ev.secretaria || '';
+        // En vista semana usamos nombreEvento como título
+        title.textContent = ev.nombreEvento || '';
 
         const time = document.createElement('span');
         time.className = 'cal-evt-time';
-        time.textContent = (ev.horaInicio||'') + ' - ' + (ev.horaTerminacion||'');
+        time.textContent = (ev.horaInicio || '') + ' - ' + (ev.horaTerminacion || '');
 
         chip.appendChild(title);
         chip.appendChild(time);
@@ -5306,12 +5310,21 @@ function icConfirmarFin(){
 // 3) Radicado (hoy + 2 hábiles; feriados no hábiles, excepción diciembre habilita todos excepto feriados)
 const IC_FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026']);
 function icEsHabil(d){
-  const dd = icPad2(d.getDate()), mm = icPad2(d.getMonth()+1), yy = d.getFullYear();
+  const dd = icPad2(d.getDate());
+  const mm = icPad2(d.getMonth() + 1);
+  const yy = d.getFullYear();
   const key = `${dd}/${mm}/${yy}`;
-  const dow = d.getDay(); // 0=Domingo, 6=Sábado
-  if (mm==='12'){ // diciembre: todos hábiles excepto feriados
-    return !IC_FERIADOS_2026.has(key);
-  }
+  const dow = d.getDay(); // 0: domingo, 6: sábado
+
+  // Nunca permite sábados ni domingos
+  if (dow === 0 || dow === 6) return false;
+
+  // Nunca permite días marcados como festivos
+  if (IC_FERIADOS_2026.has(key)) return false;
+
+  // Todo lo demás es hábil
+  return true;
+}
   if(dow===0 || dow===6) return false;
   if(IC_FERIADOS_2026.has(key)) return false;
   return true;
