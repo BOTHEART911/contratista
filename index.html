@@ -484,26 +484,10 @@
     flex-wrap:wrap;
   }
 
-    /* Solo ajusta el tamaño del texto informativo del calendario en pantallas pequeñas */
-
-@media (max-width: 480px){
-  /* Texto debajo del título del calendario institucional */
-  #view-calendario .muted{
-    font-size: 0.7rem;
-    line-height: 1.2;
-  }
-}
-
     @media (max-width: 480px){
-  /* Texto "Vista interactiva de eventos..." */
-  #view-calendario .muted{
-    font-size: 0.6rem;
-    line-height: 1.1;
-  }
-
-  /* Leyenda de colores de secretarías (línea de abajo del header) */
+  /* Solo la lista de secretarías (cuadro rojo de tu captura) */
   .cal-legend{
-    font-size: 0.55rem;
+    font-size: 0.58rem;   /* más pequeño solo en móviles */
     gap: 3px;
   }
 
