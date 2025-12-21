@@ -5325,10 +5325,6 @@ function icEsHabil(d){
   // Todo lo demás es hábil
   return true;
 }
-  if(dow===0 || dow===6) return false;
-  if(IC_FERIADOS_2026.has(key)) return false;
-  return true;
-}
 function icAbrirRadicado(){
   const m = document.getElementById('icRadicadoModal');
   const dSel = document.getElementById('icRadDia');
