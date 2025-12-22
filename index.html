@@ -1098,6 +1098,10 @@
           <label>Registro Presupuestal (RP)</label>
           <input id="c-rp" type="tel" inputmode="numeric" placeholder="N° de RP" maxlength="10" style="border:1.5px solid #ccc;">
 
+                    <label>Registro Presupuestal Adición (RP Adición)</label>
+           <div class="muted" style="margin:6px 0 8px;"><b>Edita solo si ya tienes Adición de Contrato</b></div>
+          <input id="c-rpAdicion" type="tel" inputmode="numeric" placeholder="N° de RP Adición" maxlength="10" style="border:1.5px solid #ccc;">
+
           <label>¿Te encuentras bajo el régimen simple de tributación (SIMPLE)?</label>
           <select id="c-costos">
             <option value="" disabled selected>Selecciona</option>
@@ -4784,6 +4788,7 @@ document.getElementById('contrato-editar').addEventListener('click', ()=>{
 bindNumericSanitizer('c-meses', 3);
 bindNumericSanitizer('c-dias', 3);
 bindNumericSanitizer('c-rp', 10);
+bindNumericSanitizer('c-rpAdicion', 10);
 
 document.getElementById('c-costos').addEventListener('change', function(){
   const simple = document.getElementById('c-regimen');
@@ -4870,9 +4875,19 @@ document.getElementById('c-rp').addEventListener('input', ()=>{
   }
 });
 
+  document.getElementById('c-rpAdicion').addEventListener('input', ()=>{
+  const el = document.getElementById('c-rpAdicion');
+  const raw = (el.value||'').replace(/\D/g,'').slice(0,10);
+  el.value = raw;
+  el.style.border = '';
+  if(raw.length===10 && raw.startsWith('2026')){
+    el.style.border = '2px solid green';
+  }
+});
+
 document.getElementById('c-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
-    const fechaInicioISO = __fechaInicioISO || '';
+  const fechaInicioISO = __fechaInicioISO || '';
   const fechaTerminoISO = __fechaTerminoISO || '';
   const mesesVal = document.getElementById('c-meses').value || '';
   const diasVal  = document.getElementById('c-dias').value  || '';
@@ -4889,12 +4904,13 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
     dias: (fechaInicioISO || fechaTerminoISO) ? (diasVal  || '0') : '',
     ejecucion: document.getElementById('c-ejecucion').value||'',
     rp: (document.getElementById('c-rp').value||'').replace(/\D/g,''),
+    rpAdicion: (document.getElementById('c-rpAdicion').value||'').replace(/\D/g,''),
     costos: document.getElementById('c-costos').value||'',
     regimen: document.getElementById('c-regimen').value||''
   };
 
-    const hayCambiosContrato =
-    !!(body.fechaInicioISO || body.fechaTerminoISO || body.rp || body.costos || body.regimen) ||
+      const hayCambiosContrato =
+    !!(body.fechaInicioISO || body.fechaTerminoISO || body.rp || body.rpAdicion || body.costos || body.regimen) ||
     (!!body.meses && String(body.meses) !== '0') ||
     (!!body.dias  && String(body.dias)  !== '0') ||
     !!body.ejecucion;
@@ -4913,6 +4929,7 @@ if (!hayCambiosContrato) {
   }
   if(body.ejecucion) resumen.push(`<b>Tiempo de Ejecución:</b> ${body.ejecucion}`);
   if(body.rp) resumen.push(`<b>RP:</b> ${body.rp}`);
+  if(body.rpAdicion) resumen.push(`<b>RP Adición:</b> ${body.rpAdicion}`);
   if(body.costos) resumen.push(`<b>Regimen Simple:</b> ${body.costos}`);
   if(body.regimen) resumen.push(`<b>Costos Adicionales:</b> ${body.regimen}`);
 
