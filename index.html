@@ -2061,18 +2061,32 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
       return;
     }
 
-    // ACTIVO
+        // ACTIVO
     currentUser = { documento: res.documento };
-    if(res.incompleto){ // H..S vacías
+    const nombreCorto = res.nombreCorto || '';
+    const tituloBienvenida = nombreCorto ? 'BIENVENIDO(A) ' + nombreCorto : 'BIENVENIDO(A)';
+
+    if(res.incompleto){
+      await Swal.fire({
+        icon:'success',
+        title: tituloBienvenida,
+        html: 'Esta App será tu guía en este proceso contractual este año<br>Valida muy bien todos los datos que ingreses.',
+        confirmButtonText:'Completar Registro'
+      });
       showView('view-registro');
     }else{
-      // Bootstrap paralelo: INICIO + NOTICIAS en una sola llamada
+      await Swal.fire({
+        icon:'success',
+        title: tituloBienvenida,
+        html: 'Esta App será tu guía en este proceso contractual este año<br>Valida muy bien todos los datos que ingreses.',
+        confirmButtonText:'Ir al Inicio'
+      });
+
       (async ()=>{
         const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento });
         const d = boot?.inicio || {};
         const list = boot?.noticias || [];
 
-        // Pintar INICIO
         document.getElementById('inicio-nombre').textContent = d.nombre || '';
         document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
         document.getElementById('inicio-cc').innerHTML = (d.documento || '') + (d.expedida ? (' <b>DE</b> ' + d.expedida) : '');
@@ -2085,9 +2099,13 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
         document.getElementById('inicio-arl').textContent = d.arl || '';
         document.getElementById('inicio-supervisor').textContent = d.supervisor || '';
         const firmaEl = document.getElementById('inicio-firma');
-        if(d.firmaId){ firmaEl.src = thumbById(d.firmaId); firmaEl.style.display=''; } else { firmaEl.style.display='none'; }
+        if(d.firmaId){
+          firmaEl.src = thumbById(d.firmaId);
+          firmaEl.style.display='';
+        } else {
+          firmaEl.style.display='none';
+        }
 
-        // Cache noticias + badge
         NOTICIAS_CACHE = Array.isArray(list) ? list : [];
         renderNoticiasList(NOTICIAS_CACHE);
         refreshNoticiasBadge();
