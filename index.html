@@ -2061,7 +2061,7 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
       return;
     }
 
-        // ACTIVO
+            // ACTIVO
     currentUser = { documento: res.documento };
     const nombreCorto = res.nombreCorto || '';
     const tituloBienvenida = nombreCorto ? 'BIENVENIDO(A) ' + nombreCorto : 'BIENVENIDO(A)';
@@ -2070,18 +2070,12 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
       await Swal.fire({
         icon:'success',
         title: tituloBienvenida,
-        html: 'Esta App será tu guía en este proceso contractual 2026<br><b>Valida muy bien todos los datos que ingreses</b>.',
+        html: 'Esta App será tu guía en este proceso contractual este año<br>Valida muy bien todos los datos que ingreses.',
         confirmButtonText:'Completar Registro'
       });
       showView('view-registro');
     }else{
-      await Swal.fire({
-        icon:'success',
-        title: tituloBienvenida,
-        html: 'Esta App será tu guía en este proceso contractual este año<br>Valida muy bien todos los datos que ingreses.',
-        confirmButtonText:'Ir al Inicio'
-      });
-
+      // Antes: flujo original sin alerta de bienvenida
       (async ()=>{
         const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento });
         const d = boot?.inicio || {};
@@ -4918,9 +4912,6 @@ if (!hayCambiosContrato) {
     resumen.push(`<b>Meses/Días:</b> ${body.meses||'0'} / ${body.dias||'0'}`);
   }
   if(body.ejecucion) resumen.push(`<b>Tiempo de Ejecución:</b> ${body.ejecucion}`);
-  if(body.rp) resumen.push(`<b>RP:</b> ${body.rp}`);
-  if(body.costos) resumen.push(`<b>Regimen Simple:</b> ${body.costos}`);
-  if(body.regimen) resumen.push(`<b>Costos Adicionales:</b> ${body.regimen}`);
   if(body.rp) resumen.push(`<b>RP:</b> ${body.rp}`);
   if(body.costos) resumen.push(`<b>Regimen Simple:</b> ${body.costos}`);
   if(body.regimen) resumen.push(`<b>Costos Adicionales:</b> ${body.regimen}`);
