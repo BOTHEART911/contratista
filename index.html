@@ -946,6 +946,7 @@
         <h2 style="color:var(--primary)">COMPLETANDO REGISTRO</h2> 
 
         <label>Municipio de Expedición del Documento</label>
+         <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
         <input id="reg-expedida" list="dl-expedida" placeholder="Escribe y selecciona" autocomplete="off">
         <datalist id="dl-expedida"></datalist>
 
@@ -956,6 +957,7 @@
         <textarea id="reg-direccion" rows="2" placeholder="Usa abreviaciones. No escribas el municipio. Ej: Mz 5 Casa 16 B/ Orquídeas II."></textarea>
 
         <label>Municipio de Residencia</label>
+        <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
         <input id="reg-municipio" list="dl-municipio" placeholder="Escribe y selecciona" autocomplete="off">
         <datalist id="dl-municipio"></datalist>
 
@@ -979,7 +981,11 @@
 
         <label>Fondo de Pensiones (AFP)</label>
         <div class="muted" style="margin:6px 0 8px;">
-          <b>Sí eres Pensionado(a), selecciona N/A</b><br>Esto implica que, en cada cuenta debes presentar alguno de los siguientes soportes:<br>- Certificación de Pensionado(a)<br>- Resolución de Pensión<br>- Certificación de Devolución del Saldo por Vejez.
+          <b>Sí eres Pensionado(a), selecciona N/A</b><br>
+          Esto implica que, en cada cuenta debes presentar alguno de los siguientes soportes:<br>
+          - Certificación de Pensionado(a)<br>
+          - Resolución de Pensión<br>
+          - Certificación de Devolución del Saldo por Vejez.
         </div>
         <select id="reg-pension"></select>
 
@@ -987,6 +993,7 @@
         <select id="reg-arl"></select>
 
         <label>Imagen de Firma</label>
+        <div class="muted" style="margin:6px 0 8px;">Recuerda que debe ser una imagen clara y sin marcas de agua</div>
         <input type="file" id="reg-firma" accept="image/*" />
         <img id="reg-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
@@ -1121,6 +1128,7 @@
 
         <div id="personales-form" class="hidden" style="margin-top:10px;">
           <label>Municipio de Expedición del Documento</label>
+          <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
           <input id="p-expedida" list="dl-expedida2" placeholder="Escribe y selecciona" autocomplete="off">
           <datalist id="dl-expedida2"></datalist>
 
@@ -1131,6 +1139,7 @@
           <textarea id="p-direccion" rows="2" placeholder="Usa abreviaciones y no escribas el nombre del Municipio. Ejemplo: Mz 5 Casa 16 B/ Orquídeas II"></textarea>
 
           <label>Municipio de Residencia</label>
+          <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
           <input id="p-municipio" list="dl-municipio2" placeholder="Escribe y selecciona" autocomplete="off">
           <datalist id="dl-municipio2"></datalist>
 
@@ -1154,7 +1163,11 @@
 
           <label>Fondo de Pensiones (AFP)</label>
           <div class="muted" style="margin:6px 0 8px;">
-          <b>Sí eres Pensionado(a), selecciona N/A</b><br>Esto implica que, en cada cuenta debes presentar alguno de los siguientes soportes:<br>- Certificación de Pensionado(a)<br>- Resolución de Pensión<br>- Certificación de Devolución del Saldo por Vejez.
+          <b>Sí eres Pensionado(a), selecciona N/A</b><br>
+            Esto implica que, en cada cuenta debes presentar alguno de los siguientes soportes:<br>
+            - Certificación de Pensionado(a)<br>
+            - Resolución de Pensión<br>
+            - Certificación de Devolución del Saldo por Vejez.
         </div>
 
           <select id="p-pension"></select>
@@ -1163,6 +1176,7 @@
           <select id="p-arl"></select>
 
           <label>Actualizar Firma</label>
+          <div class="muted" style="margin:6px 0 8px;">Recuerda que debe ser una imagen clara y sin marcas de agua</div>
           <input type="file" id="p-firma" accept="image/*" />
           <img id="p-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
