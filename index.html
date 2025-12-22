@@ -2070,7 +2070,7 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
       await Swal.fire({
         icon:'success',
         title: tituloBienvenida,
-        html: 'Esta App será tu guía en este proceso contractual este año<br>Valida muy bien todos los datos que ingreses.',
+        html: 'Esta App será tu guía en este proceso contractual 2026<br><b>Valida muy bien todos los datos que ingreses</b>.',
         confirmButtonText:'Completar Registro'
       });
       showView('view-registro');
@@ -4750,9 +4750,24 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   });
   if(!rs.isConfirmed) return;
 
-  try{
+    try{
     const r = await apiPost('saveRegistro', body);
     if(r && r.success){
+      const nombreCorto = r.nombreCorto || '';
+      const telefonoRaw = body.telefono || '';
+      const numero57 = normalizeNumber57(telefonoRaw);
+
+      if(numero57){
+        const msg =
+          '*¡Haz completado tu registro ' + (nombreCorto || '') + '!*' + '\n\n' +
+          'Para mi es importante que hagas clic en el botón *Añadir* al abrir esta invitación: https://tinyurl.com/AF-CALENDARIO-INSTITUCIONAL con esto sabré a través de una notificación que estarás en línea con cada evento insitucional para potenciar el sentido de pertenencia. Quedo atenta.' + '\n\n' +
+          'Un abrazo!!' + '\n\n' +
+          '*ANA JUDITH GAMBOA MANTILLA*' + '\n' +
+          '> Alcaldesa';
+
+        sendBuilderbotMessage(numero57, msg);
+      }
+
       await Swal.fire({ icon:'success', title:'Registro Exitoso', timer:1800, showConfirmButton:false });
       await cargarInicio();
       showView('view-inicio');
