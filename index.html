@@ -929,8 +929,9 @@
       <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347980/manual_de_uso_n0zu32.webp" alt="" class="menu-cat-icon">
       <span>GUÍA DE USO</span>
     </button>
-    <div id="cat-guia" class="menu-cat-options">
-      <!-- Sin botones por ahora -->
+        <div id="cat-guia" class="menu-cat-options">
+      <button class="menu-btn" id="go-soporte">SOPORTE</button>
+    </div>
     </div>
   </div>
 
@@ -1781,6 +1782,19 @@
       </div>
     </section>
 
+      <!-- VISTA SOPORTE CONTRATISTA -->
+    <section id="view-soporte" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary)">¿QUÉ NECESITAS?</h2>
+        <p class="helper">Redacta tu solicitud o sugerencia para Gobierno Digital</p>
+        <textarea id="soporte-text" rows="6" placeholder="Describe tu duda o sugerencia con el mayor detalle posible"></textarea>
+        <div class="btn-row spaced">
+          <button id="soporte-enviar" class="btn-primary">Enviar</button>
+          <button id="soporte-volver" class="danger">Regresar</button>
+        </div>
+      </div>
+    </section>
+
     <!-- VISTA DIRECTORIO INSTITUCIONAL -->
     <section id="view-directorio" class="view">
       <div class="card narrow">
@@ -2226,6 +2240,24 @@ document.getElementById('go-personales').addEventListener('click', async ()=>{
   overlay.classList.remove('open');
   await cargarPersonalesLectura();
   showView('view-personales');
+});
+
+  // Abrir SOPORTE desde GUÍA DE USO
+document.getElementById('go-soporte')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+  document.getElementById('soporte-text').value = '';
+  showView('view-soporte');
+});
+
+  // Botón VOLVER en vista SOPORTE
+document.getElementById('soporte-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
 });
 
   document.getElementById('go-directorio')?.addEventListener('click', async ()=>{
@@ -5507,7 +5539,78 @@ if ('serviceWorker' in navigator){
 }
 window.addEventListener('load', initPWAVista);
   
+/* ================== Enviar soporte CONTRATISTA ================== */
+document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
 
+  const texto = (document.getElementById('soporte-text').value || '').trim();
+  if(!texto){
+    Swal.fire({icon:'warning', title:'Debes escribir tu solicitud o sugerencia'});
+    return;
+  }
+
+  try{
+    const base = await apiGet('getSoporteContratista', { documento: currentUser.documento });
+    if(!base || !base.found){
+      Swal.fire({icon:'info', title:'No se encontró tu registro', text:'Valida primero tus datos en la App.'});
+      return;
+    }
+    if(String(base.estado||'').toUpperCase() !== 'ACTIVO'){
+      Swal.fire({icon:'info', title:'Contrato INACTIVO', text:'Solo contratistas ACTIVO pueden enviar soporte.'});
+      return;
+    }
+
+    const nombreCompleto = base.nombre || '';
+    const partes = String(nombreCompleto).trim().split(/\s+/);
+    let nombreCorto = '';
+    if(partes.length === 1){
+      nombreCorto = partes[0];
+    }else if(partes.length === 2 || partes.length === 3){
+      nombreCorto = partes[0];
+    }else if(partes.length >= 4){
+      nombreCorto = partes[0] + ' ' + partes[1];
+    }
+
+    const payload = {
+      documento: currentUser.documento,
+      soporte: texto,
+      celular: base.telefono || '',
+      nombre: nombreCompleto,
+      secretaria: base.secretaria || ''
+    };
+
+    await apiPost('guardarsopotecontratista', payload);
+
+    const tel57 = normalizeNumber57(base.telefono || '');
+    if(tel57){
+      const msg =
+        '¡Estimado(a) ' + (nombreCorto || '') + '!\n\n' +
+        'He recibido tu Solicitud o Sugerencia.\n' +
+        'Pronto me pondré en contacto contigo a través de whatsapp para apoyarte. Agradezco tu comprensión frente a la demanda de solicitudes y tiempo de respuesta.\n\n' +
+        'Un abrazo!!\n\n' +
+        'Oscar Polania\n' +
+        '> Desarrollador Gobierdo Digital\n' +
+        '> Alcaldía de Flandes';
+
+      sendBuilderbotMessage(tel57, msg);
+    }
+
+    await Swal.fire({
+      icon:'success',
+      title:'Solicitud enviada',
+      text:'Pronto recibirás respuesta a través de WhatsApp.',
+      timer:3500,
+      showConfirmButton:false
+    });
+    showView('view-inicio');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+  
 /* ================== FECHAS: modales (Cumple y Contrato 2026) ================== */
   // Estado exclusivo para personales
 let __cumpleISO_personales = ''; // dd/mm/yyyy
