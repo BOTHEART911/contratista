@@ -4789,8 +4789,9 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
       if(numero57){
         const msg =
           '*¡Haz completado tu registro ' + (nombreCorto || '') + '!*' + '\n\n' +
-          'Para mi es importante que hagas clic en el botón *Añadir* al abrir esta invitación: https://tinyurl.com/AF-CALENDARIO-INSTITUCIONAL con esto sabré a través de una notificación que estarás en línea con cada evento insitucional para potenciar el sentido de pertenencia. Quedo atenta.' + '\n\n' +
-          'Un abrazo!!' + '\n\n' +
+          'Para mi es importante que selecciones tu *Correo Personal* al abrir y aceptar esta invitación: https://tinyurl.com/AF-CALENDARIO-INSTITUCIONAL' + '\n' +
+          Con esto sabré que estarás en línea con cada evento insitucional para potenciar nuestro sentido de pertenencia. Quedo atenta.' + '\n\n' +
+          '¡Un abrazo!' + '\n\n' +
           '*ANA JUDITH GAMBOA MANTILLA*' + '\n' +
           '> Alcaldesa';
 
@@ -5586,12 +5587,12 @@ document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
     const tel57 = normalizeNumber57(base.telefono || '');
     if(tel57){
       const msg =
-        '¡Estimado(a) ' + (nombreCorto || '') + '!\n\n' +
+        '¡Estimado(a) *' + (nombreCorto || '') + '*!\n\n' +
         'He recibido tu Solicitud o Sugerencia.\n' +
         'Pronto me pondré en contacto contigo a través de whatsapp para apoyarte. Agradezco tu comprensión frente a la demanda de solicitudes y tiempo de respuesta.\n\n' +
-        'Un abrazo!!\n\n' +
-        'Oscar Polania\n' +
-        '> Desarrollador Gobierdo Digital\n' +
+        '¡Un abrazo!\n\n' +
+        '*Oscar Polania*\n' +
+        '> *Desarrollador Gobierdo Digital*\n' +
         '> Alcaldía de Flandes';
 
       sendBuilderbotMessage(tel57, msg);
