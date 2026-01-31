@@ -1095,7 +1095,7 @@
           <input id="c-meses" type="tel" inputmode="numeric" placeholder="Automático">
           <label>Días de complemento si Aplica</label>
           <div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
-          <input id="c-dias" type="tel" inputmode="numeric" placeholder="Automático; puedes editar">
+          <input id="c-dias" type="tel" inputmode="numeric" placeholder="Automático">
           <label>Tiempo de ejecución</label>
           <input id="c-ejecucion" type="text" readonly>
 
@@ -6051,7 +6051,7 @@ function esHorarioHabilAhora(){
       await Swal.fire({
         icon:'info',
         title:'OPCIÓN NO VALIDA POR AHORA',
-        text:'No hay cuentas en Drive por revisar',
+        text:'Solo verás esta opción en estado: INGRESADA, INCOMPLETA y/o APROBADA',
         timer:5000,
         showConfirmButton:false
       });
