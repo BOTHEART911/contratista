@@ -946,7 +946,7 @@
         <h2 style="color:var(--primary)">COMPLETANDO REGISTRO</h2> 
 
         <label>Municipio de Expedición del Documento</label>
-         <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
+         <div class="muted" style="margin:6px 0 8px;">Debes esperar un par de segundos mientras cargan las opciones</div>
         <input id="reg-expedida" list="dl-expedida" placeholder="Escribe y selecciona" autocomplete="off">
         <datalist id="dl-expedida"></datalist>
 
@@ -957,7 +957,7 @@
         <textarea id="reg-direccion" rows="2" placeholder="Usa abreviaciones. No escribas el municipio. Ej: Mz 5 Casa 16 B/ Orquídeas II."></textarea>
 
         <label>Municipio de Residencia</label>
-        <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
+        <div class="muted" style="margin:6px 0 8px;">Debes esperar un par de segundos mientras cargan las opciones</div>
         <input id="reg-municipio" list="dl-municipio" placeholder="Escribe y selecciona" autocomplete="off">
         <datalist id="dl-municipio"></datalist>
 
@@ -1052,11 +1052,13 @@
         <div id="contrato-form" class="hidden" style="margin-top:10px;">
           <!-- Fecha Inicio (ruleta año fijo 2026) -->
           <label>Fecha de Inicio</label>
+          <div class="muted" style="margin:6px 0 8px;"><b>FECHA DE ACTA DE INICIO</b></div>
           <input id="c-fechaInicio" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerContrato('inicio')">
           <input id="c-diaInicio" type="text" readonly style="display:none;">
           <input id="c-mesInicio" type="text" readonly style="display:none;">
 
           <label>Fecha de Terminación</label>
+          <div class="muted" style="margin:6px 0 8px;">Corrobora esta fecha en el ACTA DE INICIO</div>
           <input id="c-fechaTermino" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerContrato('termino')">
           <input id="c-diaTermino" type="text" readonly style="display:none;">
           <input id="c-mesTermino" type="text" readonly style="display:none;">
@@ -1089,8 +1091,10 @@
           </div>
 
           <label>Meses de contrato</label>
-          <input id="c-meses" type="tel" inputmode="numeric" placeholder="Automático; puedes editar">
+          <div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
+          <input id="c-meses" type="tel" inputmode="numeric" placeholder="Automático">
           <label>Días de complemento si Aplica</label>
+          <div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
           <input id="c-dias" type="tel" inputmode="numeric" placeholder="Automático; puedes editar">
           <label>Tiempo de ejecución</label>
           <input id="c-ejecucion" type="text" readonly>
@@ -1103,6 +1107,7 @@
           <input id="c-rpAdicion" type="tel" inputmode="numeric" placeholder="N° de RP Adición" maxlength="10" style="border:1.5px solid #ccc;">
 
           <label>¿Te encuentras bajo el régimen simple de tributación (SIMPLE)?</label>
+          <div class="muted" style="margin:6px 0 8px;"><b>Si NO manejas empresa, comercio o emprendimiento vinculado a la DIAN, selecciona NO</b></div>
           <select id="c-costos">
             <option value="" disabled selected>Selecciona</option>
             <option value="SI tomaré costos o deducciones.">SI</option>
