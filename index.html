@@ -4825,9 +4825,9 @@ bindNumericSanitizer('c-rpAdicion', 10);
 document.getElementById('c-costos').addEventListener('change', function(){
   const simple = document.getElementById('c-regimen');
   if (this.value === 'SI tomaré costos o deducciones.'){
-    simple.value = 'SI';
+    simple.value = 'SI pertenezco al Régimen Simple, por lo que se adjunta el RUT vigente actualizado con la responsabilidad 47';
   } else if (this.value === 'NO tomaré costos o deducciones.'){
-    simple.value = 'NO';
+    simple.value = 'NO pertenezco al Régimen Simple';
   } else {
     simple.value = '';
   }
