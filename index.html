@@ -1398,6 +1398,9 @@
 
     <div class="narrow">
       <label>Saldo Actual</label>
+      <div id="ic-saldo-first-hint" class="muted" style="margin:6px 0 8px; display:none;">
+  <b>Digita el valor de tu contrato</b>
+</div>
       <input id="ic-saldo" type="tel" inputmode="numeric" placeholder="Primera cuenta: valor del contrato">
 
       <label>Valor por Cobrar</label>
@@ -4098,6 +4101,13 @@ if (sup) sup.value = IC_STATE.supervisor || '';
   const saldoEl = document.getElementById('ic-saldo');
   if(saldoEl){
     saldoEl.value = IC_STATE.saldoQ || '';
+  }
+
+    // Mostrar ayuda solo en la primera cuenta (informe 1)
+  const saldoHint = document.getElementById('ic-saldo-first-hint');
+  if (saldoHint){
+    const isFirst = Number(IC_STATE.informe || 1) === 1;
+    saldoHint.style.display = isFirst ? '' : 'none';
   }
 
   // Meses select
