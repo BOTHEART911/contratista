@@ -1819,6 +1819,9 @@ const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9
 const BUILDERBOT_ENDPOINT = 'https://app.builderbot.cloud/api/v2/ff37a123-12b0-4fdc-9866-f3e2daf389fb/messages';
 const BUILDERBOT_API_KEY  = 'bb-7f9ef630-5cfc-4ba4-9258-5e7cecbb4f65';
 
+  const DATA_POLICY_LOGO = 'https://res.cloudinary.com/dqqeavica/image/upload/v1746906622/Logo_hzevh9.png';
+const DATA_POLICY_BANNER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif';
+
 /* ================== SONIDOS ================== */
 const SOUNDS = {
   question: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_fail_ls2aif.mp3',
@@ -2033,6 +2036,106 @@ function isMobileDevice(){
   return /android|iphone|ipad|ipod|opera mini|iemobile|mobile/.test(ua);
 }
 
+  async function showDataPolicyAlert(){
+  const html = `
+  <div style="text-align:center;">
+    <div style="font-weight:900; font-size:1rem; margin-bottom:10px;">
+      POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES<br>
+      App Contratista – Alcaldía de Flandes
+    </div>
+
+    <img
+      src="${DATA_POLICY_LOGO}"
+      alt="Logo"
+      style="width:110px; max-width:55vw; height:auto; display:block; margin:0 auto 12px;"
+    >
+
+    <div style="
+      width:100%;
+      max-width:560px;
+      margin:0 auto;
+      text-align:center;
+      font-size:.95rem;
+      line-height:1.38;
+      padding:0 6px;
+      box-sizing:border-box;
+    ">
+      <b>1. Responsable del Tratamiento</b><br>
+      La <b>Alcaldía Municipal de Flandes – Tolima</b> es responsable del tratamiento de los datos personales recolectados a través de la aplicación <b>App Contratista</b>, usada para la gestión digital de cuentas de cobro de los contratistas vinculados mediante <b>contratos estatales de prestación de servicios</b>.<br><br>
+
+      <b>2. Marco Legal</b><br>
+      Esta política se rige por:<br>
+      - Artículo 15 de la Constitución Política.<br>
+      - Ley 1581 de 2012 y Decreto 1377 de 2013.<br>
+      - Decreto 1074 de 2015.<br>
+      - Ley 1712 de 2014 (Transparencia).<br>
+      - Ley 80 de 1993 y Ley 1150 de 2007 (Contratación estatal).<br>
+      - Decreto 1082 de 2015.<br><br>
+
+      <b>3. Finalidad del Tratamiento</b><br>
+      Los datos personales se tratan para:<br>
+      - Gestionar contratos estatales.<br>
+      - Recibir y elaborar documentos digitales de cuentas de cobro.<br>
+      - Verificar actividades ejecutadas.<br>
+      - Controlar pagos y planillas.<br>
+      - Cumplir obligaciones contractuales y legales.<br>
+      - Publicación posterior en la plataforma <b>SECOP II</b>, en cumplimiento del deber legal de publicidad de la contratación pública.<br><br>
+
+      <b>4. Datos Tratados</b><br>
+      Se recolectan:<br>
+      - Dirección, teléfono y correo electrónico.<br>
+      - Fechas de inicio y terminación del contrato.<br>
+      - Valores a cobrar.<br>
+      - Relación de planillas.<br>
+      - Actividades ejecutadas.<br>
+      - Imagen de la firma manuscrita.<br>
+      No se recolectan datos sensibles.<br><br>
+
+      <b>5. Información de Carácter Público</b><br>
+      Debido a la naturaleza del <b>contrato estatal de prestación de servicios</b>, parte de la información contenida en los documentos generados deberá ser publicada en el <b>Sistema Electrónico para la Contratación Pública – SECOP II</b>, plataforma administrada por Colombia Compra Eficiente y accesible al público, conforme a la Ley 1712 de 2014 y demás normas aplicables.<br><br>
+
+      <b>6. Derechos del Titular</b><br>
+      El contratista puede ejercer los derechos de habeas data: conocer, actualizar, rectificar, revocar la autorización cuando sea procedente.<br><br>
+
+      <b>7. Seguridad de la Información</b><br>
+      La Alcaldía adopta medidas técnicas y administrativas razonables para proteger los datos durante su tratamiento en la aplicación.<br><br>
+
+      <b>8. Conservación</b><br>
+      La información será conservada conforme a las normas de archivo público y los términos contractuales y fiscales aplicables.<br><br>
+
+      <b>9. Aceptación del Titular</b><br>
+      Antes de usar la aplicación, el contratista deberá manifestar su voluntad mediante la siguiente declaración:<br><br>
+
+      <b>AUTORIZACIÓN DE TRATAMIENTO DE DATOS PERSONALES</b><br><br>
+
+      Declaro que he leído y comprendido la presente Política de Tratamiento de Datos Personales de la <b>Alcaldía de Flandes</b> para la aplicación <b>App Contratista</b>, desarrollada para la gestión de contratos estatales de prestación de servicios en la presente adminitración, y <b>AUTORIZO de manera previa, expresa e informada</b> el tratamiento de mis datos personales, incluida la generación de documentos y su publicación en el SECOP II cuando la ley lo exija.
+    </div>
+
+    <div style="margin-top:14px;">
+      <img
+        src="${DATA_POLICY_BANNER}"
+        alt="Banner"
+        style="width:240px; max-width:70vw; height:auto; display:block; margin:0 auto;"
+      >
+    </div>
+  </div>
+`;
+
+  const res = await Swal.fire({
+    icon: 'info',
+    title: '',
+    html,
+    showCancelButton: true,
+    confirmButtonText: 'ACEPTO',
+    cancelButtonText: 'NO ACEPTO',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    width: 'min(720px, 94vw)'
+  });
+
+  return !!res.isConfirmed;
+}
+
 /* ================== LOGIN ================== */
 const loginDoc = document.getElementById('login-doc');
 document.getElementById('toggle-doc').addEventListener('click', ()=>{
@@ -2092,14 +2195,22 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     const tituloBienvenida = nombreCorto ? 'BIENVENIDO(A) ' + nombreCorto : 'BIENVENIDO(A)';
 
     if(res.incompleto){
-      await Swal.fire({
-        icon:'success',
-        title: tituloBienvenida,
-        html: 'Esta App será tu guía en el proceso contractual 2026<br>Valida muy bien todos los datos que ingreses.',
-        confirmButtonText:'Completar Registro'
-      });
-      showView('view-registro');
-    }else{
+  const accepted = await showDataPolicyAlert();
+  if(!accepted){
+    currentUser = null;
+    loginDoc.value = '';
+    showView('view-login');
+    return;
+  }
+
+  await Swal.fire({
+    icon:'success',
+    title: tituloBienvenida,
+    html: 'Esta App será tu guía en el proceso contractual 2026<br>Valida muy bien todos los datos que ingreses.',
+    confirmButtonText:'Completar Registro'
+  });
+  showView('view-registro');
+}else{
       // Antes: flujo original sin alerta de bienvenida
       (async ()=>{
         const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento });
