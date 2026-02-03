@@ -4806,12 +4806,25 @@ const waitSwal = Swal.fire({
     await Swal.close();
    if(r && r.success){
   const isCorrection = (IC_MODE === 'correccion');
+  if(r && r.success){
+  const isCorrection = (IC_MODE === 'correccion');
   Swal.fire({
     icon:'success',
     title:'PROCESO FINALIZADO',
-    html: isCorrection
-      ? 'La cuenta quedó <b>CORREGIDA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Corregidos'
-      : 'La cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Creados',
+    html: `
+      <div style="text-align:center; margin:10px 0 12px;">
+        <img
+          src="https://res.cloudinary.com/dqqeavica/image/upload/v1770141576/cuenta_drive_guoj5w.gif"
+          alt="Cuenta Drive"
+          style="width:220px; max-width:80vw; height:auto; display:block; margin:0 auto;"
+        >
+      </div>
+      ${
+        isCorrection
+          ? 'La cuenta quedó <b>CORREGIDA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Corregidos'
+          : 'La cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Creados'
+      }
+    `,
     timer: 6000,
     showConfirmButton: false
   });
