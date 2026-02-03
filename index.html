@@ -1292,13 +1292,6 @@
     <h2 id="ic-title" style="color:var(--primary)">CREACIÓN DE CUENTA</h2>
     <h3 class="center" style="margin-top:6px;color:#333;">RELACIÓN DE PAGO</h3>
 
-    <label for="guia">Descargar Guía para Reportar la Cuenta</label>
-      <select id="guia" required>
-        <option value="" disabled selected>Selecciona</option>
-        <option value="SI">SI</option>
-        <option value="NO">NO</option>
-      </select>
-
     <p id="ic-desc" class="helper">
       <!-- el texto se setea desde JS según el modo -->
       INFORME:
@@ -1558,7 +1551,14 @@
         </div>
       </div>
     </div>
-
+   
+        <label for="guia">Descargar Guía para Reportar la Cuenta</label>
+      <select id="guia" required>
+        <option value="" disabled selected>Selecciona</option>
+        <option value="SI">SI</option>
+        <option value="NO">NO</option>
+      </select>
+    
     <div class="btn-row spaced">
       <button id="plan-pagos-regresar" class="danger">Regresar</button>
       <button id="plan-pagos-reportar" class="btn-primary">REPORTAR</button>
