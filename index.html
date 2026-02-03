@@ -4237,22 +4237,38 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     saldoHint.style.display = isFirst ? '' : 'none';
   }
 
-   // Select "guia" (descarga automática si el usuario elige SI)
-  const guiaSel = document.getElementById('guia');
-  if(guiaSel){
-    guiaSel.onchange = null;
-    guiaSel.addEventListener('change', ()=>{
-      const v = String(guiaSel.value||'').trim().toUpperCase();
-      if(v === 'SI'){
+// Select "guia" (descarga automática si el usuario elige SI)
+const guiaSel = document.getElementById('guia');
+if(guiaSel){
+  guiaSel.onchange = null;
+  guiaSel.addEventListener('change', ()=>{
+    const v = String(guiaSel.value||'').trim().toUpperCase();
+    if(v === 'SI'){
+      const downloads = [
+        {
+          url: 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download', /*GUIA REPORTAR CUENTA*/
+          filename: 'GUIA_REPORTE_CUENTA.pdf'
+        },
+        {
+          url: 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download', /*GUIA PLAN DE PAGOS*/
+          filename: 'GUIA_PLAN_DE_PAGOS.pdf'
+        }
+      ];
+
+      function triggerDownload(item){
         const a = document.createElement('a');
-        a.href = 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download'; /*DOCUMENTO GUIA REPORTE Y PLAN DE PAGOS*/
-        a.download = 'GUIA_REPORTE_CUENTA.pdf';
+        a.href = item.url;
+        a.download = item.filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
       }
-    });
-  }
+
+      triggerDownload(downloads[0]);
+      setTimeout(()=> triggerDownload(downloads[1]), 650);
+    }
+  });
+}
   
   // Meses select
   const sel1 = document.getElementById('ic-mesPlanilla'); const sel2 = document.getElementById('ic-mesPlanilla2');
