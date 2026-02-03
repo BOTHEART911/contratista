@@ -1529,8 +1529,7 @@
   <div class="card narrow">
     <h2 style="color:var(--primary)">REPORTE DE PLAN DE PAGOS</h2>
     <p class="helper">
-      Selecciona la Fecha del último pago recibido por la Entidad.<br>
-      Revisa mensajes de texto o movimiento de tu Cuenta Bancaria para mayor exactitud.
+      Selecciona la Fecha del último pago recibido por la Entidad.
     </p>
 
     <label>Fecha de Último Pago</label>
@@ -3556,8 +3555,17 @@ function mostrarEstadoCuenta(res){
     case 'EGRESO':
       Swal.fire({
         icon:'success',
-        title:'EGRESO EMITIDO',
-        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> ya fue EGRESADA por la oficina de Hacienda`,
+        title:'EGRESO',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> ya se encuentra en proceso de Pago`,
+        timer:7000,
+        showConfirmButton:false
+      });
+      break;
+      case 'PAGADA':
+      Swal.fire({
+        icon:'success',
+        title:'PAGADA',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> ya fue PAGADA por la oficina de Tesorería`,
         timer:7000,
         showConfirmButton:false
       });
@@ -6119,7 +6127,7 @@ function esHorarioHabilAhora(){
   const dow = ahora.getDay(); // 0 Domingo, 6 Sábado
   if(dow === 0 || dow === 6) return false;
   const hora = ahora.getHours() + (ahora.getMinutes()/60);
-  if(hora < 8 || hora >= 18) return false;
+  if(hora < 6 || hora >= 20) return false; // RANGO HORARIO PARA REPORTAR
   const dd = String(ahora.getDate()).padStart(2,'0');
   const mm = String(ahora.getMonth()+1).padStart(2,'0');
   const yy = String(ahora.getFullYear());
@@ -6230,8 +6238,8 @@ function esHorarioHabilAhora(){
     Swal.fire({
       icon:'info',
       title:'HORARIO NO HÁBIL',
-      text:'Debes Reportar tu Cuenta entre 8:00 AM y 6:00 PM de Lunes a Viernes (No Festivos)',
-      timer:4000,
+      text:'Debes Reportar tu Cuenta entre 6:01 AM y 7:59 PM de Lunes a Viernes (No Festivos)',
+      timer:6000,
       showConfirmButton:false
     });
     return;
@@ -6298,8 +6306,8 @@ if(!r.isConfirmed){
     Swal.fire({
       icon:'info',
       title:'HORARIO NO HÁBIL',
-      text:'Debes Reportar tu Cuenta entre 8:00 AM y 6:00 PM de Lunes a Viernes (No Festivos)',
-      timer:4000,
+      text:'Debes Reportar Plan de Pagos entre 6:01 AM y 7:59 PM de Lunes a Viernes (No Festivos)',
+      timer:6000,
       showConfirmButton:false
     });
     return;
@@ -6376,7 +6384,7 @@ document.getElementById('plan-pagos-reportar')?.addEventListener('click', async 
   const r = await Swal.fire({
     icon:'success',
     title:`ANTES DE REPORTAR EL PLAN DE PAGOS ${informe}`,
-    html:`Corrobora lo siguiente en el Secop II:<br><br>1. Subida de Cuenta Unificada a Plan de Pagos<br>2. Planilla Validada<br>3. Estado Enviado a la entidad<br><br>¡Evita los Reprocesos!`,
+    html:`Corrobora lo siguiente en el Secop II:<br><br>1. Subida de Cuenta Unificada a Plan de Pagos<br>2. Planilla Validada correctamente<br>3. Estado Enviado a la entidad<br><br>¡Evita los Reprocesos!`,
     showCancelButton:true,
     confirmButtonText:'REPORTAR',
     cancelButtonText:'CANCELAR'
