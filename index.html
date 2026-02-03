@@ -4935,7 +4935,31 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
       await Swal.fire({ icon:'success', title:'Registro Exitoso', timer:1800, showConfirmButton:false });
       await cargarInicio();
       showView('view-inicio');
-      await Swal.fire({ icon:'info', title:'DATOS DEL CONTRATO', text:'No olvides completar los datos de tu contrato sin errores', timer:4000, showConfirmButton:false });
+      await Swal.fire({
+  icon: 'info',
+  title: 'COMPLETA LOS DATOS DEL CONTRATO',
+  html: `
+    <div style="text-align:center;">
+      <div style="font-weight:700; margin-bottom:10px;">
+        Cuando tengas el Acta de Inicio y RP, completa los datos
+      </div>
+
+      <img
+        src="https://res.cloudinary.com/dqqeavica/image/upload/v1770135185/datos_contrato_lmct1e.gif"
+        alt="Datos del contrato"
+        style="width:220px; max-width:75vw; height:auto; display:block; margin:0 auto 10px;"
+      >
+
+      <div style="font-weight:800;">
+        ¡Evita los reprocesos antes de Registrar tu 1ra Cuenta!
+      </div>
+    </div>
+  `,
+  confirmButtonText: 'OK',
+  showConfirmButton: true,
+  allowOutsideClick: true,
+  allowEscapeKey: true
+});
     }else{
       Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
     }
