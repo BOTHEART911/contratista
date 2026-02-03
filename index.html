@@ -1515,7 +1515,7 @@
     
     <div id="ic-oblig-wrap" class="narrow"></div>
     
-      <label for="guia">Descargar Guía para Reportar la Cuenta</label>
+      <label for="guia">¿Deseas descargar Guía para Reportar la Cuenta y Plan de Pagos?</label>
       <select id="guia" required>
         <option value="" disabled selected>Selecciona</option>
         <option value="SI">SI</option>
@@ -4245,7 +4245,7 @@ if (sup) sup.value = IC_STATE.supervisor || '';
       const v = String(guiaSel.value||'').trim().toUpperCase();
       if(v === 'SI'){
         const a = document.createElement('a');
-        a.href = 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download';
+        a.href = 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download'; /*DOCUMENTO GUIA REPORTE Y PLAN DE PAGOS*/
         a.download = 'GUIA_REPORTE_CUENTA.pdf';
         document.body.appendChild(a);
         a.click();
@@ -6283,7 +6283,7 @@ function esHorarioHabilAhora(){
       const r = await Swal.fire({
         icon:'info',
         title:'REVISA TUS DOCUMENTOS',
-        html:'Verifica que los Datos estén correctos y completos<br>Para realizar correctamente este proceso, revisa el documento <b>Guía Reporte</b> que encontraás en la Carpeta Drive',
+        html:'Verifica que los Datos estén correctos y completos.<br><br>Para realizar correctamente este proceso, revisa el documento <b>Guía Reporte</b>',
         confirmButtonText:'IR A MI CARPETA DRIVE'
       });
       if(r.isConfirmed) openFolder();
