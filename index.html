@@ -6642,8 +6642,7 @@ if(!r.isConfirmed){
     if(grupo) sendBuilderbotMessage(grupo, msg);
 
     // Se mantiene la acción existente
-    const pagoVal = document.getElementById('pago')?.value?.trim() || '';
-    await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, pago: pagoVal });
+    await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, pago: egreso });
 
     await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
     showView('view-inicio');
