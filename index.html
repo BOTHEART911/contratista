@@ -895,6 +895,7 @@
     <div id="cat-tramites" class="menu-cat-options">
       <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
       <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
+      <button class="menu-btn" id="go-solicitud-tesoreria">SOLICITUD TESORERÍA</button>
     </div>
   </div>
 
@@ -1809,6 +1810,31 @@
         </div>
       </div>
     </section>
+
+      <!-- VISTA SOLICITUD TESORERIA -->
+    <section id="view-solicitud-tesoreria" class="view">
+  <div class="card narrow">
+    <h2 style="color:var(--primary)">SOLICITUD TESORERÍA</h2>
+
+    <p class="helper">
+      Esta solicitud tendrá validéz si el estado de cuenta es PAGADA y ya han transcurrido 3 días hábiles después de consultar o recibir el mensaje EGRESO a través de WhatsApp.
+    </p>
+
+    <textarea
+      id="solicitud"
+      rows="5"
+      placeholder="Redactar con mayor detalle tu solicitud: relaciona la fecha en el número de cuenta, la fecha de radicación. Recuerda que si el estado de cuenta es PADAGA tendrá validéz esta solicitud"></textarea>
+
+    <input id="st-nombre" type="hidden" />
+    <input id="st-secretaria" type="hidden" />
+    <input id="st-contrato" type="hidden" />
+
+    <div class="btn-row spaced" style="margin-top:14px;">
+      <button id="st-enviar" class="btn-primary">Enviar Solicitud</button>
+      <button id="st-volver" class="danger">Regresar</button>
+    </div>
+  </div>
+</section>
 
     <!-- VISTA DIRECTORIO INSTITUCIONAL -->
     <section id="view-directorio" class="view">
@@ -5870,6 +5896,111 @@ document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
     showView('view-inicio');
   }catch(e){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+
+    /* ================== Enviar SOLICITUS TESORERIA ================== */
+
+    document.getElementById('go-solicitud-tesoreria')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+
+  try{
+    const info = await apiGet('getSolicitudTesoreriaBase', { documento: currentUser.documento });
+
+    if(!info || !info.found){
+      await Swal.fire({
+        icon:'info',
+        title:'NO TIENES ACCESO A ESTA OPCIÓN',
+        text:'Tu información de contrato aún no está completa.',
+        timer:4000,
+        showConfirmButton:false
+      });
+      return;
+    }
+
+    document.getElementById('st-nombre').value = info.nombre || '';
+    document.getElementById('st-secretaria').value = info.secretaria || '';
+    document.getElementById('st-contrato').value = info.contrato || '';
+
+    document.getElementById('solicitud').value = '';
+
+    showView('view-solicitud-tesoreria');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+});
+
+document.getElementById('st-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
+document.getElementById('st-enviar')?.addEventListener('click', async ()=>{
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+
+  const nombre = (document.getElementById('st-nombre').value || '').trim();
+  const secretaria = (document.getElementById('st-secretaria').value || '').trim();
+  const contrato = (document.getElementById('st-contrato').value || '').trim();
+  const solicitud = (document.getElementById('solicitud').value || '').trim();
+
+  if(!solicitud){
+    Swal.fire({ icon:'warning', title:'Debes redactar tu solicitud' });
+    return;
+  }
+
+  const resumenHtml = [
+    '<b>Nombre:</b> ' + (nombre || 'No Ingresado'),
+    '<b>Secretaría:</b> ' + (secretaria || 'No Ingresado'),
+    '<b>Contrato:</b> ' + (contrato || 'No Ingresado'),
+    '<b>Solicitud:</b><br>' + (solicitud || 'No Ingresado')
+  ].join('<br><br>');
+
+  const rs = await Swal.fire({
+    icon:'info',
+    title:'Resumen de Solicitud',
+    html: resumenHtml,
+    showCancelButton:true,
+    confirmButtonText:'Confirmar',
+    cancelButtonText:'Editar',
+    soundTag:'resumen'
+  });
+
+  if(!rs.isConfirmed) return;
+
+  try{
+    const r = await apiPost('guardarSolicitudTesoreria', {
+      documento: currentUser.documento,
+      nombre,
+      secretaria,
+      contrato,
+      solicitud
+    });
+
+    if(!r || !r.success){
+      Swal.fire({ icon:'error', title:'Error al guardar', text: r && r.message ? r.message : 'Intenta nuevamente.' });
+      return;
+    }
+
+    Swal.fire({
+      icon:'success',
+      title:'SOLITUD REGISTRADA',
+      text:'Será respondida, según los tiempos y demanda de solicitudes.',
+      timer:5000,
+      showConfirmButton:false
+    });
+
+    showView('view-inicio');
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }
 });
   
