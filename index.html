@@ -1532,44 +1532,6 @@
   </div>
 </section>
 
-    <!-- VISTA REPORTAR PLAN DE PAGOS -->
-
-  <section id="view-plan-pagos-report" class="view">
-  <div class="card narrow">
-    <h2 style="color:var(--primary)">REPORTE DE PLAN DE PAGOS</h2>
-    <p class="helper">
-      Selecciona la Fecha del último pago recibido por la Entidad.
-    </p>
-
-    <label>Fecha de Último Pago</label>
-    <input id="pago" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerPago()">
-    <input id="plan-correo" type="hidden" />
-
-    <!-- Modal Fecha Pago (año fijo 2026) -->
-    <div id="pagoModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
-      <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
-        <h3 style="margin:0 0 8px 0;">Selecciona la fecha</h3>
-        <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
-          <div><small>Día</small><select id="pagoDia" size="10"></select></div>
-          <div><small>Mes</small><select id="pagoMes" size="12"></select></div>
-          <div><small>Año</small><select id="pagoAnio" size="3" disabled><option selected>2026</option></select></div>
-        </div>
-        <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
-          <button type="button" class="btn btn-cancel" onclick="cancelarPickerPago()">Cancelar</button>
-          <button type="button" class="btn btn-ok" onclick="confirmarPickerPago()">Ok</button>
-        </div>
-      </div>
-    </div>
-
-     
-    
-    <div class="btn-row spaced">
-      <button id="plan-pagos-regresar" class="danger">Regresar</button>
-      <button id="plan-pagos-reportar" class="btn-primary">REPORTAR</button>
-    </div>
-  </div>
-</section>
-
            <!-- VISTA CALENDARIO INSTITUCIONAL -->
     <section id="view-calendario" class="view">
       <div class="card">
@@ -6596,13 +6558,15 @@ if(!r.isConfirmed){
 
   /* ================== REPORTAR PLAN DE PAGOS ================== */
 
-  document.getElementById('go-reportar-plan')?.addEventListener('click', async ()=>{
+ document.getElementById('go-reportar-plan')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
+
   if(!currentUser){
     Swal.fire({icon:'warning', title:'Sesión inválida'});
     return;
   }
+
   if(!esHorarioHabilAhora()){
     Swal.fire({
       icon:'info',
@@ -6613,100 +6577,80 @@ if(!r.isConfirmed){
     });
     return;
   }
+
   try{
     const res = await apiGet('reportarPlanPagos', { documento: currentUser.documento });
-    if(!res || !res.found){
-      Swal.fire({icon:'info', title:'NO PUEDES REPORTAR', text:'Primero debes Ingresar un Cuenta', timer:3000, showConfirmButton:false});
-      return;
-    }
-    const estado = String(res.estadoBJ||'').toUpperCase();
-    if(estado !== 'APROBADA'){
+
+    // Si NO encontró registros (o no encontró ninguna APROBADA)
+    if(!res || res.found === false){
       Swal.fire({
         icon:'info',
-        title:'NO HAY PLAN DE PAGOS PARA REPORTAR',
-        text:'No puedes reportar Plan de Pagos sin que la cuenta anterior esté APROBADA',
-        timer:6000,
+        title:'NO HAY REGISTROS',
+        text:'Esta opción se toma posterior a la Aprobación de una cuenta',
+        timer:5000,
         showConfirmButton:false
       });
       return;
     }
-    PLANPAGO_STATE = {
-      informe: res.informe || '',
-      supervisor: res.supervisor || '',
-      grupo: res.grupo || '',
-      nombre: res.nombre || '',
-      contrato: res.contrato || '',
-      pago: res.pago || '',
-      correo: res.correo || ''
-    };
 
-    const correoHidden = document.getElementById('plan-correo');
-    if(correoHidden) correoHidden.value = PLANPAGO_STATE.correo || '';
+    const estado = String(res.estadoBJ||'').toUpperCase();
 
-          const helperPago = document.querySelector('#view-plan-pagos-report .helper');
-    const pagoInput  = document.getElementById('pago');
-
-    if (helperPago) {
-      helperPago.style.display = (res.informe === 1) ? 'none' : '';
+    // Por seguridad (aunque backend ya devuelve solo APROBADA)
+    if(estado !== 'APROBADA'){
+      Swal.fire({
+        icon:'info',
+        title:'NO HAY REGISTROS',
+        text:'Esta opción se toma posterior a la Aprobación de una cuenta',
+        timer:5000,
+        showConfirmButton:false
+      });
+      return;
     }
 
-    if (pagoInput) {
-      if (res.informe === 1) { // Primera Cuenta: lectura fija
-        pagoInput.value = 'Primera Cuenta';
-        pagoInput.readOnly = true;
-        pagoInput.onclick = null;
-      } else {
-        pagoInput.value = '';         
-        pagoInput.readOnly = true;
-        pagoInput.onclick = abrirPickerPago;
-      }
+    // Variables para el mensaje
+    const informe = res.informe || '';
+    const supervisor = res.supervisor || '';
+    const grupo = res.grupo || '';
+    const nombre = res.nombre || '';
+    const contrato = res.contrato || '';
+
+    // BI (egreso): si viene vacío => "Primera Cuenta"
+    let egreso = (res.egreso || '').toString().trim();
+    if(!egreso) egreso = 'Primera Cuenta';
+
+    const r = await Swal.fire({
+      icon:'success',
+      title:`ANTES DE REPORTAR EL PLAN DE PAGOS ${informe}`,
+      html:`Corrobora lo siguiente en el Secop II:<br><br>1. Subida de Cuenta Unificada a Plan de Pagos<br>2. Planilla Validada correctamente<br>3. Estado Enviado a la entidad<br><br>¡Evita los Reprocesos!`,
+      showCancelButton:true,
+      confirmButtonText:'REPORTAR',
+      cancelButtonText:'CANCELAR'
+    });
+
+    if(!r.isConfirmed){
+      showView('view-inicio');
+      return;
     }
-    
-    showView('view-plan-pagos-report');
+
+    const msg =
+      '> PLAN DE PAGOS 🖥\n' +
+      'Estimado(a) *'+supervisor+'*' + '\n\n' +
+      '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
+      '> Egreso: *'+egreso+'*' + '\n\n' +
+      'Ingresa a la App para visualizar';
+
+    if(grupo) sendBuilderbotMessage(grupo, msg);
+
+    // Se mantiene la acción existente
+    const pagoVal = document.getElementById('pago')?.value?.trim() || '';
+    await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, pago: pagoVal });
+
+    await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
+    showView('view-inicio');
   }catch(e){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
 });
-
-  
-  document.getElementById('plan-pagos-regresar')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  showView('view-inicio');
-});
-
-document.getElementById('plan-pagos-reportar')?.addEventListener('click', async ()=>{
-  const pagoVal = document.getElementById('pago')?.value?.trim() || '';
-  const informe = PLANPAGO_STATE.informe || '';
-  const supervisor = PLANPAGO_STATE.supervisor || '';
-  const grupo = PLANPAGO_STATE.grupo || '';
-  const nombre = PLANPAGO_STATE.nombre || '';
-  const contrato = PLANPAGO_STATE.contrato || '';
-
-  const r = await Swal.fire({
-    icon:'success',
-    title:`ANTES DE REPORTAR EL PLAN DE PAGOS ${informe}`,
-    html:`Corrobora lo siguiente en el Secop II:<br><br>1. Subida de Cuenta Unificada a Plan de Pagos<br>2. Planilla Validada correctamente<br>3. Estado Enviado a la entidad<br><br>¡Evita los Reprocesos!`,
-    showCancelButton:true,
-    confirmButtonText:'REPORTAR',
-    cancelButtonText:'CANCELAR'
-  });
-  if(!r.isConfirmed){
-    showView('view-inicio');
-    return;
-  }
-
-  const msg =
-    '> PLAN DE PAGOS 🖥\n' +
-    'Estimado(a) *'+supervisor+'*' + '\n\n' +
-    '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
-    'Ingresa a la App para visualizar';
-
-  if(grupo) sendBuilderbotMessage(grupo, msg);
-  await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, pago: pagoVal });
-  await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
-  showView('view-inicio');
-});
-
   
 /* ================== FIN ================== */
 </script>
