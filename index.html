@@ -895,6 +895,7 @@
     <div id="cat-tramites" class="menu-cat-options">
       <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
       <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
+      <button class="menu-btn" id="go-descargar-egresos">DESCARGAR EGRESOS</button>
       <button class="menu-btn" id="go-solicitud-tesoreria">SOLICITUD TESORERÍA</button>
     </div>
   </div>
@@ -3651,6 +3652,55 @@ function mostrarEstadoCuenta(res){
     '_blank',
     'noopener'
   );
+});
+
+    /* ================== GENERAR EGRESOS ================== */
+
+  document.getElementById('go-descargar-egresos')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({ icon:'warning', title:'Sesión inválida' });
+    return;
+  }
+
+  playSoundOnce(SOUNDS.info);
+
+  try{
+    const data = await apiGet('descargarEgresosContratista', { documento: currentUser.documento });
+
+    if(!data?.created){
+      Swal.fire({
+        icon:'info',
+        title:'NO TIENES EGRESOS EMITIDOS',
+        text:'Debes consultar posteriormente.'
+      });
+      return;
+    }
+
+    if(!data.exportUrl){
+      Swal.fire({ icon:'error', title:'Error', text:'No se pudo generar el archivo para descargar.' });
+      return;
+    }
+
+    const url = data.exportUrl;
+    const isMobile = /android|iphone|ipad|mobile/i.test(navigator.userAgent);
+
+    if(isMobile){
+      window.open(url, '_blank');
+    }else{
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_self';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
 });
 
     /* ================== GENERAR CERTIFICADO DE CONTRATO ================== */
