@@ -882,6 +882,7 @@
       <button class="menu-btn" id="go-corregir-cuenta">CORREGIR CUENTA</button>
       <button class="menu-btn" id="go-reportar-plan">PLAN DE PAGOS</button>
       <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
+      <button class="menu-btn" id="go-guia-reporte-plan">GUIA REPORTE - PLAN</button>
     </div>
   </div>
 
@@ -3871,6 +3872,48 @@ function bindQuery(inputId, datalistId){
     }, 5); // debounce corto
   });
 }
+
+
+  /* ================== GUIA REPORTE Y PLAN DE PAGOS ================== */
+  function descargarGuiasReportePlan(){
+  const downloads = [
+    {
+      url: 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download',
+      filename: 'GUIA_REPORTE_CUENTA.pdf'
+    },
+    {
+      url: 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download',
+      filename: 'GUIA_PLAN_DE_PAGOS.pdf'
+    }
+  ];
+
+  function triggerDownload(item){
+    const a = document.createElement('a');
+    a.href = item.url;
+    a.download = item.filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  triggerDownload(downloads[0]);
+  setTimeout(()=> triggerDownload(downloads[1]), 650);
+}
+
+document.getElementById('go-guia-reporte-plan')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  descargarGuiasReportePlan();
+
+  await Swal.fire({
+    icon: 'success',
+    title: 'REVISA TUS GUIAS',
+    html: 'con estas guías aprenderás a <b>REPORTAR CUENTA y PLAN DE PAGOS</b> correctamente.<br><br>Revisa muy bien la explicación.',
+    timer: 6500,
+    showConfirmButton: false
+  });
+});
 
     /* ================== INGRESAR CUENTA ================== */
 
