@@ -6633,20 +6633,18 @@ if(!r.isConfirmed){
     }
 
     const msg =
-      '> PLAN DE PAGOS 🖥\n' +
-      'Estimado(a) *'+supervisor+'*' + '\n\n' +
-      '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
-      '> Egreso: *'+egreso+'*' + '\n\n' +
-      'Ingresa a la App para visualizar';
+  '> PLAN DE PAGOS 🖥\n' +
+  'Estimado(a) *'+supervisor+'*' + '\n\n' +
+  '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
+  '> Egreso: *'+egreso+'*' + '\n\n' +
+  'Ingresa a la App para visualizar';
 
-    if(grupo) sendBuilderbotMessage(grupo, msg);
+if(grupo) sendBuilderbotMessage(grupo, msg);
 
-    // Se mantiene la acción existente
-   const pagoVal = (egreso || '').toString().trim();
-await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, pago: pagoVal });
+await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, pago: egreso });
 
-    await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
-    showView('view-inicio');
+await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
+showView('view-inicio');
   }catch(e){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
