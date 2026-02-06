@@ -3627,8 +3627,32 @@ function mostrarEstadoCuenta(res){
     return;
   }
 
+  // === NUEVO: desactivar spinner global y usar SweetAlert loading ===
+  const prevSuppress = suppressLoader;
+  suppressLoader = true;
+
+  // Fuerza a ocultar el loader global si llegara a estar visible
+  loadingCount = 0;
+  if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
+  const prevLoaderDisplay = loader?.style.display;
+  if(loader){
+    loader.classList.add('hidden');
+    loader.style.display = 'none';
+  }
+
+  // SweetAlert de cargue
+  Swal.fire({
+    title: 'GENERANDO EGRESOS...',
+    html: 'Espera unos segundos mientras filtro tu información',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
   try{
     const data = await apiGet('descargarEgresosContratista', { documento: currentUser.documento });
+
+    await Swal.close();
 
     if(!data?.created || !data?.exportUrl){
       Swal.fire({
@@ -3654,7 +3678,17 @@ function mostrarEstadoCuenta(res){
       document.body.removeChild(a);
     }
   }catch(e){
+    await Swal.close();
     Swal.fire({icon:'error', title:'Error', text: e.message});
+  }finally{
+    // === NUEVO: restaurar loader global ===
+    suppressLoader = prevSuppress;
+    loadingCount = 0;
+    if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
+    if(loader){
+      loader.style.display = prevLoaderDisplay || '';
+      loader.classList.add('hidden');
+    }
   }
 });
 
