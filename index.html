@@ -1791,6 +1791,7 @@
     <input id="st-nombre" type="hidden" />
     <input id="st-secretaria" type="hidden" />
     <input id="st-contrato" type="hidden" />
+    <input id="st-telefono" type="hidden" />
 
     <div class="btn-row spaced" style="margin-top:14px;">
       <button id="st-enviar" class="btn-primary">Enviar Solicitud</button>
@@ -5903,7 +5904,7 @@ document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
   }
 });
 
-    /* ================== Enviar SOLICITUS TESORERIA ================== */
+    /* ================== Enviar SOLICITUD TESORERIA ================== */
 
     document.getElementById('go-solicitud-tesoreria')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
@@ -5931,6 +5932,7 @@ document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
     document.getElementById('st-nombre').value = info.nombre || '';
     document.getElementById('st-secretaria').value = info.secretaria || '';
     document.getElementById('st-contrato').value = info.contrato || '';
+    document.getElementById('st-telefono').value = info.contrato || '';
 
     document.getElementById('solicitud').value = '';
 
@@ -5954,6 +5956,7 @@ document.getElementById('st-enviar')?.addEventListener('click', async ()=>{
   const nombre = (document.getElementById('st-nombre').value || '').trim();
   const secretaria = (document.getElementById('st-secretaria').value || '').trim();
   const contrato = (document.getElementById('st-contrato').value || '').trim();
+  const telefono = (document.getElementById('st-telefono').value || '').trim();
   const solicitud = (document.getElementById('solicitud').value || '').trim();
 
   if(!solicitud){
@@ -5965,6 +5968,7 @@ document.getElementById('st-enviar')?.addEventListener('click', async ()=>{
     '<b>Nombre:</b> ' + (nombre || 'No Ingresado'),
     '<b>Secretaría:</b> ' + (secretaria || 'No Ingresado'),
     '<b>Contrato:</b> ' + (contrato || 'No Ingresado'),
+    '<b>Telefono:</b> ' + (telefono || 'No Ingresado'),
     '<b>Solicitud:</b><br>' + (solicitud || 'No Ingresado')
   ].join('<br><br>');
 
