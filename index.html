@@ -1969,7 +1969,27 @@ function isPdfFile_(file){
   return nameOk || typeOk;
 }
 
-function bindPdfInputStrict(id, { required=false } = {}){
+async function isEncryptedPdfFile_(file){
+  if(!file) return false;
+  try{
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    const head = new TextDecoder('latin1').decode(bytes.slice(0, Math.min(bytes.length, 30000)));
+
+    // Heurística práctica para "PDF con contraseña / cifrado"
+    // Detecta /Encrypt en el trailer o diccionario principal
+    if(/\/Encrypt\b/.test(head)) return true;
+
+    // Algunos PDFs protegidos suelen incluir "Encrypt" más tarde; buscamos un poco más
+    // (limitado a 1MB, así que es seguro)
+    return false;
+  }catch(_){
+    // Si no se puede leer, lo tratamos como sospechoso
+    return true;
+  }
+}
+
+function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
   const inp = document.getElementById(id);
   if(!inp) return;
 
@@ -1995,6 +2015,19 @@ function bindPdfInputStrict(id, { required=false } = {}){
       inp.value = '';
       await Swal.fire({ icon:'warning', title:'Archivo muy pesado', text:`El PDF supera ${MAX_PDF_MB} MB.` });
       return;
+    }
+
+    if(forbidEncrypted){
+      const encrypted = await isEncryptedPdfFile_(file);
+      if(encrypted){
+        inp.value = '';
+        await Swal.fire({
+          icon:'warning',
+          title:'PDF protegido no permitido',
+          text:'Este archivo parece estar protegido/cifrado con contraseña. Por favor exporta o guarda una versión sin contraseña e inténtalo nuevamente.'
+        });
+        return;
+      }
     }
 
     setPdfStatus(id, file);
@@ -4503,11 +4536,11 @@ if(guiaSel){
 }
 
 // Adjunto de archivos de cuenta certificado bancario y planilla
-    bindPdfInputStrict('bancaria', { required:true });
-  bindPdfInputStrict('baucher1', { required:true });
-  bindPdfInputStrict('planaporte1', { required:true });
-  bindPdfInputStrict('baucher2', { required:false });
-  bindPdfInputStrict('planaporte2', { required:false });
+    bindPdfInputStrict('bancaria', { required:true,  forbidEncrypted:true });
+bindPdfInputStrict('baucher1', { required:true,  forbidEncrypted:false });
+bindPdfInputStrict('planaporte1', { required:true,  forbidEncrypted:false });
+bindPdfInputStrict('baucher2', { required:false, forbidEncrypted:false });
+bindPdfInputStrict('planaporte2', { required:false, forbidEncrypted:true });
 
   if(IC_MODE === 'correccion' && IC_STATE.bankPlanUrls){
     const map = IC_STATE.bankPlanUrls || {};
