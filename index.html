@@ -1300,7 +1300,7 @@
       INFORME:
       <span id="ic-informe" class="chip">1</span>
       &nbsp; DE:
-      <input id="ic-total" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
+      <input id="ic-total" type="text" placeholder="Total" required style="display:inline-block; width:auto; min-width:80px;" />
     </p>
 
     <!-- Fechas: inicio/fin periodo y radicación -->
@@ -5022,6 +5022,13 @@ for(let i=0;i<Math.min(26,n);i++){
   const diaRadicar  = pad2(document.getElementById('ic-diaRad').value||'');
   const diaRat1     = pad2(document.getElementById('ic-diaRat1').value||'');
   const diaRat2     = pad2(document.getElementById('ic-diaRat2').value||'');
+
+  const total = String(document.getElementById('ic-total')?.value || '').trim();
+if(!total){
+  await Swal.fire({ icon:'warning', title:'Campo requerido', text:'Debes diligenciar el campo TOTAL.' });
+  document.getElementById('ic-total')?.focus();
+  return;
+}
 
   const body = {
     documento: currentUser.documento,
