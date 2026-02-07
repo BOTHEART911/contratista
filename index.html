@@ -1974,17 +1974,18 @@ async function isEncryptedPdfFile_(file){
   try{
     const buf = await file.arrayBuffer();
     const bytes = new Uint8Array(buf);
-    const head = new TextDecoder('latin1').decode(bytes.slice(0, Math.min(bytes.length, 30000)));
 
-    // Heurística práctica para "PDF con contraseña / cifrado"
-    // Detecta /Encrypt en el trailer o diccionario principal
+    // leer más del encabezado para aumentar detección (1MB máx => seguro)
+    const head = new TextDecoder('latin1').decode(bytes.slice(0, Math.min(bytes.length, 200000)));
+
+    // Si tiene /Encrypt casi siempre es PDF cifrado/protegido
     if(/\/Encrypt\b/.test(head)) return true;
 
-    // Algunos PDFs protegidos suelen incluir "Encrypt" más tarde; buscamos un poco más
-    // (limitado a 1MB, así que es seguro)
+    // Algunos PDFs protegidos también incluyen /Filter /Standard y /SubFilter
+    if(/\/Filter\s*\/Standard\b/.test(head)) return true;
+
     return false;
   }catch(_){
-    // Si no se puede leer, lo tratamos como sospechoso
     return true;
   }
 }
@@ -4536,10 +4537,10 @@ if(guiaSel){
 }
 
 // Adjunto de archivos de cuenta certificado bancario y planilla
-    bindPdfInputStrict('bancaria', { required:true,  forbidEncrypted:true });
-bindPdfInputStrict('baucher1', { required:true,  forbidEncrypted:false });
-bindPdfInputStrict('planaporte1', { required:true,  forbidEncrypted:false });
-bindPdfInputStrict('baucher2', { required:false, forbidEncrypted:false });
+    bindPdfInputStrict('bancaria',    { required:true,  forbidEncrypted:true });
+bindPdfInputStrict('baucher1',    { required:true,  forbidEncrypted:false });
+bindPdfInputStrict('planaporte1', { required:true,  forbidEncrypted:true });
+bindPdfInputStrict('baucher2',    { required:false, forbidEncrypted:false });
 bindPdfInputStrict('planaporte2', { required:false, forbidEncrypted:true });
 
   if(IC_MODE === 'correccion' && IC_STATE.bankPlanUrls){
