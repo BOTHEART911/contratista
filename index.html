@@ -2067,12 +2067,38 @@ function setPdfStatus(id, file){
   const btn = document.getElementById(id + '-clear');
   if(!el) return;
 
+  // Limpia
   if(!file){
     el.innerHTML = '';
     if(btn) btn.style.display = 'none';
     return;
   }
 
+  // Si viene como string (caso corrección precargada: URL en Drive)
+  if(typeof file === 'string'){
+    const url = String(file || '').trim();
+    if(!url){
+      el.innerHTML = '';
+      if(btn) btn.style.display = 'none';
+      return;
+    }
+
+    // Mostrar SOLO el nombre "bonito" (igual que cuando es file)
+    const cleanUrl = url.split('?')[0];
+    let name = cleanUrl.split('/').pop() || 'archivo.pdf';
+    try{ name = decodeURIComponent(name); }catch(_){}
+
+    // Algunos links terminan en "view" (drive), intenta sacar un nombre más útil si no parece .pdf
+    if(!/\.pdf$/i.test(name)){
+      name = 'PDF CARGADO';
+    }
+
+    el.innerHTML = `<span style="font-weight:700;">${escapeHtml_(name)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+    if(btn) btn.style.display = '';
+    return;
+  }
+
+  // Caso normal: File
   const name = String(file.name || 'archivo.pdf');
   el.innerHTML = `<span style="font-weight:700;">${escapeHtml_(name)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
   if(btn) btn.style.display = '';
