@@ -2074,10 +2074,10 @@ function setPdfStatus(id, file){
   }
 
   const name = String(file.name || 'archivo.pdf');
-  el.innerHTML = `<span style="font-weight:700;">${escapeHtml_(name)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+  el.innerHTML = `<span style="font-weight:900;color:#16a34a;">CARGADO</span> <span style="font-weight:700;">${escapeHtml_(name)}</span>`;
   if(btn) btn.style.display = '';
 }
-
+  
 function escapeHtml_(s){
   return String(s||'')
     .replace(/&/g,'&amp;')
@@ -4471,6 +4471,20 @@ IC_STATE.bankPlanUrls = {
   noafp:       String(base.noafpUrl || ''),
   actAnexos:   String(base.actAnexosUrl || '')
 };
+
+    IC_STATE.novedadesUrls = {
+  actaI:      String(base.actaIUrl || ''),
+  clasulados: String(base.clasuladosUrl || ''),
+  cdpC:       String(base.cdpCUrl || ''),
+  rpC:        String(base.rpCUrl || ''),
+  rutpn:      String(base.rutpnUrl || ''),
+  arlC:       String(base.arlCUrl || ''),
+  otrosi:     String(base.otrosiUrl || ''),
+  cdpAc:      String(base.cdpAcUrl || ''),
+  rpAc:       String(base.rpAcUrl || ''),
+  actaL:      String(base.actaLUrl || ''),
+  otroR:      String(base.otroRUrl || '')
+};
     
     // Pintar vista con modo corrección
     renderIngresarCuenta();
@@ -4788,7 +4802,7 @@ bindPdfInputStrict('actAnexos', { required:false, forbidEncrypted:true, maxMb: M
     if(inp){ inp.value = ''; }
     if(st){
       if(url){
-        st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(url)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+        st.innerHTML = `<span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
         if(clearBtn) clearBtn.style.display = '';
       }else{
         st.innerHTML = '';
@@ -4796,7 +4810,7 @@ bindPdfInputStrict('actAnexos', { required:false, forbidEncrypted:true, maxMb: M
       }
     }
   }
-
+    
   setPreloadedUrl('bancaria',    map.bancaria);
   setPreloadedUrl('baucher1',    map.baucher1);
   setPreloadedUrl('planaporte1', map.planaporte1);
@@ -4807,6 +4821,27 @@ bindPdfInputStrict('actAnexos', { required:false, forbidEncrypted:true, maxMb: M
   setPreloadedUrl('noafp',       map.noafp);
   setPreloadedUrl('actAnexos',  map.actAnexos);
 }
+
+  const novMap = IC_STATE.novedadesUrls || {};
+  const novIds = ['actaI','clasulados','cdpC','rpC','rutpn','arlC','otrosi','cdpAc','rpAc','actaL','otroR'];
+
+  novIds.forEach((nid)=>{
+    const st = document.getElementById(nid + '-status');
+    const clearBtn = document.getElementById(nid + '-clear');
+    const inp = document.getElementById(nid);
+
+    if(inp){ inp.value = ''; }
+    if(!st) return;
+
+    const hasUrl = !!String(novMap[nid] || '').trim();
+    if(hasUrl){
+      st.innerHTML = `<span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+      if(clearBtn) clearBtn.style.display = '';
+    }else{
+      st.innerHTML = '';
+      if(clearBtn) clearBtn.style.display = 'none';
+    }
+  });
   
   // Meses select
   const sel1 = document.getElementById('ic-mesPlanilla'); const sel2 = document.getElementById('ic-mesPlanilla2');
