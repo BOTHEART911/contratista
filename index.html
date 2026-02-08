@@ -2074,7 +2074,7 @@ function setPdfStatus(id, file){
     return;
   }
 
-  // Si viene como string (caso corrección precargada: URL en Drive)
+  // Caso corrección precargada: viene string (URL/ID)
   if(typeof file === 'string'){
     const url = String(file || '').trim();
     if(!url){
@@ -2083,17 +2083,9 @@ function setPdfStatus(id, file){
       return;
     }
 
-    // Mostrar SOLO el nombre "bonito" (igual que cuando es file)
-    const cleanUrl = url.split('?')[0];
-    let name = cleanUrl.split('/').pop() || 'archivo.pdf';
-    try{ name = decodeURIComponent(name); }catch(_){}
-
-    // Algunos links terminan en "view" (drive), intenta sacar un nombre más útil si no parece .pdf
-    if(!/\.pdf$/i.test(name)){
-      name = 'PDF CARGADO';
-    }
-
-    el.innerHTML = `<span style="font-weight:700;">${escapeHtml_(name)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+    // NO mostrar URL. Mostrar solo “PDF CARGADO”
+    // (si quieres, puedes cambiar este texto por el que prefieras)
+    el.innerHTML = `<span style="font-weight:700;">PDF</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
     if(btn) btn.style.display = '';
     return;
   }
