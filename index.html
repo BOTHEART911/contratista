@@ -4327,6 +4327,44 @@ IC_STATE.bankPlanUrls = {
     // Pintar vista con modo corrección
     renderIngresarCuenta();
 
+    function pickNiceNameFromUrl_(url){
+  try{
+    url = String(url||'').trim();
+    if(!url) return '';
+    // Nombre por defecto: último segmento o el id si aplica
+    const idm = url.match(/\/d\/([a-zA-Z0-9_-]{10,})\//);
+    const id = idm ? idm[1] : '';
+    return id ? ('Drive ID: ' + id) : url;
+  }catch(_){
+    return String(url||'');
+  }
+}
+
+(function forceRenderPreloadedPdfStatus(){
+  if(IC_MODE !== 'correccion') return;
+
+  const map = IC_STATE.bankPlanUrls || {};
+  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp'];
+
+  ids.forEach(id=>{
+    const st = document.getElementById(id+'-status');
+    const clearBtn = document.getElementById(id+'-clear');
+    const inp = document.getElementById(id);
+
+    if(inp) inp.value = '';
+    if(!st) return;
+
+    const url = String(map[id]||'').trim();
+    if(url){
+      st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(pickNiceNameFromUrl_(url))}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+      if(clearBtn) clearBtn.style.display = '';
+    }else{
+      st.innerHTML = '';
+      if(clearBtn) clearBtn.style.display = 'none';
+    }
+  });
+})();
+
     // Precargar relación de pago
     const saldoEl = document.getElementById('ic-saldo');
     if(saldoEl){
