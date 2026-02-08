@@ -1517,14 +1517,6 @@
         </div>
     
     <div id="ic-oblig-wrap" class="narrow"></div>
-    
-      <label for="guia">¿Deseas descargar Guía para Reportar la Cuenta y Plan de Pagos?</label>
-     <div class="muted" style="margin:6px 0 8px; text-align: justify; ">Si ya sabes realizar el proceso de <b>REPORTE DE CUENTA Y PLAN DE PAGOS</b> selecciona NO</div>
-      <select id="guia" required>
-        <option value="" disabled selected>Selecciona</option>
-        <option value="SI">SI</option>
-        <option value="NO">NO</option>
-      </select>
 
           <div id="ic-bankplan-wrap" class="narrow" style="margin-top:12px;">
         <h3 class="center" style="margin-top:6px;color:#333;">CARGUE DE ARCHIVOS DE CUENTA</h3>
@@ -4747,39 +4739,6 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     saldoHint.style.display = isFirst ? '' : 'none';
   }
 
-// Select "guia" (descarga automática si el usuario elige SI)
-const guiaSel = document.getElementById('guia');
-if(guiaSel){
-  guiaSel.onchange = null;
-  guiaSel.addEventListener('change', ()=>{
-    const v = String(guiaSel.value||'').trim().toUpperCase();
-    if(v === 'SI'){
-      const downloads = [
-        {
-          url: 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download', /*GUIA REPORTAR CUENTA*/
-          filename: 'GUIA_REPORTE_CUENTA.pdf'
-        },
-        {
-          url: 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download', /*GUIA PLAN DE PAGOS*/
-          filename: 'GUIA_PLAN_DE_PAGOS.pdf'
-        }
-      ];
-
-      function triggerDownload(item){
-        const a = document.createElement('a');
-        a.href = item.url;
-        a.download = item.filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-
-      triggerDownload(downloads[0]);
-      setTimeout(()=> triggerDownload(downloads[1]), 650);
-    }
-  });
-}
-
 // Adjunto de archivos de cuenta certificado bancario y planilla
 bindPdfInputStrict('bancaria',    { required: (IC_MODE !== 'correccion'), forbidEncrypted:true });
 bindPdfInputStrict('baucher1',    { required: (IC_MODE !== 'correccion'), forbidEncrypted:true });
@@ -5223,12 +5182,6 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     }
   }
 }
-
-  const guiaVal = (document.getElementById('guia')?.value || '').trim().toUpperCase();
-  if(!guiaVal){
-    Swal.fire({ icon:'warning', title:'Debes seleccionar la Guía' });
-    return;
-  }
 
     if(IC_MODE !== 'correccion'){
     const banc = document.getElementById('bancaria');
