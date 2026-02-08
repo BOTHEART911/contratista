@@ -2067,30 +2067,12 @@ function setPdfStatus(id, file){
   const btn = document.getElementById(id + '-clear');
   if(!el) return;
 
-  // Limpia
   if(!file){
     el.innerHTML = '';
     if(btn) btn.style.display = 'none';
     return;
   }
 
-  // Caso corrección precargada: viene string (URL/ID)
-  if(typeof file === 'string'){
-    const url = String(file || '').trim();
-    if(!url){
-      el.innerHTML = '';
-      if(btn) btn.style.display = 'none';
-      return;
-    }
-
-    // NO mostrar URL. Mostrar solo “PDF CARGADO”
-    // (si quieres, puedes cambiar este texto por el que prefieras)
-    el.innerHTML = `<span style="font-weight:700;">PDF</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
-    if(btn) btn.style.display = '';
-    return;
-  }
-
-  // Caso normal: File
   const name = String(file.name || 'archivo.pdf');
   el.innerHTML = `<span style="font-weight:700;">${escapeHtml_(name)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
   if(btn) btn.style.display = '';
@@ -3821,12 +3803,12 @@ document.getElementById('sp-enviar')?.addEventListener('click', async ()=>{
     if(tel){
       const msg =
         'Estimado(a) *' + (nombre || '') + '*\n\n' +
-        'He recibido tu solicitud, la revisaré en el menor tiempo posible y me pondré en contacto contigo para concretar detalles.\n' +
-        'Agradezco la comprensión en nuestros tiempos de respuesta según demanda o solicitudes.\n\n' +
+        'Hemos recibido tu solicitud, la revisaremos en el menor tiempo posible y nos pondremos en contacto contigo para concretar detalles.\n' +
+        'Agradecemos la comprensión en nuestros tiempos de respuesta según demanda o solicitudes.\n\n' +
         'Muchas gracias por ser parte de este gran Equipo.\n\n' +
         'Cordialmente;\n\n' +
-        '*Laura Daniela Ortiz*\n' +
-        '> Equipo de Comunicaciones Alcaldía de Flandes';
+        '*Equipo de Comunicaciones*\n' +
+        '> Alcaldía de Flandes';
       sendBuilderbotMessage(tel, msg);
     }
 
