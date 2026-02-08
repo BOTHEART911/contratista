@@ -4610,22 +4610,40 @@ bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
   if(IC_MODE === 'correccion'){
   const map = IC_STATE.bankPlanUrls || {};
 
-  function setPreloadedUrl(id, url){
-    const st = document.getElementById(id+'-status');
-    const clearBtn = document.getElementById(id+'-clear');
-    const inp = document.getElementById(id);
+  // UBICACIÓN EXACTA: dentro de renderIngresarCuenta(), en el bloque:
+// if(IC_MODE === 'correccion'){ ... function setPreloadedUrl(id, url){ ... } ... }
+// Reemplaza COMPLETA la función setPreloadedUrl por esta:
 
-    if(inp){ inp.value = ''; }
-    if(st){
-      if(url){
-        st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(url)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
-        if(clearBtn) clearBtn.style.display = '';
-      }else{
-        st.innerHTML = '';
-        if(clearBtn) clearBtn.style.display = 'none';
-      }
+function setPreloadedUrl(id, url){
+  const st = document.getElementById(id + '-status');
+  const clearBtn = document.getElementById(id + '-clear');
+  const inp = document.getElementById(id);
+
+  if(inp){ inp.value = ''; }
+
+  if(st){
+    if(url){
+      // Mostrar un nombre "bonito" en vez de la URL completa
+      const prettyNameMap = {
+        bancaria: 'Certificación Bancaria (PDF)',
+        baucher1: 'Baucher Planilla (PDF)',
+        planaporte1: 'Planilla (PDF)',
+        baucher2: 'Baucher Planilla Anexa (PDF)',
+        planaporte2: 'Planilla Anexa (PDF)',
+        rutsg: 'RUT (Régimen Simple) (PDF)',
+        noafp: 'Certificado NO aportes a Pensión (PDF)'
+      };
+
+      const label = prettyNameMap[id] || 'Archivo cargado';
+      st.innerHTML = `<span style="font-weight:900;color:#16a34a;">${escapeHtml_(label)}: CARGADO</span>`;
+
+      if(clearBtn) clearBtn.style.display = '';
+    }else{
+      st.innerHTML = '';
+      if(clearBtn) clearBtn.style.display = 'none';
     }
   }
+}
 
   setPreloadedUrl('bancaria',    map.bancaria);
   setPreloadedUrl('baucher1',    map.baucher1);
