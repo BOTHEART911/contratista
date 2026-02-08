@@ -1541,6 +1541,8 @@
         <input id="planaporte1" type="file" accept="application/pdf" />
         <div id="planaporte1-status" class="muted" style="margin-top:6px;"></div>
 
+        <div class="muted" style="margin:6px 0 8px; text-align: center; ">=========================</div>
+
         <label>RUT (Régimen Simple) (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS QUE MANEJAN FACTURA DIGITAL</b></div>
         <input id="rutsg" type="file" accept="application/pdf" />
@@ -1556,10 +1558,8 @@
           <button type="button" class="chip danger" id="noafp-clear" style="display:none;">Quitar</button>
         </div>
         <div id="noafp-status" class="muted" style="margin-top:6px;"></div>
-            
-        <div class="muted" style="margin:6px 0 8px; text-align: center; ">=========================</div>
-        <div class="muted" style="margin:6px 0 8px; text-align: center; "><b>LOS SIGUIENTES CAMPOS SON OPCIONALES</b></div>
-        <div class="muted" style="margin:6px 0 8px; text-align: center; ">=========================</div>
+
+        <h3 class="center" style="margin-top:6px;color:#5b5b5b;">LOS SIGUIENTES CAMPOS SON OPCIONALE</h3>
 
         <label>Baucher Planilla Anexa (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
@@ -1918,7 +1918,7 @@
       <!-- VISTA SOPORTE CONTRATISTA -->
     <section id="view-soporte" class="view">
       <div class="card narrow">
-        <h2 style="color:var(--primary)">¿QUÉ NECESITAS?</h2>
+        <h2 style="color:var(--primary)">¿QUÉ NECESITAS RESOLVER?</h2>
         <p class="helper">Redacta tu solicitud o sugerencia para Gobierno Digital</p>
         <textarea id="soporte-text" rows="6" placeholder="Describe tu duda o sugerencia con el mayor detalle posible"></textarea>
         <div class="btn-row spaced">
@@ -1940,7 +1940,7 @@
     <textarea
       id="solicitud"
       rows="5"
-      placeholder="Redactar con mayor detalle tu solicitud: relaciona el número de cuenta y la fecha de radicación. Recuerda que esta solicitud tendrá validez si el estado de cuenta es PADAGA"></textarea>
+      placeholder="Redacta con mayor detalle tu solicitud: relaciona el número de cuenta y la fecha de radicación. Recuerda que esta solicitud tendrá validez si el estado de cuenta es PADAGA"></textarea>
 
     <input id="st-nombre" type="hidden" />
     <input id="st-secretaria" type="hidden" />
@@ -3895,7 +3895,7 @@ function mostrarEstadoCuenta(res){
       Swal.fire({
         icon:'success',
         title:'ORDEN DE PAGO EMITADA',
-        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> tiene ORDEN DE PAGO por la Oficina de Contabilidad<br><br>A la espera de EGRESO por la oficina de Hacienda`,
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> tiene ORDEN DE PAGO por la Oficina de Contabilidad<br><br>A la espera de EGRESO por la oficina de Tesorería`,
         timer:8000,
         showConfirmButton:false
       });
@@ -3992,7 +3992,7 @@ function mostrarEstadoCuenta(res){
   // SweetAlert de cargue
   Swal.fire({
     title: 'GENERANDO EGRESOS...',
-    html: 'Espera unos segundos mientras filtro tu información',
+    html: 'Espera unos segundos mientras filtro tu información<br><br>Hacemos todo por ti 🤓',
     allowOutsideClick: false,
     allowEscapeKey: false,
     didOpen: () => { Swal.showLoading(); }
@@ -4058,7 +4058,7 @@ function mostrarEstadoCuenta(res){
 
   const waitSwal = Swal.fire({
     title: 'GENERANDO CERTIFICACIÓN...',
-    html: 'Por favor espera unos segundos',
+    html: 'Por favor espera unos segundos<br><br>Hacemos todo por ti 👩🏻‍💻',
     allowOutsideClick: false,
     allowEscapeKey: false,
     didOpen: () => { Swal.showLoading(); }
@@ -4590,7 +4590,7 @@ if (bj === 'INGRESADA' || bj === 'REPORTADA') {
   await Swal.fire({
     icon:'info',
     title:'NO PUEDES ACUMULAR CUENTAS',
-    html: `Tu Supervisor no ha firmado y por ende, la oficina de Contratación no ha Aprobado tu cuenta anterior<br><br>
+    html: `Tu Supervisor no ha revisado y por ende, la oficina de Contratación no ha Aprobado tu cuenta recientemente reportada<br><br>
            Puedes ir adelantado el registro de las Actividades de la <b>siguiente cuenta</b> desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
            ¡No dejes acumular cuentas!`,
     timer:13000,
@@ -5307,7 +5307,9 @@ if(!total){
     await Swal.fire({
       icon:'info',
       title:'REVISA MUY BIEN LOS DOCUMENTOS ADJUNTOS',
-      html:'Para <b>1ra Cuenta:</b><br>- Acta de Inicio<br>- CDP<br>- RP<br>- RUT<br>- Certificación ARL<br>- OtroSi (Si Aplica)<br>- Otro Requerido (Si Aplica)<br><br>Para <b>Última Cuenta:</b><br>- Acta de Liquidación<br>- Otro Requerido (Si Aplica)<br><br>Para otros casos, consulta primero con tu SUPERVISOR.'
+      html:'Para <b>1ra Cuenta:</b><br>- Acta de Inicio<br>- CDP<br>- RP<br>- RUT<br>- Certificación ARL<br>- OtroSi (Si Aplica)<br>- Otro Requerido (Si Aplica)<br><br>
+          'Para <b>Última Cuenta:</b><br>- Acta de Liquidación<br>- Otro Requerido (Si Aplica)<br><br>
+          'Para otros casos, consulta primero con tu SUPERVISOR.'
     });
     return;
   }
@@ -5410,7 +5412,7 @@ if(!total){
 const isCorrection = (IC_MODE === 'correccion');
 const waitSwal = Swal.fire({
   title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
-  html: 'Por favor espera un par de minutos mientras termina el proceso.<br><b>Entre 1,50 y 2,30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br>No salgas de la App.',
+  html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
   allowOutsideClick: false,
   allowEscapeKey: false,
   didOpen: () => { Swal.showLoading(); }
@@ -6975,7 +6977,7 @@ function esHorarioHabilAhora(){
       const r = await Swal.fire({
         icon:'success',
         title:'DESCARGA TUS DOCUMENTOS',
-        html:'Unificalos guiándote del documento <b>Guía Plan de Pagos</b><br>Ya solo falta el cargue en el SECOP II',
+        html:'Unificalos guiándote con la explicación en <b>TUTORIALES DE USO</b><br>Ya solo falta el cargue en el SECOP II',
         confirmButtonText:'OK'
       });
       if(r.isConfirmed) openFolder();
@@ -7008,7 +7010,7 @@ function esHorarioHabilAhora(){
       const r = await Swal.fire({
         icon:'info',
         title:'REVISA TUS DOCUMENTOS',
-        html:'Verifica que los Datos estén correctos y completos.<br><br>Para realizar correctamente este proceso, revisa el documento <b>Guía Reporte</b>',
+        html:'Verifica que los Datos estén correctos y completos.<br><br>Para realizar correctamente este proceso, revisa en el botón GUIA, <b>TUTORIALES DE USO</b>',
         confirmButtonText:'IR A MI CARPETA DRIVE'
       });
       if(r.isConfirmed) openFolder();
