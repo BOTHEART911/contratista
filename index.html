@@ -1546,12 +1546,33 @@
         <label>Baucher Planilla Anexa (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
         <input id="baucher2" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+        <button type="button" class="chip danger" id="baucher2-clear" style="display:none;">Quitar</button>
+        </div>
         <div id="baucher2-status" class="muted" style="margin-top:6px;"></div>
 
         <label>Planilla Anexa (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
         <input id="planaporte2" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="planaporte2-clear" style="display:none;">Quitar</button>
+        </div>
         <div id="planaporte2-status" class="muted" style="margin-top:6px;"></div>
+
+        <label>RUT (Régimen Simple) (PDF)</label>
+        <input id="rutsg" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="rutsg-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="rutsg-status" class="muted" style="margin-top:6px;"></div>
+        
+        <label>Certificado NO aportes a Pensión (PDF)</label>
+        <input id="noafp" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="noafp-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="noafp-status" class="muted" style="margin-top:6px;"></div>
+            
       </div>
     
     <div class="btn-row spaced">
@@ -1929,13 +1950,18 @@ const MAX_PDF_MB = 1;
 
 function setPdfStatus(id, file){
   const el = document.getElementById(id + '-status');
+  const btn = document.getElementById(id + '-clear');
   if(!el) return;
+
   if(!file){
     el.innerHTML = '';
+    if(btn) btn.style.display = 'none';
     return;
   }
+
   const name = String(file.name || 'archivo.pdf');
   el.innerHTML = `<span style="font-weight:700;">${escapeHtml_(name)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+  if(btn) btn.style.display = '';
 }
 
 function escapeHtml_(s){
@@ -1994,6 +2020,20 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
   const inp = document.getElementById(id);
   if(!inp) return;
 
+  const clearBtn = document.getElementById(id + '-clear');
+
+  function clearUi(){
+    inp.value = '';
+    setPdfStatus(id, null);
+  }
+
+  if(clearBtn){
+    clearBtn.type = 'button';
+    clearBtn.onclick = async ()=>{
+      clearUi();
+    };
+  }
+
   inp.addEventListener('change', async ()=>{
     const file = inp.files && inp.files[0];
     setPdfStatus(id, null);
@@ -2006,14 +2046,14 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
     }
 
     if(!isPdfFile_(file)){
-      inp.value = '';
+      clearUi();
       await Swal.fire({ icon:'warning', title:'Archivo inválido', text:'Solo se permiten archivos PDF.' });
       return;
     }
 
     const sizeMB = file.size / (1024*1024);
     if(sizeMB > MAX_PDF_MB){
-      inp.value = '';
+      clearUi();
       await Swal.fire({ icon:'warning', title:'Archivo muy pesado', text:`El PDF supera ${MAX_PDF_MB} MB.` });
       return;
     }
@@ -2021,7 +2061,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
     if(forbidEncrypted){
       const encrypted = await isEncryptedPdfFile_(file);
       if(encrypted){
-        inp.value = '';
+        clearUi();
         await Swal.fire({
           icon:'warning',
           title:'PDF protegido no permitido',
@@ -2036,13 +2076,32 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
 }
 
 async function collectBankPlanPdfsBase64_(){
-  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2'];
+  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp'];
   const out = {};
+
   for(const id of ids){
     const inp = document.getElementById(id);
     const file = inp && inp.files && inp.files[0] ? inp.files[0] : null;
-    out[id] = file ? await pdfFileToBase64(file) : '';
+
+    if(file){
+      out[id] = await pdfFileToBase64(file);
+      continue;
+    }
+
+    // En corrección: si el usuario presionó "Quitar" sobre un precargado, mandamos marca de borrado
+    if(IC_MODE === 'correccion'){
+      const st = document.getElementById(id + '-status');
+      const hadPreloaded = !!(IC_STATE.bankPlanUrls && IC_STATE.bankPlanUrls[id]);
+      const statusEmpty = !st || String(st.innerHTML||'').trim() === '';
+      if(hadPreloaded && statusEmpty){
+        out[id] = '__DELETE__';
+        continue;
+      }
+    }
+
+    out[id] = '';
   }
+
   return out;
 }
 
@@ -4260,7 +4319,9 @@ IC_STATE.bankPlanUrls = {
   baucher1:    String(base.baucher1Url || ''),
   planaporte1: String(base.planaporte1Url || ''),
   baucher2:    String(base.baucher2Url || ''),
-  planaporte2: String(base.planaporte2Url || '')
+  planaporte2: String(base.planaporte2Url || ''),
+  rutsg:       String(base.rutsgUrl || ''),
+  noafp:       String(base.noafpUrl || '')
 };
     
     // Pintar vista con modo corrección
@@ -4537,28 +4598,44 @@ if(guiaSel){
 }
 
 // Adjunto de archivos de cuenta certificado bancario y planilla
-    bindPdfInputStrict('bancaria',    { required:true,  forbidEncrypted:true });
-bindPdfInputStrict('baucher1',    { required:true,  forbidEncrypted:false });
-bindPdfInputStrict('planaporte1', { required:true,  forbidEncrypted:true });
-bindPdfInputStrict('baucher2',    { required:false, forbidEncrypted:false });
+bindPdfInputStrict('bancaria',    { required: (IC_MODE !== 'correccion'), forbidEncrypted:true });
+bindPdfInputStrict('baucher1',    { required: (IC_MODE !== 'correccion'), forbidEncrypted:true });
+bindPdfInputStrict('planaporte1', { required: (IC_MODE !== 'correccion'), forbidEncrypted:true });
+bindPdfInputStrict('baucher2',    { required:false, forbidEncrypted:true });
 bindPdfInputStrict('planaporte2', { required:false, forbidEncrypted:true });
 
-  if(IC_MODE === 'correccion' && IC_STATE.bankPlanUrls){
-    const map = IC_STATE.bankPlanUrls || {};
-    const pseudo = (id, url)=>{
+bindPdfInputStrict('rutsg',       { required:false, forbidEncrypted:true });
+bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
+
+  if(IC_MODE === 'correccion'){
+  const map = IC_STATE.bankPlanUrls || {};
+
+  function setPreloadedUrl(id, url){
+    const st = document.getElementById(id+'-status');
+    const clearBtn = document.getElementById(id+'-clear');
+    const inp = document.getElementById(id);
+
+    if(inp){ inp.value = ''; }
+    if(st){
       if(url){
-        const st = document.getElementById(id+'-status');
-        if(st){
-          st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(url)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
-        }
+        st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(url)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+        if(clearBtn) clearBtn.style.display = '';
+      }else{
+        st.innerHTML = '';
+        if(clearBtn) clearBtn.style.display = 'none';
       }
-    };
-    pseudo('bancaria', map.bancaria);
-    pseudo('baucher1', map.baucher1);
-    pseudo('planaporte1', map.planaporte1);
-    pseudo('baucher2', map.baucher2);
-    pseudo('planaporte2', map.planaporte2);
+    }
   }
+
+  setPreloadedUrl('bancaria',    map.bancaria);
+  setPreloadedUrl('baucher1',    map.baucher1);
+  setPreloadedUrl('planaporte1', map.planaporte1);
+  setPreloadedUrl('baucher2',    map.baucher2);
+  setPreloadedUrl('planaporte2', map.planaporte2);
+
+  setPreloadedUrl('rutsg',       map.rutsg);
+  setPreloadedUrl('noafp',       map.noafp);
+}
   
   // Meses select
   const sel1 = document.getElementById('ic-mesPlanilla'); const sel2 = document.getElementById('ic-mesPlanilla2');
