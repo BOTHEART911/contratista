@@ -1541,7 +1541,25 @@
         <input id="planaporte1" type="file" accept="application/pdf" />
         <div id="planaporte1-status" class="muted" style="margin-top:6px;"></div>
 
+        <label>RUT (Régimen Simple) (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS QUE MANEJAN FACTURA DIGITAL</b></div>
+        <input id="rutsg" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="rutsg-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="rutsg-status" class="muted" style="margin-top:6px;"></div>
+        
+        <label>Certificado NO aportes a Pensión (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS PENSIONADAS</b></div>
+        <input id="noafp" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="noafp-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="noafp-status" class="muted" style="margin-top:6px;"></div>
+            
+        <div class="muted" style="margin:6px 0 8px; text-align: center; ">=========================</div>
         <div class="muted" style="margin:6px 0 8px; text-align: center; "><b>LOS SIGUIENTES CAMPOS SON OPCIONALES</b></div>
+        <div class="muted" style="margin:6px 0 8px; text-align: center; ">=========================</div>
 
         <label>Baucher Planilla Anexa (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
@@ -1558,20 +1576,6 @@
           <button type="button" class="chip danger" id="planaporte2-clear" style="display:none;">Quitar</button>
         </div>
         <div id="planaporte2-status" class="muted" style="margin-top:6px;"></div>
-
-        <label>RUT (Régimen Simple) (PDF)</label>
-        <input id="rutsg" type="file" accept="application/pdf" />
-        <div class="btn-row" style="margin-top:6px;">
-          <button type="button" class="chip danger" id="rutsg-clear" style="display:none;">Quitar</button>
-        </div>
-        <div id="rutsg-status" class="muted" style="margin-top:6px;"></div>
-        
-        <label>Certificado NO aportes a Pensión (PDF)</label>
-        <input id="noafp" type="file" accept="application/pdf" />
-        <div class="btn-row" style="margin-top:6px;">
-          <button type="button" class="chip danger" id="noafp-clear" style="display:none;">Quitar</button>
-        </div>
-        <div id="noafp-status" class="muted" style="margin-top:6px;"></div>
             
       </div>
     
@@ -1948,37 +1952,12 @@ function compressImageToDataUrl(file, { maxDim = MAX_IMG_DIM, quality = JPEG_QUA
   /* ================== PDFS BANCO Y PLANILLA ================== */
 const MAX_PDF_MB = 1;
 
-  async function pickNiceNameFromUrl_(url){
-  try{
-    const u = String(url||'').trim();
-    if(!u) return '';
-    const m = u.match(/\/d\/([a-zA-Z0-9_-]{10,})\//);
-    const id = m ? m[1] : '';
-    if(!id) return u;
-    const metaUrl = `https://www.googleapis.com/drive/v3/files/${id}?fields=name`;
-    const r = await fetch(metaUrl);
-    if(!r.ok) return u;
-    const j = await r.json();
-    return String(j && j.name ? j.name : u);
-  }catch(_){
-    return String(url||'').trim();
-  }
-}
-
 function setPdfStatus(id, file){
   const el = document.getElementById(id + '-status');
   const btn = document.getElementById(id + '-clear');
   if(!el) return;
 
-  // Limpio si no hay file y no hay preloaded
   if(!file){
-    // Si en corrección existe URL precargada, no borrar el estado aquí
-    if(IC_MODE === 'correccion'){
-      const hadPreloaded = !!(IC_STATE.bankPlanUrls && IC_STATE.bankPlanUrls[id]);
-      if(hadPreloaded){
-        return;
-      }
-    }
     el.innerHTML = '';
     if(btn) btn.style.display = 'none';
     return;
@@ -1988,7 +1967,6 @@ function setPdfStatus(id, file){
   el.innerHTML = `<span style="font-weight:700;">${escapeHtml_(name)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
   if(btn) btn.style.display = '';
 }
-
 
 function escapeHtml_(s){
   return String(s||'')
@@ -2050,24 +2028,19 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
 
   function clearUi(){
     inp.value = '';
-    // En corrección: al "Quitar" debemos vaciar estado para que collectBankPlanPdfsBase64_ mande __DELETE__
-    const el = document.getElementById(id + '-status');
-    if(el) el.innerHTML = '';
-    if(clearBtn) clearBtn.style.display = 'none';
+    setPdfStatus(id, null);
   }
 
   if(clearBtn){
     clearBtn.type = 'button';
-    clearBtn.onclick = async ()=>{ clearUi(); };
+    clearBtn.onclick = async ()=>{
+      clearUi();
+    };
   }
 
   inp.addEventListener('change', async ()=>{
     const file = inp.files && inp.files[0];
-
-    // Limpia estado visual antes de validar nuevo archivo
-    const el = document.getElementById(id + '-status');
-    if(el) el.innerHTML = '';
-    if(clearBtn) clearBtn.style.display = 'none';
+    setPdfStatus(id, null);
 
     if(!file){
       if(required){
@@ -4358,7 +4331,7 @@ IC_STATE.bankPlanUrls = {
     // Pintar vista con modo corrección
     renderIngresarCuenta();
 
-       // Precargar relación de pago
+    // Precargar relación de pago
     const saldoEl = document.getElementById('ic-saldo');
     if(saldoEl){
       saldoEl.value = String(base.saldoActual||'');
@@ -4641,35 +4614,31 @@ bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
   if(IC_MODE === 'correccion'){
   const map = IC_STATE.bankPlanUrls || {};
 
-  async function setPreloadedUrl(id, url){
+  function setPreloadedUrl(id, url){
     const st = document.getElementById(id+'-status');
     const clearBtn = document.getElementById(id+'-clear');
     const inp = document.getElementById(id);
 
     if(inp){ inp.value = ''; }
-
-    if(!st) return;
-
-    if(url){
-      // Mostrar nombre “bonito” si se puede; si no, muestra la URL
-      const nice = await pickNiceNameFromUrl_(url);
-      st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(nice || url)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
-      if(clearBtn) clearBtn.style.display = '';
-    }else{
-      st.innerHTML = '';
-      if(clearBtn) clearBtn.style.display = 'none';
+    if(st){
+      if(url){
+        st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(url)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
+        if(clearBtn) clearBtn.style.display = '';
+      }else{
+        st.innerHTML = '';
+        if(clearBtn) clearBtn.style.display = 'none';
+      }
     }
   }
 
-  (async ()=>{
-    await setPreloadedUrl('bancaria',    map.bancaria);
-    await setPreloadedUrl('baucher1',    map.baucher1);
-    await setPreloadedUrl('planaporte1', map.planaporte1);
-    await setPreloadedUrl('baucher2',    map.baucher2);
-    await setPreloadedUrl('planaporte2', map.planaporte2);
-    await setPreloadedUrl('rutsg',       map.rutsg);
-    await setPreloadedUrl('noafp',       map.noafp);
-  })();
+  setPreloadedUrl('bancaria',    map.bancaria);
+  setPreloadedUrl('baucher1',    map.baucher1);
+  setPreloadedUrl('planaporte1', map.planaporte1);
+  setPreloadedUrl('baucher2',    map.baucher2);
+  setPreloadedUrl('planaporte2', map.planaporte2);
+
+  setPreloadedUrl('rutsg',       map.rutsg);
+  setPreloadedUrl('noafp',       map.noafp);
 }
   
   // Meses select
