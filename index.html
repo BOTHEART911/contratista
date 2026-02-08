@@ -1527,7 +1527,15 @@
       </select>
 
           <div id="ic-bankplan-wrap" class="narrow" style="margin-top:12px;">
-        <h3 class="center" style="margin-top:6px;color:#333;">CARGUE DE ARCHIVOS CERTIFICACIÓN BANCARIA Y PLANILLA</h3>
+        <h3 class="center" style="margin-top:6px;color:#333;">CARGUE DE ARCHIVOS DE CUENTA</h3>
+
+        <label>Anexos de Actividades (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SI TIENES ANEXOS DE ACTIVIDADES, SÚBELOS EN UN ARCHIVO PDF UNIFICADO, MAX. 10 MB</b></div>
+        <input id="actAnexos" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="actAnexos-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="actAnexos-status" class="muted" style="margin-top:6px;"></div>
 
         <label>Certificación Bancaria (PDF)</label>
         <input id="bancaria" type="file" accept="application/pdf" />
@@ -1951,6 +1959,7 @@ function compressImageToDataUrl(file, { maxDim = MAX_IMG_DIM, quality = JPEG_QUA
 
   /* ================== PDFS BANCO Y PLANILLA ================== */
 const MAX_PDF_MB = 1;
+const MAX_ACT_ANEXOS_MB = 10;
 
 function setPdfStatus(id, file){
   const el = document.getElementById(id + '-status');
@@ -2020,7 +2029,7 @@ async function isEncryptedPdfFile_(file){
   }
 }
 
-function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
+function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=MAX_PDF_MB } = {}){
   const inp = document.getElementById(id);
   if(!inp) return;
 
@@ -2056,9 +2065,9 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
     }
 
     const sizeMB = file.size / (1024*1024);
-    if(sizeMB > MAX_PDF_MB){
+    if(sizeMB > maxMb){
       clearUi();
-      await Swal.fire({ icon:'warning', title:'Archivo muy pesado', text:`El PDF supera ${MAX_PDF_MB} MB.` });
+      await Swal.fire({ icon:'warning', title:'Archivo muy pesado', text:`El PDF supera ${maxMb} MB.` });
       return;
     }
 
@@ -2080,7 +2089,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
 }
 
 async function collectBankPlanPdfsBase64_(){
-  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp'];
+  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp','actAnexos'];
   const out = {};
 
   for(const id of ids){
@@ -4325,7 +4334,8 @@ IC_STATE.bankPlanUrls = {
   baucher2:    String(base.baucher2Url || ''),
   planaporte2: String(base.planaporte2Url || ''),
   rutsg:       String(base.rutsgUrl || ''),
-  noafp:       String(base.noafpUrl || '')
+  noafp:       String(base.noafpUrl || ''),
+  actAnexos:   String(base.actAnexosUrl || '')
 };
     
     // Pintar vista con modo corrección
@@ -4610,6 +4620,7 @@ bindPdfInputStrict('planaporte2', { required:false, forbidEncrypted:true });
 
 bindPdfInputStrict('rutsg',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
+bindPdfInputStrict('actAnexos', { required:false, forbidEncrypted:true, maxMb: MAX_ACT_ANEXOS_MB });
 
   if(IC_MODE === 'correccion'){
   const map = IC_STATE.bankPlanUrls || {};
@@ -4639,6 +4650,7 @@ bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
 
   setPreloadedUrl('rutsg',       map.rutsg);
   setPreloadedUrl('noafp',       map.noafp);
+  setPreloadedUrl('actAnexos',  map.actAnexos);
 }
   
   // Meses select
