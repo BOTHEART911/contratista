@@ -2205,19 +2205,6 @@ async function collectBankPlanPdfsBase64_(){
       continue;
     }
 
-    async function collectNovedadesPdfsBase64_(){
-  const ids = ['actaI','clasulados','cdpC','rpC','rutpn','arlC','otrosi','cdpAc','rpAc','actaL','otroR'];
-  const out = {};
-
-  for(const id of ids){
-    const inp = document.getElementById(id);
-    const file = inp && inp.files && inp.files[0] ? inp.files[0] : null;
-    out[id] = file ? await pdfFileToBase64(file) : '';
-  }
-
-  return out;
-}
-
     // En corrección: si el usuario presionó "Quitar" sobre un precargado, mandamos marca de borrado
     if(IC_MODE === 'correccion'){
       const st = document.getElementById(id + '-status');
@@ -2235,6 +2222,35 @@ async function collectBankPlanPdfsBase64_(){
   return out;
 }
 
+  async function collectNovedadesPdfsBase64_(){
+  const ids = ['actaI','clasulados','cdpC','rpC','rutpn','arlC','otrosi','cdpAc','rpAc','actaL','otroR'];
+  const out = {};
+
+  for(const id of ids){
+    const inp = document.getElementById(id);
+    const file = inp && inp.files && inp.files[0] ? inp.files[0] : null;
+
+    if(file){
+      out[id] = await pdfFileToBase64(file);
+      continue;
+    }
+
+    // En corrección: si el usuario presionó "Quitar" sobre un precargado, mandamos marca de borrado
+    if(IC_MODE === 'correccion'){
+      const st = document.getElementById(id + '-status');
+      const hadPreloaded = !!(IC_STATE.novedadesUrls && IC_STATE.novedadesUrls[id]);
+      const statusEmpty = !st || String(st.innerHTML||'').trim() === '';
+      if(hadPreloaded && statusEmpty){
+        out[id] = '__DELETE__';
+        continue;
+      }
+    }
+
+    out[id] = '';
+  }
+
+  return out;
+}
 
 /* ================== LOADER ================== */
 const loader = document.getElementById('loader');
