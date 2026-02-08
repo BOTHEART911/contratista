@@ -1948,12 +1948,37 @@ function compressImageToDataUrl(file, { maxDim = MAX_IMG_DIM, quality = JPEG_QUA
   /* ================== PDFS BANCO Y PLANILLA ================== */
 const MAX_PDF_MB = 1;
 
+  async function pickNiceNameFromUrl_(url){
+  try{
+    const u = String(url||'').trim();
+    if(!u) return '';
+    const m = u.match(/\/d\/([a-zA-Z0-9_-]{10,})\//);
+    const id = m ? m[1] : '';
+    if(!id) return u;
+    const metaUrl = `https://www.googleapis.com/drive/v3/files/${id}?fields=name`;
+    const r = await fetch(metaUrl);
+    if(!r.ok) return u;
+    const j = await r.json();
+    return String(j && j.name ? j.name : u);
+  }catch(_){
+    return String(url||'').trim();
+  }
+}
+
 function setPdfStatus(id, file){
   const el = document.getElementById(id + '-status');
   const btn = document.getElementById(id + '-clear');
   if(!el) return;
 
+  // Limpio si no hay file y no hay preloaded
   if(!file){
+    // Si en corrección existe URL precargada, no borrar el estado aquí
+    if(IC_MODE === 'correccion'){
+      const hadPreloaded = !!(IC_STATE.bankPlanUrls && IC_STATE.bankPlanUrls[id]);
+      if(hadPreloaded){
+        return;
+      }
+    }
     el.innerHTML = '';
     if(btn) btn.style.display = 'none';
     return;
@@ -1963,6 +1988,7 @@ function setPdfStatus(id, file){
   el.innerHTML = `<span style="font-weight:700;">${escapeHtml_(name)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
   if(btn) btn.style.display = '';
 }
+
 
 function escapeHtml_(s){
   return String(s||'')
@@ -2024,19 +2050,24 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false } = {}){
 
   function clearUi(){
     inp.value = '';
-    setPdfStatus(id, null);
+    // En corrección: al "Quitar" debemos vaciar estado para que collectBankPlanPdfsBase64_ mande __DELETE__
+    const el = document.getElementById(id + '-status');
+    if(el) el.innerHTML = '';
+    if(clearBtn) clearBtn.style.display = 'none';
   }
 
   if(clearBtn){
     clearBtn.type = 'button';
-    clearBtn.onclick = async ()=>{
-      clearUi();
-    };
+    clearBtn.onclick = async ()=>{ clearUi(); };
   }
 
   inp.addEventListener('change', async ()=>{
     const file = inp.files && inp.files[0];
-    setPdfStatus(id, null);
+
+    // Limpia estado visual antes de validar nuevo archivo
+    const el = document.getElementById(id + '-status');
+    if(el) el.innerHTML = '';
+    if(clearBtn) clearBtn.style.display = 'none';
 
     if(!file){
       if(required){
@@ -4327,45 +4358,7 @@ IC_STATE.bankPlanUrls = {
     // Pintar vista con modo corrección
     renderIngresarCuenta();
 
-    function pickNiceNameFromUrl_(url){
-  try{
-    url = String(url||'').trim();
-    if(!url) return '';
-    // Nombre por defecto: último segmento o el id si aplica
-    const idm = url.match(/\/d\/([a-zA-Z0-9_-]{10,})\//);
-    const id = idm ? idm[1] : '';
-    return id ? ('Drive ID: ' + id) : url;
-  }catch(_){
-    return String(url||'');
-  }
-}
-
-(function forceRenderPreloadedPdfStatus(){
-  if(IC_MODE !== 'correccion') return;
-
-  const map = IC_STATE.bankPlanUrls || {};
-  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp'];
-
-  ids.forEach(id=>{
-    const st = document.getElementById(id+'-status');
-    const clearBtn = document.getElementById(id+'-clear');
-    const inp = document.getElementById(id);
-
-    if(inp) inp.value = '';
-    if(!st) return;
-
-    const url = String(map[id]||'').trim();
-    if(url){
-      st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(pickNiceNameFromUrl_(url))}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
-      if(clearBtn) clearBtn.style.display = '';
-    }else{
-      st.innerHTML = '';
-      if(clearBtn) clearBtn.style.display = 'none';
-    }
-  });
-})();
-
-    // Precargar relación de pago
+       // Precargar relación de pago
     const saldoEl = document.getElementById('ic-saldo');
     if(saldoEl){
       saldoEl.value = String(base.saldoActual||'');
@@ -4648,49 +4641,35 @@ bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
   if(IC_MODE === 'correccion'){
   const map = IC_STATE.bankPlanUrls || {};
 
-  // UBICACIÓN EXACTA: dentro de renderIngresarCuenta(), en el bloque:
-// if(IC_MODE === 'correccion'){ ... function setPreloadedUrl(id, url){ ... } ... }
-// Reemplaza COMPLETA la función setPreloadedUrl por esta:
+  async function setPreloadedUrl(id, url){
+    const st = document.getElementById(id+'-status');
+    const clearBtn = document.getElementById(id+'-clear');
+    const inp = document.getElementById(id);
 
-function setPreloadedUrl(id, url){
-  const st = document.getElementById(id + '-status');
-  const clearBtn = document.getElementById(id + '-clear');
-  const inp = document.getElementById(id);
+    if(inp){ inp.value = ''; }
 
-  if(inp){ inp.value = ''; }
+    if(!st) return;
 
-  if(st){
     if(url){
-      // Mostrar un nombre "bonito" en vez de la URL completa
-      const prettyNameMap = {
-        bancaria: 'Certificación Bancaria (PDF)',
-        baucher1: 'Baucher Planilla (PDF)',
-        planaporte1: 'Planilla (PDF)',
-        baucher2: 'Baucher Planilla Anexa (PDF)',
-        planaporte2: 'Planilla Anexa (PDF)',
-        rutsg: 'RUT (Régimen Simple) (PDF)',
-        noafp: 'Certificado NO aportes a Pensión (PDF)'
-      };
-
-      const label = prettyNameMap[id] || 'Archivo cargado';
-      st.innerHTML = `<span style="font-weight:900;color:#16a34a;">${escapeHtml_(label)}: CARGADO</span>`;
-
+      // Mostrar nombre “bonito” si se puede; si no, muestra la URL
+      const nice = await pickNiceNameFromUrl_(url);
+      st.innerHTML = `<span style="font-weight:700;">${escapeHtml_(nice || url)}</span> <span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
       if(clearBtn) clearBtn.style.display = '';
     }else{
       st.innerHTML = '';
       if(clearBtn) clearBtn.style.display = 'none';
     }
   }
-}
 
-  setPreloadedUrl('bancaria',    map.bancaria);
-  setPreloadedUrl('baucher1',    map.baucher1);
-  setPreloadedUrl('planaporte1', map.planaporte1);
-  setPreloadedUrl('baucher2',    map.baucher2);
-  setPreloadedUrl('planaporte2', map.planaporte2);
-
-  setPreloadedUrl('rutsg',       map.rutsg);
-  setPreloadedUrl('noafp',       map.noafp);
+  (async ()=>{
+    await setPreloadedUrl('bancaria',    map.bancaria);
+    await setPreloadedUrl('baucher1',    map.baucher1);
+    await setPreloadedUrl('planaporte1', map.planaporte1);
+    await setPreloadedUrl('baucher2',    map.baucher2);
+    await setPreloadedUrl('planaporte2', map.planaporte2);
+    await setPreloadedUrl('rutsg',       map.rutsg);
+    await setPreloadedUrl('noafp',       map.noafp);
+  })();
 }
   
   // Meses select
