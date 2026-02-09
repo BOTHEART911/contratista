@@ -5304,16 +5304,26 @@ if(!total){
     return !!(group1Ok || group2Ok || group3Ok || group4Ok);
   }
 
-  if(!allowNovedades()){
-    await Swal.fire({
-      icon:'info',
-      title:'REVISA MUY BIEN LOS DOCUMENTOS ADJUNTOS',
-      html:'Para <b>1ra Cuenta:</b><br>- Acta de Inicio<br>- CDP<br>- RP<br>- RUT<br>- Certificación ARL<br>- OtroSi (Si Aplica)<br>- Otro Requerido (Si Aplica)<br><br>
-          'Para <b>Última Cuenta:</b><br>- Acta de Liquidación<br>- Otro Requerido (Si Aplica)<br><br>
-          'Para otros casos, consulta primero con tu SUPERVISOR.'
-    });
-    return;
-  }
+if(!allowNovedades()){
+  await Swal.fire({
+    icon:'info',
+    title:'REVISA MUY BIEN LOS DOCUMENTOS ADJUNTOS',
+    html: `Para <b>1ra Cuenta:</b><br>
+      - Acta de Inicio<br>
+      - CDP<br>
+      - RP<br>
+      - RUT<br>
+      - Certificación ARL<br>
+      - OtroSi (Si Aplica)<br>
+      - Otro Requerido (Si Aplica)<br><br>
+      Para <b>Última Cuenta:</b><br>
+      - Acta de Liquidación<br>
+      - Otro Requerido (Si Aplica)<br><br>
+      Para otros casos, consulta primero con tu SUPERVISOR.`
+  });
+  return;
+}
+
 
   const novedadesPdfs = await collectNovedadesPdfsBase64_();
 
