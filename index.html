@@ -943,6 +943,8 @@
       <button class="menu-btn" id="go-secop2">SECOP II</button>
       <button class="menu-btn" id="go-sia">SIA OBSERVA INVITADO</button>
       <button class="menu-btn" id="go-admin">ALCALDÍA DE FLANDES</button>
+       <button class="menu-btn" id="go-smalluni">SMALL PDF - UNIFICAR</button>
+       <button class="menu-btn" id="go-smalldesb">SMALL PDF - DESBLOQUEAR</button>
     </div>
   </div>
 
@@ -1570,7 +1572,7 @@
 
         <div class="center" style="margin-top:10px; margin-bottom:6px;">
             <button type="button" id="btn-desbloquear-pdf" class="chip btn-unificar-anexos">
-              Desbloquea tus PDF Aquí
+              Puedas desbloquear tus PDF Aquí
             </button>
           </div>
 
@@ -3992,6 +3994,30 @@ function mostrarEstadoCuenta(res){
   overlay.classList.remove('open');
   window.open(
     'https://www.flandes-tolima.gov.co/',
+    '_blank',
+    'noopener'
+  );
+});
+
+   /* ================== IR A SMALL PDF - UNIR ================== */
+
+  document.getElementById('go-smalluni')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  window.open(
+    'https://smallpdf.com/es/unir-pdf',
+    '_blank',
+    'noopener'
+  );
+});
+
+              /* ================== IR A SMALL PDF - DESBLOQUEAR ================== */
+
+  document.getElementById('go-smalldesb')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  window.open(
+    'https://smallpdf.com/es/desbloquear-pdf',
     '_blank',
     'noopener'
   );
