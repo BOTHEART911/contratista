@@ -760,9 +760,17 @@
   color:#fff;
   border: 2px solid var(--ok);
   font-weight: 900;
+
+  width: auto;               /* evita 100% */
+  padding: 8px 14px;         /* más compacto */
+  font-size: 14px;           /* más pequeño */
+  border-radius: 999px;      /* tipo pill */
+  display: inline-flex;      /* tamaño según contenido */
+  align-items: center;
+  justify-content: center;
 }
 .btn-unificar-anexos:hover{
-  background:#15803d;         /* verde más oscuro */
+  background:#15803d;
   border-color:#15803d;
   color:#fff;
 }
