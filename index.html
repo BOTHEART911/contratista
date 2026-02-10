@@ -6440,21 +6440,20 @@ document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
       secretaria: base.secretaria || ''
     };
 
-    await apiPost('guardarsopotecontratista', payload);
+   const tel57 = normalizeNumber57(base.telefono || '');
+if(tel57){
+  const msg =
+    'Estimado(a) *' + (nombreCorto || '') + '*\n\n' +
+    'He recibido tu solicitud, la revisaré en el menor tiempo posible y me pondré en contacto contigo para ayudarte.\n' +
+    'Agradezco tu comprensión en mi tiempo de respuesta según demanda o solicitudes.\n\n' +
+    'Muchas gracias por ser parte de este gran Equipo.\n\n' +
+    'Cordialmente;\n\n' +
+    '*Oscar Polania*\n' +
+    '> Desarrollador Gobierno Digital\n' +
+    '> Alcaldía de Flandes';
 
-    const tel57 = normalizeNumber57(base.telefono || '');
-    if(tel57){
-      const msg =
-        '¡Estimado(a) *' + (nombreCorto || '') + '*!\n\n' +
-        'He recibido tu Solicitud o Sugerencia.\n' +
-        'Pronto me pondré en contacto contigo a través de whatsapp para apoyarte. Agradezco tu comprensión frente a la demanda de solicitudes y tiempo de respuesta.\n\n' +
-        '¡Un abrazo!\n\n' +
-        '*Oscar Polania*\n' +
-        '> *Desarrollador Gobierdo Digital*\n' +
-        '> Alcaldía de Flandes';
-
-      sendBuilderbotMessage(tel57, msg);
-    }
+  sendBuilderbotMessage(tel57, msg);
+}
 
     await Swal.fire({
       icon:'success',
