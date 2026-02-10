@@ -753,6 +753,19 @@
     transform:translateY(0);
   }
 }
+
+    /* Botón verde: Unificar Anexos */
+.btn-unificar-anexos{
+  background: var(--ok);
+  color:#fff;
+  border: 2px solid var(--ok);
+  font-weight: 900;
+}
+.btn-unificar-anexos:hover{
+  background:#15803d;         /* verde más oscuro */
+  border-color:#15803d;
+  color:#fff;
+}
   </style>
 </head>
 <body>
@@ -882,7 +895,6 @@
       <button class="menu-btn" id="go-corregir-cuenta">CORREGIR CUENTA</button>
       <button class="menu-btn" id="go-reportar-plan">PLAN DE PAGOS</button>
       <button class="menu-btn" id="go-estado-cuenta">ESTADO DE CUENTA</button>
-      <button class="menu-btn" id="go-guia-reporte-plan">GUIA REPORTE - PLAN</button>
     </div>
   </div>
 
@@ -1529,6 +1541,12 @@
           <button type="button" class="chip danger" id="actAnexos-clear" style="display:none;">Quitar</button>
         </div>
         <div id="actAnexos-status" class="muted" style="margin-top:6px;"></div>
+
+        <div class="center" style="margin-top:10px; margin-bottom:6px;">
+            <button type="button" id="btn-unificar-anexos" class="chip btn-unificar-anexos">
+              Puedes Unificar tus Anexos Aquí
+            </button>
+          </div>
 
         <label>Certificación Bancaria (PDF)</label>
         <input id="bancaria" type="file" accept="application/pdf" />
@@ -4289,45 +4307,10 @@ function bindQuery(inputId, datalistId){
 }
 
 
-  /* ================== GUIA REPORTE Y PLAN DE PAGOS ================== */
-  function descargarGuiasReportePlan(){
-  const downloads = [
-    {
-      url: 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download',
-      filename: 'GUIA_REPORTE_CUENTA.pdf'
-    },
-    {
-      url: 'https://drive.usercontent.google.com/u/0/uc?id=1tOs2oiORTOWcR5BVZWUhug9RUF-2G7XA&export=download',
-      filename: 'GUIA_PLAN_DE_PAGOS.pdf'
-    }
-  ];
-
-  function triggerDownload(item){
-    const a = document.createElement('a');
-    a.href = item.url;
-    a.download = item.filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  triggerDownload(downloads[0]);
-  setTimeout(()=> triggerDownload(downloads[1]), 650);
-}
-
-document.getElementById('go-guia-reporte-plan')?.addEventListener('click', async ()=>{
+  /* ================== SMALL PDF ================== */
+document.getElementById('btn-unificar-anexos')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.login);
-  overlay.classList.remove('open');
-
-  descargarGuiasReportePlan();
-
-  await Swal.fire({
-    icon: 'success',
-    title: 'REVISA TUS GUIAS',
-    html: 'con estas guías aprenderás a <b>REPORTAR CUENTA y PLAN DE PAGOS</b> correctamente.<br><br>Revisa muy bien la explicación.',
-    timer: 6500,
-    showConfirmButton: false
-  });
+  window.open('https://smallpdf.com/es/unir-pdf', '_blank', 'noopener');
 });
 
     /* ================== INGRESAR CUENTA ================== */
