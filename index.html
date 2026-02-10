@@ -1568,7 +1568,11 @@
         <input id="planaporte1" type="file" accept="application/pdf" />
         <div id="planaporte1-status" class="muted" style="margin-top:6px;"></div>
 
-        <div class="muted" style="margin:6px 0 8px; text-align: center; ">=========================</div>
+        <div class="center" style="margin-top:10px; margin-bottom:6px;">
+            <button type="button" id="btn-desbloquear-pdf" class="chip btn-unificar-anexos">
+              Desbloquea tus PDF Aquí
+            </button>
+          </div>
 
         <label>RUT (Régimen Simple) (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS QUE MANEJAN FACTURA DIGITAL</b></div>
@@ -4319,6 +4323,11 @@ function bindQuery(inputId, datalistId){
 document.getElementById('btn-unificar-anexos')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.login);
   window.open('https://smallpdf.com/es/unir-pdf', '_blank', 'noopener');
+});
+
+  document.getElementById('btn-desbloquear-pdf')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  window.open('https://smallpdf.com/es/desbloquear-pdf', '_blank', 'noopener');
 });
 
     /* ================== INGRESAR CUENTA ================== */
