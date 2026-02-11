@@ -774,6 +774,62 @@
   border-color:#15803d;
   color:#fff;
 }
+
+     /* Tutoriales: card de video horizontal sin espacios, adaptable */
+  .tut-videos{
+    margin-top: 8px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .tut-video-card{
+    position:relative;
+    width: 100%;
+    max-width: 860px;           /* limita en desktop */
+    aspect-ratio: 16 / 9;
+    margin: 0 auto;             /* centrado */
+    background:#000;
+    border-radius: 14px;
+    overflow:hidden;
+    border:2px solid #ddd;
+    box-shadow: 0 10px 24px rgba(0,0,0,.22);
+  }
+  .tut-video-thumb{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .tut-play-layer{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: radial-gradient(circle at center, rgba(255,255,255,.16), rgba(0,0,0,.60));
+    color:#fff;
+    font-size:64px;
+    cursor:pointer;
+    user-select:none;
+  }
+
+  /* iframe ocupa todo (sin espacios) */
+  .tut-video-card iframe{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+    background:#000;
+  }
+
+  /* En pantallas grandes, que no se vea gigante */
+  @media (min-width: 1024px){
+    .tut-video-card{ max-width: 900px; }
+  }
   </style>
 </head>
 <body>
@@ -1962,35 +2018,59 @@
     </section>
 
     <!-- VISTA TUTORIALES -->
-    <section id="view-tutoriales" class="view">
+   <section id="view-tutoriales" class="view">
   <div class="card">
-    <h2 style="color:var(--primary)">TUTORIALES DE USO</h2>
-
-    <p class="helper" style="max-width:920px; margin-left:auto; margin-right:auto;">
+    <h2 style="color:var(--primary); text-shadow: 0 2px 2px #031732; margin-bottom:6px;">TUTORIALES DE USO</h2>
+    <p class="helper" style="text-align:justify; margin-top:0;">
       Este es el manual de uso de esta poderosa herramienta. Este es un cambio pensado para facilitar tu trabajo y tu tiempo.
       Cada trámite digital es un paso hacia procesos más simples, más confianza y un Flandes que cambia la historia contigo.
       Gracias por ser parte de esta transformación digital.
     </p>
 
-    <!-- Botones centrados, ancho según texto -->
-    <div class="center" style="display:flex; flex-direction:column; gap:10px; align-items:center; margin-top:10px;">
-      <button class="chip" id="tut-btn-primera">DOCUMENTOS PRIMERA CUENTA</button>
-      <button class="chip" id="tut-btn-personales">DATOS PERSONALES</button>
-      <button class="chip" id="tut-btn-contrato">DATOS DEL CONTRATO</button>
-      <button class="chip" id="tut-btn-borrador">BORRADOR DE ACTIVIDADES</button>
-      <button class="chip" id="tut-btn-ingresar">INGRESAR CUENTA</button>
-      <button class="chip" id="tut-btn-corregir">CORREGIR CUENTA</button>
-      <button class="chip" id="tut-btn-reportes">REPORTES DE CUENTA Y PLAN DE PAGOS</button>
-      <button class="chip" id="tut-btn-estados">ESTADOS DE CUENTA</button>
-      <button class="chip" id="tut-btn-tramites">TRAMITES Y SOLICITUDES</button>
-      <button class="chip" id="tut-btn-institucional">INSTITUCIONAL</button>
-    </div>
+    <!-- BOTONES (centrados, ancho según texto) -->
+    <div class="narrow" style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:10px;">
+      <!-- Botón 1 -->
+      <button class="chip tut-btn" data-tut="primera" style="width:auto; max-width:100%;">DOCUMENTOS PRIMERA CUENTA</button>
+      <div class="tut-videos" data-tut-box="primera" style="display:none; width:100%;"></div>
 
-    <!-- Contenedor de videos (responsive, sin espacios muertos) -->
-    <div id="tut-videos" style="margin-top:14px;"></div>
+      <!-- Botón 2 -->
+      <button class="chip tut-btn" data-tut="personales" style="width:auto; max-width:100%;">DATOS PERSONALES</button>
+      <div class="tut-videos" data-tut-box="personales" style="display:none; width:100%;"></div>
 
-    <div class="btn-row spaced">
-      <button id="tut-volver" class="danger">Regresar</button>
+      <!-- Botón 3 -->
+      <button class="chip tut-btn" data-tut="contrato" style="width:auto; max-width:100%;">DATOS DEL CONTRATO</button>
+      <div class="tut-videos" data-tut-box="contrato" style="display:none; width:100%;"></div>
+
+      <!-- Botón 4 -->
+      <button class="chip tut-btn" data-tut="borrador" style="width:auto; max-width:100%;">BORRADOR DE ACTIVIDADES</button>
+      <div class="tut-videos" data-tut-box="borrador" style="display:none; width:100%;"></div>
+
+      <!-- Botón 5 -->
+      <button class="chip tut-btn" data-tut="ingresar" style="width:auto; max-width:100%;">INGRESAR CUENTA</button>
+      <div class="tut-videos" data-tut-box="ingresar" style="display:none; width:100%;"></div>
+
+      <!-- Botón 6 -->
+      <button class="chip tut-btn" data-tut="corregir" style="width:auto; max-width:100%;">CORREGIR CUENTA</button>
+      <div class="tut-videos" data-tut-box="corregir" style="display:none; width:100%;"></div>
+
+      <!-- Botón 7 -->
+      <button class="chip tut-btn" data-tut="reportes" style="width:auto; max-width:100%;">REPORTES DE CUENTA Y PLAN DE PAGOS</button>
+      <div class="tut-videos" data-tut-box="reportes" style="display:none; width:100%;"></div>
+
+      <!-- Botón 8 -->
+      <button class="chip tut-btn" data-tut="estados" style="width:auto; max-width:100%;">ESTADOS DE CUENTA</button>
+      <div class="tut-videos" data-tut-box="estados" style="display:none; width:100%;"></div>
+
+      <!-- Botón 9 -->
+      <button class="chip tut-btn" data-tut="tramites" style="width:auto; max-width:100%;">TRAMITES Y SOLICITUDES</button>
+      <div class="tut-videos" data-tut-box="tramites" style="display:none; width:100%;"></div>
+
+      <!-- Botón 10 -->
+      <button class="chip tut-btn" data-tut="institucional" style="width:auto; max-width:100%;">INSTITUCIONAL</button>
+      <div class="tut-videos" data-tut-box="institucional" style="display:none; width:100%;"></div>
+
+      <!-- Regresar al final -->
+      <button id="tutoriales-volver" class="danger" style="width:auto; max-width:100%;">Regresar</button>
     </div>
   </div>
 </section>
@@ -3004,251 +3084,217 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   /* ================== TUTORIALES DE USO ================== */
 
-/* Estilo mínimo para chips-centro (ancho según texto) */
-(function(){
-  const style = document.createElement('style');
-  style.textContent = `
-    #view-tutoriales .chip{
-      width: auto !important;
-      min-width: 0 !important;
-      padding-left: 18px;
-      padding-right: 18px;
-      justify-content: center;
-      text-align: center;
-    }
-  `;
-  document.head.appendChild(style);
-})();
-
-/* Helpers YouTube */
-function tutExtractYouTubeId(url){
-  const u = String(url || '').trim();
-  const m1 = u.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/i);
-  if(m1) return m1[1];
-  const m2 = u.match(/[?&]v=([A-Za-z0-9_-]{6,})/i);
-  if(m2) return m2[1];
-  const m3 = u.match(/\/embed\/([A-Za-z0-9_-]{6,})/i);
-  if(m3) return m3[1];
-  return '';
-}
-
-let TUT_ACTIVE_IFRAMES = [];
-
-function tutStopAllVideos(){
-  try{
-    for(const fr of TUT_ACTIVE_IFRAMES){
-      try{ fr.src = 'about:blank'; }catch(_){}
-      try{ fr.remove(); }catch(_){}
-    }
-  }catch(_){}
-  TUT_ACTIVE_IFRAMES = [];
-
-  const wrap = document.getElementById('tut-videos');
-  if(!wrap) return;
-  wrap.querySelectorAll('.tut-video-card').forEach(card=>{
-    card.classList.remove('playing');
-    const holder = card.querySelector('.tut-player-holder');
-    if(holder) holder.innerHTML = '';
-    const thumb = card.querySelector('.tut-video-thumb');
-    const play  = card.querySelector('.tut-play-layer');
-    if(thumb) thumb.style.display = 'block';
-    if(play)  play.style.display = 'flex';
-  });
-}
-
-function tutRenderVideos(list){
-  const wrap = document.getElementById('tut-videos');
-  if(!wrap) return;
-
-  wrap.innerHTML = '';
-
-  if(!Array.isArray(list) || !list.length){
-    const p = document.createElement('p');
-    p.className = 'muted center';
-    p.textContent = 'Tutorial disponible próximamente para esta opción.';
-    wrap.appendChild(p);
-    return;
-  }
-
-  /* CSS específico del reproductor (formato horizontal, responsive, sin espacios) */
-  const styleId = 'tut-video-style';
-  if(!document.getElementById(styleId)){
-    const st = document.createElement('style');
-    st.id = styleId;
-    st.textContent = `
-      .tut-video-stack{ display:flex; flex-direction:column; gap:12px; }
-      .tut-video-card{
-        position:relative;
-        width: min(860px, 100%);
-        aspect-ratio: 16 / 9;
-        margin: 0 auto;
-        background:#000;
-        border-radius: 14px;
-        overflow:hidden;
-        border:2px solid #ddd;
-        box-shadow: 0 10px 24px rgba(0,0,0,.25);
-      }
-      .tut-video-thumb{
-        position:absolute; inset:0;
-        width:100%; height:100%;
-        object-fit:cover; display:block;
-      }
-      .tut-play-layer{
-        position:absolute; inset:0;
-        display:flex; align-items:center; justify-content:center;
-        background: radial-gradient(circle at center, rgba(255,255,255,.16), rgba(0,0,0,.55));
-        color:#fff;
-        font-size: 64px;
-        cursor:pointer;
-        user-select:none;
-      }
-      .tut-player-holder{
-        position:absolute; inset:0;
-        width:100%; height:100%;
-      }
-      .tut-player-holder iframe{
-        width:100%; height:100%;
-        border:0;
-        display:block;
-        background:#000;
-      }
-
-      @media (max-width: 520px){
-        .tut-video-card{ border-radius: 12px; }
-        .tut-play-layer{ font-size: 56px; }
-      }
-    `;
-    document.head.appendChild(st);
-  }
-
-  const stack = document.createElement('div');
-  stack.className = 'tut-video-stack';
-
-  list.forEach((it, idx)=>{
-    const card = document.createElement('div');
-    card.className = 'tut-video-card';
-    card.dataset.idx = String(idx);
-
-    const thumb = document.createElement('img');
-    thumb.className = 'tut-video-thumb';
-    thumb.alt = '';
-    thumb.loading = 'lazy';
-    thumb.src = it.thumb || '';
-
-    const play = document.createElement('div');
-    play.className = 'tut-play-layer';
-    play.textContent = '▶';
-
-    const holder = document.createElement('div');
-    holder.className = 'tut-player-holder';
-
-    function playThis(){
-      tutStopAllVideos();
-
-      const id = tutExtractYouTubeId(it.url);
-      if(!id) return;
-
-      const iframe = document.createElement('iframe');
-      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
-      iframe.allowFullscreen = true;
-      iframe.title = it.title || 'Tutorial';
-
-      iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1&playsinline=1&rel=0';
-
-      holder.innerHTML = '';
-      holder.appendChild(iframe);
-      TUT_ACTIVE_IFRAMES.push(iframe);
-
-      card.classList.add('playing');
-      thumb.style.display = 'none';
-      play.style.display = 'none';
-    }
-
-    play.addEventListener('click', playThis);
-    thumb.addEventListener('click', playThis);
-
-    card.appendChild(thumb);
-    card.appendChild(play);
-    card.appendChild(holder);
-    stack.appendChild(card);
-  });
-
-  wrap.appendChild(stack);
-}
-
-function tutSelectCategory(catKey){
-  try{ playSoundOnce(SOUNDS.back); }catch(_){}
-  tutStopAllVideos();
-
-  const map = {
+ /* Mapa de tutoriales (deja los demás listos para completar después) */
+  const TUTORIALES = {
+    primera: [
+      // TODO: Agregar videos de "DOCUMENTOS PRIMERA CUENTA"
+    ],
+    personales: [
+      // TODO: Agregar videos de "DATOS PERSONALES"
+    ],
     contrato: [
       {
-        title:'DATOS DEL CONTRATO',
-        url:'https://youtu.be/hgelbeGkTzE',
-        thumb:'https://res.cloudinary.com/dqqeavica/image/upload/v1770840144/DATOS_DEL_CONTRATO_dauxyu.png'
+        title: 'DATOS DEL CONTRATO',
+        youtube: 'https://youtu.be/hgelbeGkTzE',
+        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840144/DATOS_DEL_CONTRATO_dauxyu.png'
       }
     ],
     borrador: [
       {
-        title:'BORRADOR DE ACTIVIDADES',
-        url:'https://youtu.be/3wheGpKj-V0',
-        thumb:'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/BORRADOR_DE_ACTIVIDADES_pfvbz2.png'
+        title: 'BORRADOR DE ACTIVIDADES',
+        youtube: 'https://youtu.be/3wheGpKj-V0',
+        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/BORRADOR_DE_ACTIVIDADES_pfvbz2.png'
       }
     ],
     ingresar: [
       {
-        title:'INGRESAR CUENTA I',
-        url:'https://youtu.be/_rI2rZsV0Ew',
-        thumb:'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/INGRESAR_CUENTA_I_mlvtlx.png'
+        title: 'INGRESAR CUENTA I',
+        youtube: 'https://youtu.be/_rI2rZsV0Ew',
+        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/INGRESAR_CUENTA_I_mlvtlx.png'
       },
       {
-        title:'INGRESAR CUENTA II',
-        url:'https://youtu.be/qrxTpO_D3_0',
-        thumb:'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/INGRESAR_CUENTA_II_gag5ps.png'
+        title: 'INGRESAR CUENTA II',
+        youtube: 'https://youtu.be/qrxTpO_D3_0',
+        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/INGRESAR_CUENTA_II_gag5ps.png'
       }
     ],
-
-    /* PENDIENTES: deja la lógica lista, sin videos por ahora */
-    primera: [],
-    personales: [],
-    corregir: [],
-    reportes: [],
-    estados: [],
-    tramites: [],
-    institucional: []
+    corregir: [
+      // TODO: Agregar videos de "CORREGIR CUENTA"
+    ],
+    reportes: [
+      // TODO: Agregar videos de "REPORTES DE CUENTA Y PLAN DE PAGOS"
+    ],
+    estados: [
+      // TODO: Agregar videos de "ESTADOS DE CUENTA"
+    ],
+    tramites: [
+      // TODO: Agregar videos de "TRAMITES Y SOLICITUDES"
+    ],
+    institucional: [
+      // TODO: Agregar videos de "INSTITUCIONAL"
+    ]
   };
 
-  const list = map[catKey] || [];
-  tutRenderVideos(list);
-}
+  function ytIdFromUrl(u){
+    const s = String(u||'').trim();
+    let m = s.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/);
+    if(m) return m[1];
+    m = s.match(/[?&]v=([a-zA-Z0-9_-]{6,})/);
+    if(m) return m[1];
+    m = s.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{6,})/);
+    if(m) return m[1];
+    return '';
+  }
+  function ytEmbedUrl(u){
+    const id = ytIdFromUrl(u);
+    if(!id) return '';
+    return 'https://www.youtube.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0&modestbranding=1';
+  }
 
-/* Abrir vista desde el menú */
-document.getElementById('go-tutoriales')?.addEventListener('click', ()=>{
-  try{ playSoundOnce(SOUNDS.login); }catch(_){}
-  overlay.classList.remove('open');
-  tutStopAllVideos();
-  document.getElementById('tut-videos').innerHTML = '';
-  showView('view-tutoriales');
-});
+  /* Apaga TODOS los videos (para permitir solo 1 en reproducción) */
+  function stopAllTutorialVideos(){
+    const iframes = document.querySelectorAll('#view-tutoriales iframe');
+    iframes.forEach(fr=>{
+      try{ fr.src = 'about:blank'; }catch(_){}
+      try{ fr.remove(); }catch(_){}
+    });
 
-/* Botones de categorías */
-document.getElementById('tut-btn-primera')?.addEventListener('click', ()=> tutSelectCategory('primera'));
-document.getElementById('tut-btn-personales')?.addEventListener('click', ()=> tutSelectCategory('personales'));
-document.getElementById('tut-btn-contrato')?.addEventListener('click', ()=> tutSelectCategory('contrato'));
-document.getElementById('tut-btn-borrador')?.addEventListener('click', ()=> tutSelectCategory('borrador'));
-document.getElementById('tut-btn-ingresar')?.addEventListener('click', ()=> tutSelectCategory('ingresar'));
-document.getElementById('tut-btn-corregir')?.addEventListener('click', ()=> tutSelectCategory('corregir'));
-document.getElementById('tut-btn-reportes')?.addEventListener('click', ()=> tutSelectCategory('reportes'));
-document.getElementById('tut-btn-estados')?.addEventListener('click', ()=> tutSelectCategory('estados'));
-document.getElementById('tut-btn-tramites')?.addEventListener('click', ()=> tutSelectCategory('tramites'));
-document.getElementById('tut-btn-institucional')?.addEventListener('click', ()=> tutSelectCategory('institucional'));
+    /* Restaura miniaturas/capas play si existen */
+    const cards = document.querySelectorAll('#view-tutoriales .tut-video-card');
+    cards.forEach(card=>{
+      const thumb = card.querySelector('.tut-video-thumb');
+      const layer = card.querySelector('.tut-play-layer');
+      if(thumb) thumb.style.display = 'block';
+      if(layer) layer.style.display = 'flex';
+      card.dataset.playing = '';
+    });
+  }
 
-/* Regresar */
-document.getElementById('tut-volver')?.addEventListener('click', ()=>{
-  try{ playSoundOnce(SOUNDS.back); }catch(_){}
-  tutStopAllVideos();
-  showView('view-inicio');
-});
+  function buildTutorialVideoCard(v){
+    const card = document.createElement('div');
+    card.className = 'tut-video-card';
+
+    const img = document.createElement('img');
+    img.className = 'tut-video-thumb';
+    img.src = v.thumb || '';
+    img.alt = '';
+    img.loading = 'lazy';
+
+    const layer = document.createElement('div');
+    layer.className = 'tut-play-layer';
+    layer.textContent = '▶';
+
+    function play(){
+      const embed = ytEmbedUrl(v.youtube);
+      if(!embed) return;
+
+      stopAllTutorialVideos();
+
+      const iframe = document.createElement('iframe');
+      iframe.src = embed;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+      iframe.allowFullscreen = true;
+      iframe.setAttribute('title', v.title || 'Video');
+
+      card.appendChild(iframe);
+
+      img.style.display = 'none';
+      layer.style.display = 'none';
+      card.dataset.playing = '1';
+    }
+
+    layer.addEventListener('click', ()=>{ try{ playSoundOnce(SOUNDS.back); }catch(_){} play(); });
+    img.addEventListener('click',   ()=>{ try{ playSoundOnce(SOUNDS.back); }catch(_){} play(); });
+
+    card.appendChild(img);
+    card.appendChild(layer);
+    return card;
+  }
+
+  /* Renderiza los videos JUSTO debajo del botón clickeado (en su contenedor hermano) */
+  function renderTutorialBox(key){
+    const box = document.querySelector(`#view-tutoriales .tut-videos[data-tut-box="${key}"]`);
+    if(!box) return;
+
+    const vids = Array.isArray(TUTORIALES[key]) ? TUTORIALES[key] : [];
+
+    const isOpen = box.style.display !== 'none' && box.style.display !== '';
+    const hasContent = box.childElementCount > 0;
+
+    /* Si está abierto, lo cerramos (toggle) */
+    if((box.style.display !== 'none') && (box.style.display !== '')){
+      stopAllTutorialVideos();
+      box.innerHTML = '';
+      box.style.display = 'none';
+      return;
+    }
+
+    /* Cerrar todos los demás boxes y parar reproducción */
+    document.querySelectorAll('#view-tutoriales .tut-videos').forEach(other=>{
+      other.innerHTML = '';
+      other.style.display = 'none';
+    });
+    stopAllTutorialVideos();
+
+    /* Abrir este box */
+    box.innerHTML = '';
+    if(!vids.length){
+      const p = document.createElement('p');
+      p.className = 'muted center';
+      p.style.margin = '6px 0 0';
+      p.textContent = 'Tutorial próximamente.';
+      box.appendChild(p);
+      box.style.display = 'block';
+      return;
+    }
+
+    vids.forEach(v=>{
+      box.appendChild(buildTutorialVideoCard(v));
+    });
+    box.style.display = 'block';
+
+    /* Scroll suave para que quede a la vista (debajo del botón) */
+    try{ box.scrollIntoView({ behavior:'smooth', block:'start' }); }catch(_){}
+  }
+
+  /* Botón del menú: abre vista tutoriales */
+  document.getElementById('go-tutoriales')?.addEventListener('click', ()=>{
+    try{ playSoundOnce(SOUNDS.login); }catch(_){}
+    overlay.classList.remove('open');
+    stopAllTutorialVideos();
+    document.querySelectorAll('#view-tutoriales .tut-videos').forEach(b=>{
+      b.innerHTML = '';
+      b.style.display = 'none';
+    });
+    showView('view-tutoriales');
+  });
+
+  /* Click en cada botón de tutorial */
+  (function bindTutorialButtons(){
+    const btns = document.querySelectorAll('#view-tutoriales .tut-btn');
+    btns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        try{ playSoundOnce(SOUNDS.back); }catch(_){}
+        const key = btn.getAttribute('data-tut');
+        if(!key) return;
+        renderTutorialBox(key);
+      });
+    });
+  })();
+
+  /* Regresar */
+  document.getElementById('tutoriales-volver')?.addEventListener('click', ()=>{
+    try{ playSoundOnce(SOUNDS.back); }catch(_){}
+    stopAllTutorialVideos();
+    showView('view-inicio');
+  });
+
+  /* Si cambias de pestaña, pausa (el iframe se corta) */
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){
+      stopAllTutorialVideos();
+    }
+  });
 
   /* ================== CALENDARIO INSTITUCIONAL (CONTRATISTA) ================== */
 
