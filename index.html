@@ -2721,7 +2721,8 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
       (async ()=>{
         const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento });
         const d = boot?.inicio || {};
-        const list = boot?.noticias || [];
+        // Soporta ambos posibles nombres devueltos por el backend
+        const list = (boot && (boot.noticias || boot.comunicados)) || [];
 
         document.getElementById('inicio-nombre').textContent = d.nombre || '';
         document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
@@ -6901,6 +6902,20 @@ document.getElementById('st-enviar')?.addEventListener('click', async ()=>{
     if(!r || !r.success){
       Swal.fire({ icon:'error', title:'Error al guardar', text: r && r.message ? r.message : 'Intenta nuevamente.' });
       return;
+    }
+
+    // Enviar mensaje WhatsApp (igual que Prensa y Soporte)
+    const tel = normalizeNumber57(telefono);
+    if(tel){
+      const msg =
+        'Estimado(a) *' + (nombre || '') + '*\n\n' +
+        'Hemos recibido tu solicitud a Tesorería y la revisaremos en el menor tiempo posible.\n' +
+        'Agradecemos tu comprensión en nuestros tiempos de respuesta según demanda.\n\n' +
+        'Cordialmente;\n\n' +
+        '*Tesorería*\n' +
+        '> Alcaldía de Flandes';
+
+      sendBuilderbotMessage(tel, msg);
     }
 
     Swal.fire({
