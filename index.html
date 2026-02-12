@@ -1173,13 +1173,15 @@
           </div>
 
           <label>Meses de contrato</label>
-          <div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
-          <input id="c-meses" type="tel" inputmode="numeric" placeholder="Automático">
-          <label>Días de complemento si Aplica</label>
-          <div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
-          <input id="c-dias" type="tel" inputmode="numeric" placeholder="Automático">
-          <label>Tiempo de ejecución</label>
-          <input id="c-ejecucion" type="text" readonly>
+<div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
+<input id="c-meses" type="tel" inputmode="numeric" placeholder="Automático">
+
+<label>Días de complemento si Aplica</label>
+<div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
+<input id="c-dias" type="tel" inputmode="numeric" placeholder="Automático">
+
+<label>Tiempo de ejecución</label>
+<input id="c-ejecucion" type="text" readonly>
 
           <label>Registro Presupuestal (RP)</label>
           <input id="c-rp" type="tel" inputmode="numeric" placeholder="N° de RP" maxlength="10" style="border:1.5px solid #ccc;">
@@ -6027,6 +6029,7 @@ document.getElementById('contrato-editar').addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.login);
   document.getElementById('contrato-form').classList.remove('hidden');
 });
+
 bindNumericSanitizer('c-meses', 3);
 bindNumericSanitizer('c-dias', 3);
 bindNumericSanitizer('c-rp', 10);
@@ -6044,7 +6047,6 @@ document.getElementById('c-costos').addEventListener('change', function(){
 });
 
 function convertirNumeroATexto(n){
-  // Conversor en español MAYÚSCULAS (unidades a millones)
   const unidades=["","UN","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE"];
   const especiales=["DIEZ","ONCE","DOCE","TRECE","CATORCE","QUINCE","DIECISEIS","DIECISIETE","DIECIOCHO","DIECINUEVE"];
   const decenas=["","DIEZ","VEINTE","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
@@ -6065,16 +6067,28 @@ function convertirNumeroATexto(n){
   }
   let t=cMiles(parseInt(n||0,10)); if(t.endsWith(" UNO")) t=t.slice(0,-4)+" UN"; return t;
 }
-function actualizarEjecucion(){
-  const meses = parseInt(document.getElementById('c-meses').value)||0;
-  const dias = parseInt(document.getElementById('c-dias').value)||0;
+
+/* ✅ NUEVO: recalcula siempre el campo Tiempo de ejecución desde los valores EDITADOS (meses/días) */
+function actualizarEjecucionDesdeInputs(){
+  const meses = parseInt((document.getElementById('c-meses')?.value || '0'), 10) || 0;
+  const dias  = parseInt((document.getElementById('c-dias')?.value  || '0'), 10) || 0;
+
   let txt = '';
-  if(meses>0){ txt += `${convertirNumeroATexto(meses)} (${meses}) ${meses===1?'MES':'MESES'}`; }
-  if(dias>0){ if(txt!=='') txt += ' Y '; txt += `${convertirNumeroATexto(dias)} (${dias}) ${dias===1?'DIA':'DIAS'}`; }
-  document.getElementById('c-ejecucion').value = txt;
+  if(meses > 0){
+    txt += `${convertirNumeroATexto(meses)} (${meses}) ${meses===1?'MES':'MESES'}`;
+  }
+  if(dias > 0){
+    if(txt !== '') txt += ' Y ';
+    txt += `${convertirNumeroATexto(dias)} (${dias}) ${dias===1?'DIA':'DIAS'}`;
+  }
+
+  const ejecEl = document.getElementById('c-ejecucion');
+  if(ejecEl) ejecEl.value = txt;
 }
-document.getElementById('c-meses').addEventListener('input', actualizarEjecucion);
-document.getElementById('c-dias').addEventListener('input', actualizarEjecucion);
+
+/* ✅ NUEVO: cuando el usuario edita meses/días, actualiza "Tiempo de ejecución" inmediatamente */
+document.getElementById('c-meses')?.addEventListener('input', actualizarEjecucionDesdeInputs);
+document.getElementById('c-dias')?.addEventListener('input', actualizarEjecucionDesdeInputs);
 
 function getDaysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
 function calcularPlazo(){
@@ -6104,7 +6118,7 @@ function calcularPlazo(){
   }
   mesesEl.value = meses;
   diasEl.value = dias;
-  actualizarEjecucion();
+  actualizarEjecucionDesdeInputs();
 }
 
 document.getElementById('c-rp').addEventListener('input', ()=>{
