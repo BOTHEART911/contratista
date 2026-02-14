@@ -1660,12 +1660,20 @@
           </div>
 
         <label>RUT (Régimen Simple) (PDF)</label>
-        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS QUE MANEJAN FACTURA DIGITAL</b></div>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS DEL REGIMEN SIMPLE</b></div>
         <input id="rutsg" type="file" accept="application/pdf" />
         <div class="btn-row" style="margin-top:6px;">
           <button type="button" class="chip danger" id="rutsg-clear" style="display:none;">Quitar</button>
         </div>
         <div id="rutsg-status" class="muted" style="margin-top:6px;"></div>
+
+        <label>Factura Electrónica (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS QUE MANEJAN FACTURA ELECTRÓNICA</b></div>
+        <input id="factElect" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="factElect-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="factElect-status" class="muted" style="margin-top:6px;"></div>
         
         <label>Certificado NO aportes a Pensión (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS PENSIONADAS</b></div>
@@ -1675,7 +1683,7 @@
         </div>
         <div id="noafp-status" class="muted" style="margin-top:6px;"></div>
 
-        <h3 class="center" style="margin-top:6px;color:#5b5b5b;">LOS SIGUIENTES CAMPOS SON OPCIONALE</h3>
+        <h3 class="center" style="margin-top:6px;color:#5b5b5b;">LOS SIGUIENTES CAMPOS SON OPCIONALES</h3>
 
         <label>Baucher Planilla Anexa (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
@@ -2371,7 +2379,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
 }
 
 async function collectBankPlanPdfsBase64_(){
-  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp','actAnexos'];
+  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','factElect','noafp','actAnexos'];
   const out = {};
 
   for(const id of ids){
@@ -4867,6 +4875,7 @@ IC_STATE.bankPlanUrls = {
   baucher2:    String(base.baucher2Url || ''),
   planaporte2: String(base.planaporte2Url || ''),
   rutsg:       String(base.rutsgUrl || ''),
+  factElect:   String(base.factElectUrl || ''),
   noafp:       String(base.noafpUrl || ''),
   actAnexos:   String(base.actAnexosUrl || '')
 };
@@ -5156,6 +5165,7 @@ bindPdfInputStrict('planaporte2', { required:false, forbidEncrypted:true });
 bindPdfInputStrict('rutsg',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('actAnexos',   { required:false, forbidEncrypted:true, maxMb: MAX_ACT_ANEXOS_MB });
+bindPdfInputStrict('factElect',   { required:false, forbidEncrypted:true, maxMb: MAX_PDF_MB });
 
 // Siempre iniciar oculto el bloque de "Más Documentos Anexos" al entrar a la vista
 document.getElementById('ic-novedades-wrap')?.classList.add('hidden');
@@ -5167,6 +5177,7 @@ const FILE_LABELS = {
   baucher2:    'Baucher Planilla Anexa.pdf',
   planaporte2: 'Planilla Anexa.pdf',
   rutsg:       'RUT (Régimen Simple).pdf',
+  factElect:   'Factura Electrónica.pdf',
   noafp:       'Certificación NO Aportes Pensión.pdf',
   actAnexos:   'ANEXOS DE ACTIVIDADES.pdf',
   actaI:       'Acta de Inicio.pdf',
@@ -5213,7 +5224,7 @@ function setPreloadedUi_(id, url){
 }
 
 // IDs de PDFs en esta vista (los que tienen status/clear)
-const bankIds = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp','actAnexos'];
+const bankIds = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','factElect','noafp','actAnexos'];
 const novIds  = ['actaI','clasulados','cdpC','rpC','rutpn','arlC','otrosi','cdpAc','rpAc','actaL','otroR'];
 
 if(IC_MODE !== 'correccion'){
