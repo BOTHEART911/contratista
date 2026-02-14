@@ -5129,47 +5129,82 @@ bindPdfInputStrict('planaporte2', { required:false, forbidEncrypted:true });
 
 bindPdfInputStrict('rutsg',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
-bindPdfInputStrict('actAnexos', { required:false, forbidEncrypted:true, maxMb: MAX_ACT_ANEXOS_MB });
+bindPdfInputStrict('actAnexos',   { required:false, forbidEncrypted:true, maxMb: MAX_ACT_ANEXOS_MB });
 
-  if(IC_MODE === 'correccion'){
-  const map = IC_STATE.bankPlanUrls || {};
+// NOVEDADES (ya estaban bindeadas arriba con bindPdfInputStrict en tu código global)
+// Aquí solo controlamos estado visual + reset al entrar
 
-  function setPreloadedUrl(id, url){
-    const st = document.getElementById(id+'-status');
-    const clearBtn = document.getElementById(id+'-clear');
-    const inp = document.getElementById(id);
+// Siempre iniciar oculto el bloque de "Más Documentos Anexos" al entrar a la vista
+document.getElementById('ic-novedades-wrap')?.classList.add('hidden');
 
-    if(inp){ inp.value = ''; }
-    if(st){
-      if(url){
-        st.innerHTML = `<span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
-        if(clearBtn) clearBtn.style.display = '';
-      }else{
-        st.innerHTML = '';
-        if(clearBtn) clearBtn.style.display = 'none';
-      }
-    }
-  }
-    
-  setPreloadedUrl('bancaria',    map.bancaria);
-  setPreloadedUrl('baucher1',    map.baucher1);
-  setPreloadedUrl('planaporte1', map.planaporte1);
-  setPreloadedUrl('baucher2',    map.baucher2);
-  setPreloadedUrl('planaporte2', map.planaporte2);
+const FILE_LABELS = {
+  bancaria:    'Certificación Bancaria.pdf',
+  baucher1:    'Baucher Planilla.pdf',
+  planaporte1: 'Planilla.pdf',
+  baucher2:    'Baucher Planilla Anexa.pdf',
+  planaporte2: 'Planilla Anexa.pdf',
+  rutsg:       'RUT (Régimen Simple).pdf',
+  noafp:       'Certificación NO Aportes Pensión.pdf',
+  actAnexos:   'ANEXOS DE ACTIVIDADES.pdf',
 
-  setPreloadedUrl('rutsg',       map.rutsg);
-  setPreloadedUrl('noafp',       map.noafp);
-  setPreloadedUrl('actAnexos',  map.actAnexos);
+  actaI:       'Acta de Inicio.pdf',
+  clasulados:  'Clausulados del Contrato.pdf',
+  cdpC:        'CDP.pdf',
+  rpC:         'RP.pdf',
+  rutpn:       'RUT Persona Natural.pdf',
+  arlC:        'Certificado ARL.pdf',
+  otrosi:      'OTROSI.pdf',
+  cdpAc:       'CDP Adición.pdf',
+  rpAc:        'RP Adición.pdf',
+  actaL:       'Acta de Liquidación.pdf',
+  otroR:       'Otro Requerido.pdf'
+};
+
+function resetFileUi_(id){
+  const inp = document.getElementById(id);
+  const st = document.getElementById(id + '-status');
+  const clearBtn = document.getElementById(id + '-clear');
+
+  if(inp) inp.value = '';
+  if(st) st.innerHTML = '';
+  if(clearBtn) clearBtn.style.display = 'none';
 }
 
+function setPreloadedUi_(id, url){
+  const inp = document.getElementById(id);
+  const st = document.getElementById(id + '-status');
+  const clearBtn = document.getElementById(id + '-clear');
+
+  if(inp) inp.value = '';
+
+  if(!st) return;
+
+  const hasUrl = !!String(url || '').trim();
+  if(hasUrl){
+    const label = FILE_LABELS[id] || 'Archivo.pdf';
+    st.innerHTML = `<span style="font-weight:900;color:#16a34a;">CARGADO</span> <span style="font-weight:700;">${escapeHtml_(label)}</span>`;
+    if(clearBtn) clearBtn.style.display = '';
+  }else{
+    st.innerHTML = '';
+    if(clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+const bankIds = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp','actAnexos'];
+const novIds  = ['actaI','clasulados','cdpC','rpC','rutpn','arlC','otrosi','cdpAc','rpAc','actaL','otroR'];
+
+if(IC_MODE !== 'correccion'){
+  // INGRESAR CUENTA: siempre reset visual + input vacío (evita "CARGADO" viejo)
+  bankIds.forEach(resetFileUi_);
+  novIds.forEach(resetFileUi_);
+}else{
+  // CORREGIR CUENTA: mostrar CARGADO + "nombre" si hay URL previa (aunque el input diga "sin archivo")
+  const map = IC_STATE.bankPlanUrls || {};
+  bankIds.forEach((id)=> setPreloadedUi_(id, map[id]));
+
   const novMap = IC_STATE.novedadesUrls || {};
-  const novIds = ['actaI','clasulados','cdpC','rpC','rutpn','arlC','otrosi','cdpAc','rpAc','actaL','otroR'];
-
-  novIds.forEach((nid)=>{
-    const st = document.getElementById(nid + '-status');
-    const clearBtn = document.getElementById(nid + '-clear');
-    const inp = document.getElementById(nid);
-
+  novIds.forEach((id)=> setPreloadedUi_(id, novMap[id]));
+}
     if(inp){ inp.value = ''; }
     if(!st) return;
 
