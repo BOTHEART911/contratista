@@ -3134,82 +3134,90 @@ document.addEventListener('DOMContentLoaded', ()=>{
   /* ================== TUTORIALES DE USO ================== */
 
  /* Mapa de tutoriales (deja los demás listos para completar después) */
-  const TUTORIALES = {
+ const TUTORIALES = {
     primera: [
-      // TODO: Agregar videos de "DOCUMENTOS PRIMERA CUENTA"
+      // Agrega aquí tus videos:
+      // { title:'...', drive:'https://drive.google.com/file/d/ID/view?usp=sharing', thumb:'https://...png' }
     ],
     personales: [
-       {
+      {
         title: 'DATOS PERSONALES',
-        youtube: 'https://youtu.be/xTnkA9sDBc8',
+        drive: 'https://drive.google.com/file/d/1T05OxJD3wEBjqH-6Fd1GvWO3Y2_4ssJp/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770909972/DATOS_PERSONALES_i2uni5.png'
       }
     ],
     contrato: [
       {
         title: 'DATOS DEL CONTRATO',
-        youtube: 'https://youtu.be/NcRm-BnhIoA',
+        drive: 'https://drive.google.com/file/d/1T05OxJD3wEBjqH-6Fd1GvWO3Y2_4ssJp/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840144/DATOS_DEL_CONTRATO_dauxyu.png'
       }
     ],
     borrador: [
       {
         title: 'BORRADOR DE ACTIVIDADES',
-        youtube: 'https://youtu.be/4zQvY5Lsiw4',
+        drive: 'https://drive.google.com/file/d/1T05OxJD3wEBjqH-6Fd1GvWO3Y2_4ssJp/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/BORRADOR_DE_ACTIVIDADES_pfvbz2.png'
       }
     ],
     ingresar: [
       {
         title: 'INGRESAR CUENTA I',
-        youtube: 'https://youtu.be/q285Xw8UgGk',
+        drive: 'https://drive.google.com/file/d/1T05OxJD3wEBjqH-6Fd1GvWO3Y2_4ssJp/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/INGRESAR_CUENTA_I_mlvtlx.png'
       },
       {
         title: 'INGRESAR CUENTA II',
-        youtube: 'https://youtu.be/GVYqEccsSv0',
+        drive: 'https://drive.google.com/file/d/1T05OxJD3wEBjqH-6Fd1GvWO3Y2_4ssJp/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/INGRESAR_CUENTA_II_gag5ps.png'
       }
     ],
     corregir: [
-      // TODO: Agregar videos de "CORREGIR CUENTA"
+      // TODO
     ],
     reportes: [
-      // TODO: Agregar videos de "REPORTES DE CUENTA Y PLAN DE PAGOS"
+      // TODO
     ],
     estados: [
-      // TODO: Agregar videos de "ESTADOS DE CUENTA"
+      // TODO
     ],
     tramites: [
       {
         title: 'TRAMITES Y SOLICITUDES',
-        youtube: 'https://youtu.be/zelWAdesZk4',
+        drive: 'https://drive.google.com/file/d/1T05OxJD3wEBjqH-6Fd1GvWO3Y2_4ssJp/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770915557/TRAMITES_cghbep.png'
       }
     ],
     institucional: [
-       {
+      {
         title: 'INSTITUCIONAL',
-        youtube: 'https://youtu.be/K1plwLTwRbg',
+        drive: 'https://drive.google.com/file/d/1T05OxJD3wEBjqH-6Fd1GvWO3Y2_4ssJp/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770915976/institucional_thxuan.png'
       }
     ]
   };
 
-  function ytIdFromUrl(u){
-    const s = String(u||'').trim();
-    let m = s.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/);
+    function driveIdFromUrl(u){
+    const s = String(u || '').trim();
+
+    // https://drive.google.com/file/d/<ID>/view?...
+    let m = s.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]{10,})\//);
     if(m) return m[1];
-    m = s.match(/[?&]v=([a-zA-Z0-9_-]{6,})/);
+
+    // https://drive.google.com/open?id=<ID>
+    m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
     if(m) return m[1];
-    m = s.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{6,})/);
-    if(m) return m[1];
+
     return '';
   }
-  function ytEmbedUrl(u){
-    const id = ytIdFromUrl(u);
+
+  function driveEmbedUrl(u){
+    const id = driveIdFromUrl(u);
     if(!id) return '';
-    return 'https://www.youtube.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0&modestbranding=1';
+
+    // /preview es el embed de Drive
+    // autoplay suele funcionar porque el usuario hace click (gesto)
+    return 'https://drive.google.com/file/d/' + id + '/preview?autoplay=1';
   }
 
   /* Apaga TODOS los videos (para permitir solo 1 en reproducción) */
@@ -3246,14 +3254,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     layer.textContent = '▶';
 
     function play(){
-      const embed = ytEmbedUrl(v.youtube);
+      const embed = driveEmbedUrl(v.drive);
       if(!embed) return;
 
       stopAllTutorialVideos();
 
       const iframe = document.createElement('iframe');
       iframe.src = embed;
-      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+
+      iframe.allow = 'autoplay; fullscreen';
       iframe.allowFullscreen = true;
       iframe.setAttribute('title', v.title || 'Video');
 
@@ -3264,8 +3273,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
       card.dataset.playing = '1';
     }
 
+    function replay(){
+      const iframe = card.querySelector('iframe');
+      if(!iframe) return;
+      const src = iframe.src;
+      iframe.src = 'about:blank';
+      setTimeout(()=>{ iframe.src = src; }, 50);
+    }
+
     layer.addEventListener('click', ()=>{ try{ playSoundOnce(SOUNDS.back); }catch(_){} play(); });
     img.addEventListener('click',   ()=>{ try{ playSoundOnce(SOUNDS.back); }catch(_){} play(); });
+
+    // Repetir dentro de la misma vista: doble click sobre la tarjeta
+    card.addEventListener('dblclick', ()=>{ replay(); });
 
     card.appendChild(img);
     card.appendChild(layer);
