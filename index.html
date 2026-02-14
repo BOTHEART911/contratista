@@ -2528,9 +2528,10 @@ function resetVistas(){
   const rf = document.getElementById('reg-firma-preview'); if(rf){ rf.src=''; rf.style.display='none'; }
 
   // Campos de contrato
- ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-rpAdicion','c-regimen','c-factura','c-costos'].forEach(id=>{
-  const el=document.getElementById(id); if(el){ el.value=''; }
-});
+  ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-rpAdicion','c-regimen','c-factura','c-costos'].forEach(id=>{
+    const el=document.getElementById(id); 
+    if(el){ el.value=''; }
+  });
 
   // Campos personales edición
   ['p-expedida','p-telefono','p-direccion','p-municipio','p-correo','p-tipoCuenta','p-numeroCuenta','p-banco','p-eps','p-pension','p-arl','p-cumple'].forEach(id=>{
