@@ -5131,9 +5131,6 @@ bindPdfInputStrict('rutsg',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('actAnexos',   { required:false, forbidEncrypted:true, maxMb: MAX_ACT_ANEXOS_MB });
 
-// NOVEDADES (ya estaban bindeadas arriba con bindPdfInputStrict en tu código global)
-// Aquí solo controlamos estado visual + reset al entrar
-
 // Siempre iniciar oculto el bloque de "Más Documentos Anexos" al entrar a la vista
 document.getElementById('ic-novedades-wrap')?.classList.add('hidden');
 
@@ -5146,7 +5143,6 @@ const FILE_LABELS = {
   rutsg:       'RUT (Régimen Simple).pdf',
   noafp:       'Certificación NO Aportes Pensión.pdf',
   actAnexos:   'ANEXOS DE ACTIVIDADES.pdf',
-
   actaI:       'Acta de Inicio.pdf',
   clasulados:  'Clausulados del Contrato.pdf',
   cdpC:        'CDP.pdf',
@@ -5190,32 +5186,20 @@ function setPreloadedUi_(id, url){
   }
 }
 
+// IDs de PDFs en esta vista (los que tienen status/clear)
 const bankIds = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','noafp','actAnexos'];
 const novIds  = ['actaI','clasulados','cdpC','rpC','rutpn','arlC','otrosi','cdpAc','rpAc','actaL','otroR'];
 
 if(IC_MODE !== 'correccion'){
-  // INGRESAR CUENTA: siempre reset visual + input vacío (evita "CARGADO" viejo)
   bankIds.forEach(resetFileUi_);
   novIds.forEach(resetFileUi_);
 }else{
-  // CORREGIR CUENTA: mostrar CARGADO + "nombre" si hay URL previa (aunque el input diga "sin archivo")
   const map = IC_STATE.bankPlanUrls || {};
   bankIds.forEach((id)=> setPreloadedUi_(id, map[id]));
 
   const novMap = IC_STATE.novedadesUrls || {};
   novIds.forEach((id)=> setPreloadedUi_(id, novMap[id]));
 }
-    if(inp){ inp.value = ''; }
-    if(!st) return;
-
-    const hasUrl = !!String(novMap[nid] || '').trim();
-    if(hasUrl){
-      st.innerHTML = `<span style="font-weight:900;color:#16a34a;">CARGADO</span>`;
-      if(clearBtn) clearBtn.style.display = '';
-    }else{
-      st.innerHTML = '';
-      if(clearBtn) clearBtn.style.display = 'none';
-    }
   });
   
   // Meses select
