@@ -3197,29 +3197,28 @@ document.addEventListener('DOMContentLoaded', ()=>{
     ]
   };
 
-    function driveIdFromUrl(u){
+     function driveIdFromUrl(u){
     const s = String(u || '').trim();
-
-    // https://drive.google.com/file/d/<ID>/view?...
     let m = s.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]{10,})\//);
     if(m) return m[1];
-
-    // https://drive.google.com/open?id=<ID>
     m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
     if(m) return m[1];
-
     return '';
   }
 
-  function driveEmbedUrl(u){
+  function drivePreviewUrl(u){
     const id = driveIdFromUrl(u);
     if(!id) return '';
-
-    // /preview es el embed de Drive
-    // autoplay suele funcionar porque el usuario hace click (gesto)
-    return 'https://drive.google.com/file/d/' + id + '/preview?autoplay=1';
+    return 'https://drive.google.com/file/d/' + id + '/preview';
   }
 
+  function driveDirectMp4Url(u){
+    const id = driveIdFromUrl(u);
+    if(!id) return '';
+    // Intento de stream directo (más rápido) para <video>
+    return 'https://drive.google.com/uc?export=download&id=' + id;
+  }
+  
   /* Apaga TODOS los videos (para permitir solo 1 en reproducción) */
   function stopAllTutorialVideos(){
     const iframes = document.querySelectorAll('#view-tutoriales iframe');
@@ -3239,7 +3238,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
-  function buildTutorialVideoCard(v){
+    function buildTutorialVideoCard(v){
     const card = document.createElement('div');
     card.className = 'tut-video-card';
 
@@ -3253,45 +3252,122 @@ document.addEventListener('DOMContentLoaded', ()=>{
     layer.className = 'tut-play-layer';
     layer.textContent = '▶';
 
-    function play(){
-      const embed = driveEmbedUrl(v.drive);
-      if(!embed) return;
+    function stopLocal(){
+      const vid = card.querySelector('video');
+      if(vid){
+        try{ vid.pause(); }catch(_){}
+        try{ vid.removeAttribute('src'); vid.load(); }catch(_){}
+        try{ vid.remove(); }catch(_){}
+      }
+      const fr = card.querySelector('iframe');
+      if(fr){
+        try{ fr.src = 'about:blank'; }catch(_){}
+        try{ fr.remove(); }catch(_){}
+      }
+      img.style.display = 'block';
+      layer.style.display = 'flex';
+      card.dataset.playing = '';
+    }
 
+    function play(){
       stopAllTutorialVideos();
 
-      const iframe = document.createElement('iframe');
-      iframe.src = embed;
+      const direct = driveDirectMp4Url(v.drive);
+      const preview = drivePreviewUrl(v.drive);
 
-      iframe.allow = 'autoplay; fullscreen';
-      iframe.allowFullscreen = true;
-      iframe.setAttribute('title', v.title || 'Video');
+      // 1) Intento rápido: <video> con stream directo
+      const video = document.createElement('video');
+      video.controls = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.display = 'block';
+      video.setAttribute('controlsList', 'nodownload');
 
-      card.appendChild(iframe);
+      let fallbackDone = false;
+
+      function fallbackToIframe(){
+        if(fallbackDone) return;
+        fallbackDone = true;
+
+        try{ video.pause(); }catch(_){}
+        try{ video.remove(); }catch(_){}
+
+        const embed = preview;
+        if(!embed){
+          stopLocal();
+          return;
+        }
+
+        const iframe = document.createElement('iframe');
+        iframe.src = embed;
+        iframe.allow = 'autoplay; fullscreen';
+        iframe.allowFullscreen = true;
+        iframe.setAttribute('title', v.title || 'Video');
+
+        card.appendChild(iframe);
+
+        img.style.display = 'none';
+        layer.style.display = 'none';
+        card.dataset.playing = '1';
+      }
+
+      video.addEventListener('error', fallbackToIframe, { once:true });
+
+      if(direct){
+        video.src = direct;
+      }else{
+        fallbackToIframe();
+        return;
+      }
+
+      card.appendChild(video);
 
       img.style.display = 'none';
       layer.style.display = 'none';
       card.dataset.playing = '1';
-    }
 
-    function replay(){
-      const iframe = card.querySelector('iframe');
-      if(!iframe) return;
-      const src = iframe.src;
-      iframe.src = 'about:blank';
-      setTimeout(()=>{ iframe.src = src; }, 50);
+      const p = video.play();
+      if(p && typeof p.catch === 'function'){
+        p.catch(()=>{});
+      }
+
+      // Si después de ~2.2s no empieza a reproducir, caemos al iframe
+      setTimeout(()=>{
+        try{
+          if(!fallbackDone && video.readyState < 2){
+            fallbackToIframe();
+          }
+        }catch(_){}
+      }, 2200);
     }
 
     layer.addEventListener('click', ()=>{ try{ playSoundOnce(SOUNDS.back); }catch(_){} play(); });
     img.addEventListener('click',   ()=>{ try{ playSoundOnce(SOUNDS.back); }catch(_){} play(); });
 
-    // Repetir dentro de la misma vista: doble click sobre la tarjeta
-    card.addEventListener('dblclick', ()=>{ replay(); });
+    // Repetir: reinicia el reproductor actual
+    card.addEventListener('dblclick', ()=>{
+      const vid = card.querySelector('video');
+      if(vid){
+        try{ vid.currentTime = 0; }catch(_){}
+        const p = vid.play();
+        if(p && typeof p.catch === 'function') p.catch(()=>{});
+        return;
+      }
+      const fr = card.querySelector('iframe');
+      if(fr){
+        const src = fr.src;
+        fr.src = 'about:blank';
+        setTimeout(()=>{ fr.src = src; }, 50);
+      }
+    });
 
     card.appendChild(img);
     card.appendChild(layer);
     return card;
   }
-
+  
   /* Renderiza los videos JUSTO debajo del botón clickeado (en su contenedor hermano) */
   function renderTutorialBox(key){
     const box = document.querySelector(`#view-tutoriales .tut-videos[data-tut-box="${key}"]`);
