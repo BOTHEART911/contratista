@@ -5234,7 +5234,7 @@ function renderIngresarCuenta(){
   if(IC_MODE === 'correccion'){
     if(titleEl) titleEl.textContent = 'CORRECCIÓN DE CUENTA';
     if(descEl)  descEl.innerHTML = `
-      <b style="color:#dc2626;">Edita solo los campos que vas a actualizar para tu cuenta y vuleve a ingresar la Fecha de Radicación.</b><<br><br>
+      <b style="color:#dc2626;">✍🏻 Edita sólo los campos que vas a actualizar para tu cuenta<br>📅 Vuelve a ingresar la Fecha de Radicación.<br>📤 Carga los archivos que te faltaron o reemplaza si adjuntaste erróneamente.</b><br><br>
       INFORME:
       <span id="ic-informe" class="chip">${String(IC_STATE.informe||1)}</span>
       &nbsp; DE:
