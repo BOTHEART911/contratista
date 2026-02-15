@@ -5227,14 +5227,14 @@ function renderIngresarCuenta(){
   const descEl  = document.getElementById('ic-desc');
   if(IC_MODE === 'correccion'){
     if(titleEl) titleEl.textContent = 'CORRECCIÓN DE CUENTA';
-     if(descEl)  descEl.innerHTML = `
-      Edita los campos teniendiendo en cuenta las observaciones.<br><br>
-      <b>Vuelve a ingresar la Fecha de Radicación</b><br><br>
-      INFORME:
-      <span id="ic-informe" class="chip">${String(IC_STATE.informe||1)}</span>
-      &nbsp; DE:
-      <input id="ic-total" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
-    `;
+     descEl.innerHTML = `
+  Edita los campos teniendiendo en cuenta las observaciones.<br><br>
+  <b>Vuelve a ingresar la Fecha de Radicación</b><br><br>
+  INFORME:
+  <span id="ic-informe" class="chip">${String(IC_STATE.informe||1)}</span>
+  &nbsp; DE:
+  <input id="ic-total" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
+`;
   }else{
     if(titleEl) titleEl.textContent = 'CREACIÓN DE CUENTA';
     if(descEl)  descEl.innerHTML = `
