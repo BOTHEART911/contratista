@@ -2275,16 +2275,6 @@ function escapeHtml_(s){
     .replace(/'/g,'&#039;');
 }
 
-  function isNoAplica_(v){
-  const s = String(v || '').trim();
-  if(!s) return true;
-
-  if(s === '-' || s === '–' || s === '—') return true;
-
-  const k = s.toLowerCase().replace(/\s+/g,'');
-  return (k === 'n/a' || k === 'na' || k === 'n.a.' || k === 'n.a' || k === 'n/a.');
-}
-
 function readFileAsDataUrl(file){
   return new Promise((resolve,reject)=>{
     const r = new FileReader();
@@ -5005,23 +4995,6 @@ IC_STATE.bankPlanUrls = {
     // Pintar vista con modo corrección
     renderIngresarCuenta();
 
-   // === PRECARGA PERIODO (CORRECCIÓN): I..N ===
-    const icInicioEl = document.getElementById('ic-inicio');
-    const icFinEl    = document.getElementById('ic-fin');
-
-    const icDiaRat1El = document.getElementById('ic-diaRat1');
-    const icMesRat1El = document.getElementById('ic-mesRat1');
-    const icDiaRat2El = document.getElementById('ic-diaRat2');
-    const icMesRat2El = document.getElementById('ic-mesRat2');
-
-    if(icInicioEl) icInicioEl.value = String(base.inicioRatificar || '');
-    if(icFinEl)    icFinEl.value    = String(base.finRatificar || '');
-
-    if(icDiaRat1El) icDiaRat1El.value = String(base.diaRatificar1 || '');
-    if(icMesRat1El) icMesRat1El.value = String(base.mesRatificar1 || '');
-    if(icDiaRat2El) icDiaRat2El.value = String(base.diaRatificar2 || '');
-    if(icMesRat2El) icMesRat2El.value = String(base.mesRatificar2 || '');
-
     // Precargar relación de pago
     const saldoEl = document.getElementById('ic-saldo');
     if(saldoEl){
@@ -5237,14 +5210,13 @@ function renderIngresarCuenta(){
   const descEl  = document.getElementById('ic-desc');
   if(IC_MODE === 'correccion'){
     if(titleEl) titleEl.textContent = 'CORRECCIÓN DE CUENTA';
-     descEl.innerHTML = `
-  Edita los campos teniendiendo en cuenta las observaciones.<br><br>
-  <b>Vuelve a ingresar la Fecha de Radicación</b><br><br>
-  INFORME:
-  <span id="ic-informe" class="chip">${String(IC_STATE.informe||1)}</span>
-  &nbsp; DE:
-  <input id="ic-total" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
-`;
+    if(descEl)  descEl.innerHTML = `
+      Edita los campos teniendiendo en cuenta las observaciones.<br><br>
+      INFORME:
+      <span id="ic-informe" class="chip">${String(IC_STATE.informe||1)}</span>
+      &nbsp; DE:
+      <input id="ic-total" type="text" placeholder="Total" style="display:inline-block; width:auto; min-width:80px;" />
+    `;
   }else{
     if(titleEl) titleEl.textContent = 'CREACIÓN DE CUENTA';
     if(descEl)  descEl.innerHTML = `
@@ -5420,12 +5392,11 @@ if(IC_MODE !== 'correccion'){
   // Obligaciones + Actividades + Evidencias
   const wrap = document.getElementById('ic-oblig-wrap');
   wrap.innerHTML = '';
-  const obligacionesFiltradas = (IC_STATE.obligaciones || []).filter(o => !isNoAplica_(o));
-const n = Math.max(1, obligacionesFiltradas.length);
+  const n = Math.max(1, IC_STATE.obligaciones.length);
 
   for(let i=0;i<n && i<26;i++){
     const idx = i + 1;
-    const oblig = obligacionesFiltradas[i] || '';
+    const oblig = IC_STATE.obligaciones[i] || '-';
     const actVal = (IC_STATE.actividades && IC_STATE.actividades[i]) ? IC_STATE.actividades[i] : '';
 
     const block = document.createElement('div');
@@ -5731,21 +5702,19 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
 
   // Validar actividades obligatorias
   {
-  const obligacionesUsadas = (IC_STATE.obligaciones || []).filter(o => !isNoAplica_(o));
-const n = Math.max(1, obligacionesUsadas.length);
-
-for (let i = 1; i <= Math.min(26, n); i++) {
-  const el = document.getElementById('ic-act-' + i);
-  const v = (el && el.value) ? el.value.trim() : '';
-  if (!v) {
-    await Swal.fire({
-      icon: 'warning',
-      title: 'Faltan actividades',
-      text: `Debes diligenciar la actividad para la obligación ${i}.`
-    });
-    return;
+  const n = Math.max(1, IC_STATE.obligaciones.length);
+  for (let i = 1; i <= Math.min(26, n); i++) {
+    const el = document.getElementById('ic-act-' + i);
+    const v = (el && el.value) ? el.value.trim() : '';
+    if (!v) {
+      await Swal.fire({
+        icon: 'warning',
+        title: `Faltan actividades`,
+        text: `Debes diligenciar la actividad para la obligación ${i}.`
+      });
+      return;
+    }
   }
-}
 }
 
     if(IC_MODE !== 'correccion'){
@@ -5782,10 +5751,9 @@ for (let i = 1; i <= Math.min(26, n); i++) {
   }
 
   // Actividades
-  const obligacionesUsadas2 = (IC_STATE.obligaciones || []).filter(o => !isNoAplica_(o));
-const n = Math.max(1, obligacionesUsadas2.length);
-const actividades = [];
-for(let i=1;i<=Math.min(26,n);i++){
+  const n = Math.max(1, IC_STATE.obligaciones.length);
+  const actividades = [];
+  for(let i=1;i<=Math.min(26,n);i++){
     const el = document.getElementById('ic-act-'+i);
     actividades.push((el && el.value) ? el.value.trim() : '');
   }
