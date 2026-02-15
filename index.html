@@ -899,7 +899,7 @@
         <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
 
         <div class="narrow" style="margin-top:10px;">
-          <p><b>CC:</b> <span id="inicio-cc"></span></p>
+          <p><b>CC / NIT:</b> <span id="inicio-cc"></span></p>
           <p><b>CONTACTO:</b> <span id="inicio-contacto"></span></p>
           <p><b>DIRECCIÓN:</b> <span id="inicio-direccion"></span></p>
           <p><b>CORREO:</b> <span id="inicio-correo"></span></p>
@@ -1132,9 +1132,9 @@
         </div>
 
         <div id="contrato-form" class="hidden" style="margin-top:10px;">
-          <label>N° de Proceso</label>
+          <label>N° de Proceso SECOP II</label>
           <div class="muted" style="margin:6px 0 8px;">
-            <b>En el Acta de inicio</b> Toma solo el número que está CPS-(Aquí)-2026 para digitarlo
+            <b>En el Clausulado</b> Toma solo el número que está CPS-(Aquí)-2026 para digitarlo
           </div>
           <input id="numP" type="tel" inputmode="numeric" placeholder="Ej: 021" maxlength="3">
           
@@ -6299,7 +6299,7 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
   const diasVal  = document.getElementById('c-dias').value  || '';
   const numPraw = (document.getElementById('numP')?.value || '').replace(/\D/g,'');
 if(!numPraw || numPraw.length < 1 || numPraw.length > 3){
-  await Swal.fire({ icon:'warning', title:'Campo requerido', text:'Debes ingresar el N° de Proceso (3 dígitos). Ej: 021' });
+  await Swal.fire({ icon:'warning', title:'Campo requerido', text:'Debes ingresar el N° de Proceso SECOP II (3 dígitos). Ej: 021' });
   document.getElementById('numP')?.focus();
   return;
 }
@@ -6337,7 +6337,7 @@ if (!hayCambiosContrato) {
 
   // Resumen: solo campos editados (no vacíos)
     const resumen = [];
-  if(body.numP) resumen.push(`<b>N° de Proceso:</b> CPS-${body.numP}-2026`);
+  if(body.numP) resumen.push(`<b>N° de Proceso SECOP II:</b> CPS-${body.numP}-2026`);
   if(body.fechaInicioISO) resumen.push(`<b>Fecha de Inicio:</b> ${body.fechaInicioISO}`);
   if(body.fechaTerminoISO) resumen.push(`<b>Fecha de Terminación:</b> ${body.fechaTerminoISO}`);
   if((body.fechaInicioISO || body.fechaTerminoISO) && (body.meses || body.dias)){
@@ -6522,7 +6522,7 @@ async function cargarContratoLectura(){
   const lines = [
     `<b>Secretaría:</b> ${d.secretaria||''}`,
     `<b>Supervisor:</b> ${d.supervisor||''}`,
-    `<b>N° de Proceso:</b> ${d.numProceso||''}`,
+    `<b>N° de Proceso SECOP II:</b> ${d.numProceso||''}`,
     `<b>Contrato N°:</b> ${d.contrato||''} <b>de:</b> ${d.fechaContrato||''}`,
     `<b>Tipo de Contrato:</b> ${d.tipoContrato||''}`,
     `<b>Objeto:</b> ${d.objeto||''}`,
