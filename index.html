@@ -1132,6 +1132,12 @@
         </div>
 
         <div id="contrato-form" class="hidden" style="margin-top:10px;">
+          <label>N° de Proceso</label>
+          <div class="muted" style="margin:6px 0 8px;">
+            Digita solo el número de proceso (3 dígitos). Ej: 002, 021, 211
+          </div>
+          <input id="numP" type="tel" inputmode="numeric" placeholder="Ej: 021" maxlength="3">
+          
           <!-- Fecha Inicio (ruleta año fijo 2026) -->
           <label>Fecha de Inicio</label>
           <div class="muted" style="margin:6px 0 8px;"><b>FECHA DE ACTA DE INICIO</b></div>
@@ -6187,6 +6193,7 @@ bindNumericSanitizer('c-meses', 3);
 bindNumericSanitizer('c-dias', 3);
 bindNumericSanitizer('c-rp', 10);
 bindNumericSanitizer('c-rpAdicion', 10);
+bindNumericSanitizer('numP', 3);
 
 
 function convertirNumeroATexto(n){
@@ -6290,9 +6297,17 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
   const fechaTerminoISO = __fechaTerminoISO || '';
   const mesesVal = document.getElementById('c-meses').value || '';
   const diasVal  = document.getElementById('c-dias').value  || '';
+  const numPraw = (document.getElementById('numP')?.value || '').replace(/\D/g,'');
+if(!numPraw || numPraw.length < 1 || numPraw.length > 3){
+  await Swal.fire({ icon:'warning', title:'Campo requerido', text:'Debes ingresar el N° de Proceso (3 dígitos). Ej: 021' });
+  document.getElementById('numP')?.focus();
+  return;
+}
+const numP = numPraw.padStart(3,'0').slice(-3);
 
   const body = {
     documento: currentUser.documento,
+    numP: numP,
     fechaInicioISO: fechaInicioISO,
     diaInicio: document.getElementById('c-diaInicio').value||'',
     mesInicio: document.getElementById('c-mesInicio').value||'',
@@ -6322,6 +6337,7 @@ if (!hayCambiosContrato) {
 
   // Resumen: solo campos editados (no vacíos)
     const resumen = [];
+  if(body.numP) resumen.push(`<b>N° de Proceso:</b> CPS-${body.numP}-2026`);
   if(body.fechaInicioISO) resumen.push(`<b>Fecha de Inicio:</b> ${body.fechaInicioISO}`);
   if(body.fechaTerminoISO) resumen.push(`<b>Fecha de Terminación:</b> ${body.fechaTerminoISO}`);
   if((body.fechaInicioISO || body.fechaTerminoISO) && (body.meses || body.dias)){
@@ -6502,9 +6518,11 @@ async function cargarContratoLectura(){
   if(!currentUser) return;
   const d = await apiGet('getDatosContrato', { documento: currentUser.documento });
   const box = document.getElementById('contrato-lectura');
+
   const lines = [
     `<b>Secretaría:</b> ${d.secretaria||''}`,
     `<b>Supervisor:</b> ${d.supervisor||''}`,
+    `<b>N° de Proceso:</b> ${d.numProceso||''}`,
     `<b>Contrato N°:</b> ${d.contrato||''} <b>de:</b> ${d.fechaContrato||''}`,
     `<b>Tipo de Contrato:</b> ${d.tipoContrato||''}`,
     `<b>Objeto:</b> ${d.objeto||''}`,
@@ -6517,8 +6535,12 @@ async function cargarContratoLectura(){
     `<b>RP:</b> ${d.rp||''}`,
     `<b>CDP Adición:</b> ${d.cdpAdicion||''}`,
     `<b>RP Adición:</b> ${d.rpAdicion||''}`,
-    `<b>Regimen Simple:</b> ${d.regimen||''}`
+    `<b>Regimen Simple:</b> ${d.regimen||''}`,
+
+    `<b>Factura Electrónica:</b> ${d.factura||''}`,
+    `<b>Costos o Deducciones:</b> ${d.costos||''}`
   ];
+
   (d.obligaciones||[]).forEach((o,i)=>{ lines.push(`<b>Obligación ${i+1}:</b> ${o}`); });
   box.innerHTML = lines.map(l=>`<p>${l}</p>`).join('');
 }
