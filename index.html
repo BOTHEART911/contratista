@@ -6307,7 +6307,7 @@ const numP = numPraw.padStart(3,'0').slice(-3);
 
   const body = {
     documento: currentUser.documento,
-    numP: numP,
+    numP: (document.getElementById('numP')?.value || '').trim(),
     fechaInicioISO: fechaInicioISO,
     diaInicio: document.getElementById('c-diaInicio').value||'',
     mesInicio: document.getElementById('c-mesInicio').value||'',
@@ -6324,11 +6324,11 @@ const numP = numPraw.padStart(3,'0').slice(-3);
     costos: document.getElementById('c-costos').value||''
   };
 
-      const hayCambiosContrato =
-    !!(body.fechaInicioISO || body.fechaTerminoISO || body.rp || body.rpAdicion || body.costos || body.regimen) ||
-    (!!body.meses && String(body.meses) !== '0') ||
-    (!!body.dias  && String(body.dias)  !== '0') ||
-    !!body.ejecucion;
+  const hayCambiosContrato =
+  !!(body.numP || body.fechaInicioISO || body.fechaTerminoISO || body.rp || body.rpAdicion || body.costos || body.regimen || body.factura) ||
+  (!!body.meses && String(body.meses) !== '0') ||
+  (!!body.dias  && String(body.dias)  !== '0') ||
+  !!body.ejecucion;
 
 if (!hayCambiosContrato) {
   Swal.fire({ icon:'info', title:'Sin cambios', text:'No hay campos editados para guardar.' });
