@@ -2275,6 +2275,16 @@ function escapeHtml_(s){
     .replace(/'/g,'&#039;');
 }
 
+  function isNoAplica_(v){
+  const s = String(v || '').trim();
+  if(!s) return true;
+
+  if(s === '-' || s === '–' || s === '—') return true;
+
+  const k = s.toLowerCase().replace(/\s+/g,'');
+  return (k === 'n/a' || k === 'na' || k === 'n.a.' || k === 'n.a' || k === 'n/a.');
+}
+
 function readFileAsDataUrl(file){
   return new Promise((resolve,reject)=>{
     const r = new FileReader();
@@ -5410,11 +5420,12 @@ if(IC_MODE !== 'correccion'){
   // Obligaciones + Actividades + Evidencias
   const wrap = document.getElementById('ic-oblig-wrap');
   wrap.innerHTML = '';
-  const n = Math.max(1, IC_STATE.obligaciones.length);
+  const obligacionesFiltradas = (IC_STATE.obligaciones || []).filter(o => !isNoAplica_(o));
+const n = Math.max(1, obligacionesFiltradas.length);
 
   for(let i=0;i<n && i<26;i++){
     const idx = i + 1;
-    const oblig = IC_STATE.obligaciones[i] || '-';
+    const oblig = obligacionesFiltradas[i] || '';
     const actVal = (IC_STATE.actividades && IC_STATE.actividades[i]) ? IC_STATE.actividades[i] : '';
 
     const block = document.createElement('div');
@@ -5720,19 +5731,21 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
 
   // Validar actividades obligatorias
   {
-  const n = Math.max(1, IC_STATE.obligaciones.length);
-  for (let i = 1; i <= Math.min(26, n); i++) {
-    const el = document.getElementById('ic-act-' + i);
-    const v = (el && el.value) ? el.value.trim() : '';
-    if (!v) {
-      await Swal.fire({
-        icon: 'warning',
-        title: `Faltan actividades`,
-        text: `Debes diligenciar la actividad para la obligación ${i}.`
-      });
-      return;
-    }
+  const obligacionesUsadas = (IC_STATE.obligaciones || []).filter(o => !isNoAplica_(o));
+const n = Math.max(1, obligacionesUsadas.length);
+
+for (let i = 1; i <= Math.min(26, n); i++) {
+  const el = document.getElementById('ic-act-' + i);
+  const v = (el && el.value) ? el.value.trim() : '';
+  if (!v) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Faltan actividades',
+      text: `Debes diligenciar la actividad para la obligación ${i}.`
+    });
+    return;
   }
+}
 }
 
     if(IC_MODE !== 'correccion'){
@@ -5769,9 +5782,10 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   }
 
   // Actividades
-  const n = Math.max(1, IC_STATE.obligaciones.length);
-  const actividades = [];
-  for(let i=1;i<=Math.min(26,n);i++){
+  const obligacionesUsadas2 = (IC_STATE.obligaciones || []).filter(o => !isNoAplica_(o));
+const n = Math.max(1, obligacionesUsadas2.length);
+const actividades = [];
+for(let i=1;i<=Math.min(26,n);i++){
     const el = document.getElementById('ic-act-'+i);
     actividades.push((el && el.value) ? el.value.trim() : '');
   }
