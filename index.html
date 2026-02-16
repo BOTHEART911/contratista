@@ -6172,7 +6172,7 @@ bindQuery('reg-municipio','dl-municipio');
 document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
-  const correoRegex = /^[^\s@]+@(example\.org|...|gmail\.com|...|me\.com)$/; // solo dominios explícitos
+ const correoRegex = /^[^\s@]+@(example\.org|...|gmail\.com|...|me\.com)$/;
   const numeroCuentaRaw = (document.getElementById('reg-numeroCuenta').value||'').replace(/\D/g,'');
   const body = {
     documento: currentUser.documento,
@@ -6546,7 +6546,7 @@ document.getElementById('p-cancelar').addEventListener('click', ()=>{
 document.getElementById('p-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
-  onst correoRegex = /^[^\s@]+@(example\.org|...|gmail\.com|...|me\.com)$/;
+  const correoRegex = /^[^\s@]+@(example\.org|...|gmail\.com|...|me\.com)$/;
   const body = {
     documento: currentUser.documento,
     expedida: document.getElementById('p-expedida').value.trim(),
