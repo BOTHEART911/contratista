@@ -1001,6 +1001,7 @@
       <button class="menu-btn" id="go-admin">ALCALDÍA DE FLANDES</button>
        <button class="menu-btn" id="go-smalluni">SMALL PDF - UNIFICAR</button>
        <button class="menu-btn" id="go-smalldesb">SMALL PDF - DESBLOQUEAR</button>
+       <button class="menu-btn" id="go-dian">RUT - DIAN</button>
     </div>
   </div>
 
@@ -2252,8 +2253,8 @@ function compressImageToDataUrl(file, { maxDim = MAX_IMG_DIM, quality = JPEG_QUA
 }
 
   /* ================== PDFS ANEXOS ================== */
-const MAX_PDF_MB = 1;
-const MAX_NOVEDADES_MB = 1;
+const MAX_PDF_MB = 2;
+const MAX_NOVEDADES_MB = 2;
 const MAX_ACT_ANEXOS_MB = 10;
 
 function setPdfStatus(id, file){
@@ -3143,8 +3144,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
  const TUTORIALES = {
     primera: [
       {
-        title: 'DATOS DEL CONTRATO',
-        drive: 'https://drive.google.com/file/d/1BMLSAQTNIrszkWpVWOe2TqVxUkKk1YWk/view?usp=sharing',
+        title: 'DOCUMENTOS PRIMERA CUENTA',
+        drive: 'https://drive.google.com/file/d/1g_QIRIOT2sPr1iO3WgABx1CNUFe7E7Q5/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771209106/primera_cuenta_nyx5e7.png'
       }
     ],
@@ -3154,31 +3155,35 @@ document.addEventListener('DOMContentLoaded', ()=>{
     contrato: [
       {
         title: 'DATOS DEL CONTRATO',
-        drive: 'https://drive.google.com/file/d/1opRgiHCjG2S8_ndpiaLrwZ2ScE35e7mW/view?usp=sharing',
+        drive: 'https://drive.google.com/file/d/1cDZgboD-2uCJyUh-U8nDjHZXUje4r_Xn/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840144/DATOS_DEL_CONTRATO_dauxyu.png'
       }
     ],
     borrador: [
       {
         title: 'BORRADOR DE ACTIVIDADES',
-        drive: 'https://drive.google.com/file/d/1QMXfvexR9mgc3owujkqRXuLkUZ5GKsdP/view?usp=sharing',
+        drive: 'https://drive.google.com/file/d/1EfGYtRH-SS73UVdMcWWAotL6KxartjEF/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/BORRADOR_DE_ACTIVIDADES_pfvbz2.png'
       }
     ],
     ingresar: [
       {
         title: 'INGRESAR CUENTA I',
-        drive: 'https://drive.google.com/file/d/1oeUjAp3wKXIz2a96ncq3rn16OH8th7ha/view?usp=sharing',
+        drive: 'https://drive.google.com/file/d/1M61tnHW94gf5v4lJyutPjKCl9At1zMwv/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771209221/CUENTA_I_lvwray.png'
       },
       {
         title: 'INGRESAR CUENTA II',
-        drive: 'https://drive.google.com/file/d/1XcSVdzE3ICBoJP30II6Gf9iFljqnyN2s/view?usp=sharing',
+        drive: 'https://drive.google.com/file/d/1jg0RFl6U9zSAqzl4WE-yECM6Akn2wraF/view?usp=sharing',
         thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771209221/CUENTA_II_jvls5i.png'
       }
     ],
     corregir: [
-      // TODO
+      {
+        title: 'CORREGIR CUENTA',
+        drive: 'https://drive.google.com/file/d/1m35yG0imSS63gOoUVKnadhdWf4jTLUt2/view?usp=sharing',
+        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771213331/corregir_cuenta_xdpzn4.png'
+      }
     ],
     reportes: [
       // TODO
@@ -4501,6 +4506,18 @@ function mostrarEstadoCuenta(res){
   overlay.classList.remove('open');
   window.open(
     'https://smallpdf.com/es/desbloquear-pdf',
+    '_blank',
+    'noopener'
+  );
+});
+
+  /* ================== RUT ================== */
+
+  document.getElementById('go-dian')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+  window.open(
+    'https://muisca.dian.gov.co/',
     '_blank',
     'noopener'
   );
