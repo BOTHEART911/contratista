@@ -5392,7 +5392,7 @@ bindPdfInputStrict('rutsg',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('actAnexos',   { required:false, forbidEncrypted:true, maxMb: MAX_ACT_ANEXOS_MB });
 bindPdfInputStrict('factElect',   { required:false, forbidEncrypted:true, maxMb: MAX_PDF_MB });
-bindPdfInputStrict('otroPdf',     { required:false, forbidEncrypted:true, maxMb: MAX_PDF_MB });
+bindPdfInputStrict('otroPdf',     { required:false, forbidEncrypted:true, maxMb: MAX_ACT_ANEXOS_MB });
 
 // Siempre iniciar oculto el bloque de "Más Documentos Anexos" al entrar a la vista
 document.getElementById('ic-novedades-wrap')?.classList.add('hidden');
@@ -5869,7 +5869,6 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     radicado: document.getElementById('ic-radicado').value,
     saldo: document.getElementById('ic-saldo').value,
     cobro: document.getElementById('ic-cobro').value,
-    facturaNum: document.getElementById('ic-facturaNum')?.value || '',
     planilla: document.getElementById('ic-planilla').value,
     mesPlanilla: document.getElementById('ic-mesPlanilla').value,
     base: document.getElementById('ic-base').value,
@@ -5954,20 +5953,50 @@ if(!total){
   const anyNovedades = Object.values(nov).some(Boolean);
 
   function allowNovedades(){
-    if(!anyNovedades) return true;
+  if(!anyNovedades) return true;
 
-    const group1Base = nov.actaI && nov.clasulados && nov.cdpC && nov.rpC && nov.rutpn && nov.arlC;
-    const group1Ok   = group1Base && !nov.actaL && !nov.cdpAc && !nov.rpAc && (!nov.otrosi || nov.otrosi) && (!nov.otroR || nov.otroR);
+  const group1Base =
+    nov.actaI &&
+    nov.clasulados &&
+    nov.cdpC &&
+    nov.rpC;
 
-    const group2Ok = nov.cdpAc && nov.rpAc && !nov.actaI && !nov.clasulados && !nov.cdpC && !nov.rpC && !nov.rutpn && !nov.arlC && !nov.actaL;
+  const group1Ok =
+    group1Base &&
+    !nov.actaL &&
+    !nov.cdpAc &&
+    !nov.rpAc;
 
-    const group3Ok = nov.actaL && nov.otroR && !nov.actaI && !nov.clasulados && !nov.cdpC && !nov.rpC && !nov.rutpn && !nov.arlC && !nov.cdpAc && !nov.rpAc;
+  const group2Ok =
+    nov.cdpAc &&
+    nov.rpAc &&
+    !nov.actaI &&
+    !nov.clasulados &&
+    !nov.cdpC &&
+    !nov.rpC &&
+    !nov.actaL;
 
-    const group4Ok = (nov.otrosi || nov.actaL || nov.otroR) && !nov.actaI && !nov.clasulados && !nov.cdpC && !nov.rpC && !nov.rutpn && !nov.arlC && !nov.cdpAc && !nov.rpAc;
+  const group3Ok =
+    nov.actaL &&
+    nov.otroR &&
+    !nov.actaI &&
+    !nov.clasulados &&
+    !nov.cdpC &&
+    !nov.rpC &&
+    !nov.cdpAc &&
+    !nov.rpAc;
 
-    return !!(group1Ok || group2Ok || group3Ok || group4Ok);
-  }
+  const group4Ok =
+    (nov.otrosi || nov.actaL || nov.otroR) &&
+    !nov.actaI &&
+    !nov.clasulados &&
+    !nov.cdpC &&
+    !nov.rpC &&
+    !nov.cdpAc &&
+    !nov.rpAc;
 
+  return !!(group1Ok || group2Ok || group3Ok || group4Ok);
+}
 if(!allowNovedades()){
   await Swal.fire({
     icon:'info',
