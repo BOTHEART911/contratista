@@ -1534,6 +1534,10 @@
       <label>Nuevo Saldo</label>
       <input id="ic-nuevoSaldo" type="text" readonly placeholder="$ 0" />
 
+      <label>Número de Factura Electrónica</label>
+      <div class="muted" style="margin:6px 0 8px;"><b>Si no aplicas, NO edites</b></div>
+      <input id="ic-facturaNum" type="text" placeholder="Opcional" />
+
       <h3 class="center" style="margin-top:12px;color:#333;">RELACIÓN DE PLANILLA</h3>
 
       <label>N° de Planilla</label>
@@ -5100,6 +5104,10 @@ IC_STATE.bankPlanUrls = {
     if(nuevoSaldoEl){
       nuevoSaldoEl.value = formatCOPView(base.nuevoSaldo||0);
     }
+    const facturaNumEl = document.getElementById('ic-facturaNum');
+    if(facturaNumEl){
+      facturaNumEl.value = String(base.facturaNum || '');
+    }
 
     // Planilla principal
     const planillaEl = document.getElementById('ic-planilla');
@@ -5263,6 +5271,13 @@ if (bj === 'REVISADA POR SUPERVISOR') {
         saldoEl.placeholder = 'Primera cuenta: valor del contrato';
       }
     }
+
+   const facEl = document.getElementById('ic-facturaNum');
+if(facEl){
+  if(IC_MODE !== 'correccion'){
+    facEl.value = '';
+  }
+}
 
     showView('view-ingresar-cuenta');
   }catch(e){
@@ -5854,6 +5869,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     radicado: document.getElementById('ic-radicado').value,
     saldo: document.getElementById('ic-saldo').value,
     cobro: document.getElementById('ic-cobro').value,
+    facturaNum: document.getElementById('ic-facturaNum')?.value || ''
     planilla: document.getElementById('ic-planilla').value,
     mesPlanilla: document.getElementById('ic-mesPlanilla').value,
     base: document.getElementById('ic-base').value,
@@ -6004,6 +6020,7 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
     saldoActual: String(saldo),
     cobro: String(cobro),
     nuevoSaldo: String(nuevoSaldo),
+    facturaNum: String(document.getElementById('ic-facturaNum')?.value || '').trim()
     planilla: String(numPure(document.getElementById('ic-planilla').value)),
     mesPlanilla: document.getElementById('ic-mesPlanilla').value,
     base: String(base),
@@ -6058,7 +6075,8 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
   ];
 
   // Solo mostrar campos de Planilla Anexa si tienen algún valor
-  if (body.planilla2 || body.mesPlanilla2 || body.base2 || body.salud2 || body.fondo2 || body.riesgos2 || body.caja2 || body.sena2 || body.icbf2 || body.solidario2 || body.aporte2) {
+  if (body.facturaNum || body.planilla2 || body.mesPlanilla2 || body.base2 || body.salud2 || body.fondo2 || body.riesgos2 || body.caja2 || body.sena2 || body.icbf2 || body.solidario2 || body.aporte2) {
+    if(body.facturaNum) resumenParts.push(`<b>Número de Factura Electrónica:</b> ${body.facturaNum}`);
     if (body.planilla2)     resumenParts.push(`<b>Planilla Anexa:</b> ${body.planilla2}`);
     if (body.mesPlanilla2)  resumenParts.push(`<b>Mes Planilla Anexa:</b> ${body.mesPlanilla2}`);
     if (body.base2)         resumenParts.push(`<b>Base Anexa:</b> ${formatCOPView(body.base2)}`);
