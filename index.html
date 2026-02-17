@@ -1026,21 +1026,29 @@
     <!-- VISTA REGISTRO -->
     <section id="view-registro" class="view">
       <div class="card narrow">
-        <h2 style="color:var(--primary)">COMPLETANDO REGISTRO</h2> 
+        <h2 style="color:var(--primary)">COMPLETANDO REGISTRO</h2>
 
-        <label>CC o NIT</label>
-        <select id="reg-docTipo" required>
+        <label>Tipo de documento</label>
+        <div class="muted" style="margin:6px 0 8px;">Selecciona una opción</div>
+        <select id="reg-tipoDoc" required>
           <option value="" disabled selected>Selecciona</option>
           <option value="CC">CC</option>
           <option value="NIT">NIT</option>
         </select>
 
-        <!-- Municipio de Expedición (inicialmente oculto; requerido solo si CC) -->
-        <div id="reg-expedida-wrap" class="hidden">
-          <label>Municipio de Expedición del Documento</label>
-          <div class="muted" style="margin:6px 0 8px;">Debes esperar un par de segundos mientras cargan las opciones</div>
-          <input id="reg-expedida" list="dl-expedida" placeholder="Escribe y selecciona" autocomplete="off">
-          <datalist id="dl-expedida"></datalist>
+       <div id="reg-cc-only-block" class="hidden">
+        <label>Municipio de Expedición del Documento</label>
+        <div class="muted" style="margin:6px 0 8px;">Debes esperar un par de segundos mientras cargan las opciones</div>
+        <input id="reg-expedida" list="dl-expedida" placeholder="Escribe y selecciona" autocomplete="off">
+        <datalist id="dl-expedida"></datalist>
+
+        <label>Fecha de nacimiento</label>
+          <input
+            id="reg-cumple"
+            type="text"
+            placeholder="dd/mm/aaaa"
+            readonly
+            onclick="abrirPickerCumple()" />
         </div>
 
         <label>Teléfono Línea WhatsApp</label>
@@ -1055,7 +1063,7 @@
         <datalist id="dl-municipio"></datalist>
 
         <label>Correo Personal</label>
-      <input id="p-correo" type="email" placeholder="Solo Gmail (@gmail.com)" inputmode="email" autocomplete="email">
+        <input id="reg-correo" type="email" placeholder="correo que te pertenezca, NO Institucional">
 
         <label>Tipo de cuenta</label>
         <select id="reg-tipoCuenta">
@@ -1090,15 +1098,7 @@
         <input type="file" id="reg-firma" accept="image/*" />
         <img id="reg-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
-        <!-- Fecha de nacimiento (inicialmente oculto; requerido solo si CC) -->
-          <div id="reg-cumple-wrap" class="hidden">
-            <label>Fecha de nacimiento</label>
-            <input
-              id="reg-cumple"
-              type="text"
-              placeholder="dd/mm/aaaa"
-              readonly
-              onclick="abrirPickerCumple()" />
+        </div>
 
         <!-- Modal Fecha (ruleta) para Cumple: años 1936..2008 -->
         <div id="cumpleModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
@@ -1263,21 +1263,30 @@
           <button id="personales-volver" class="danger">Regresar</button>
         </div>
 
-        <!-- NUEVO: Tipo de documento (NO se guarda) -->
-        <label>CC o NIT</label>
-        <select id="p-docTipo" required>
-          <option value="" disabled selected>Selecciona</option>
-          <option value="CC">CC</option>
-          <option value="NIT">NIT</option>
-        </select>
+        <div id="personales-form" class="hidden" style="margin-top:10px;">
+         <label>Tipo de documento</label>
+<div class="muted" style="margin:6px 0 8px;">Selecciona una opción</div>
+<select id="p-tipoDoc">
+  <option value="" disabled selected>Selecciona</option>
+  <option value="CC">CC</option>
+  <option value="NIT">NIT</option>
+</select>
 
-       <!-- Municipio de Expedición (inicialmente oculto; requerido solo si CC) -->
-        <div id="p-expedida-wrap" class="hidden">
-          <label>Municipio de Expedición del Documento</label>
-          <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
-          <input id="p-expedida" list="dl-expedida2" placeholder="Escribe y selecciona" autocomplete="off">
-          <datalist id="dl-expedida2"></datalist>
-        </div>
+<!-- En PERSONALES: estos 2 campos quedan inicialmente ocultos y se muestran solo si TipoDoc=CC -->
+<div id="p-cc-only-block" class="hidden">
+  <label>Municipio de Expedición del Documento</label>
+  <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
+  <input id="p-expedida" list="dl-expedida2" placeholder="Escribe y selecciona" autocomplete="off">
+  <datalist id="dl-expedida2"></datalist>
+
+  <label>Fecha de nacimiento</label>
+  <input
+    id="p-cumple"
+    type="text"
+    placeholder="dd/mm/aaaa"
+    readonly
+    onclick="abrirPickerCumplePersonales()" />
+</div>
 
           <label>Teléfono Línea WhatsApp</label>
           <input id="p-telefono" type="tel" inputmode="numeric" placeholder="Número Personal">
@@ -1291,7 +1300,7 @@
           <datalist id="dl-municipio2"></datalist>
 
           <label>Correo Personal</label>
-           <input id="p-correo" type="email" placeholder="Solo Gmail (@gmail.com)" inputmode="email" autocomplete="email">
+          <input id="p-correo" type="email" placeholder="correo que te pertenezca, NO Institucional">
 
           <label>Tipo de cuenta</label>
           <select id="p-tipoCuenta">
@@ -1326,16 +1335,6 @@
           <div class="muted" style="margin:6px 0 8px;">Recuerda que debe ser una imagen clara y sin marcas de agua</div>
           <input type="file" id="p-firma" accept="image/*" />
           <img id="p-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
-
-           <!-- Fecha de nacimiento (inicialmente oculto; requerido solo si CC) -->
-          <div id="p-cumple-wrap" class="hidden">
-            <label>Fecha de nacimiento</label>
-            <input
-              id="p-cumple"
-              type="text"
-              placeholder="dd/mm/aaaa"
-              readonly
-              onclick="abrirPickerCumplePersonales()" />
 
           <!-- Modal Cumple (Personales) Independiente -->
 <div id="pCumpleModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
@@ -2604,54 +2603,6 @@ function bindNumericSanitizer(id, maxLen){
     el.value = maxLen ? raw.slice(0, maxLen) : raw;
   });
 }
-
-  function setHiddenWrapRequired(wrapId, inputId, required){
-  const wrap = document.getElementById(wrapId);
-  const inp  = document.getElementById(inputId);
-  if(wrap) wrap.classList.toggle('hidden', !required);
-  if(inp){
-    if(required) inp.setAttribute('required','required');
-    else inp.removeAttribute('required');
-  }
-}
-
-function setDocTipoMode(prefix, tipo){
-  const isCC = String(tipo||'').toUpperCase() === 'CC';
-
-  setHiddenWrapRequired(prefix + '-expedida-wrap', prefix + '-expedida', isCC);
-  setHiddenWrapRequired(prefix + '-cumple-wrap',   prefix + '-cumple',   isCC);
-
-  if(!isCC){
-    const exp = document.getElementById(prefix + '-expedida');
-    if(exp) exp.value = '';
-
-    if(prefix === 'reg'){
-      __cumpleISO = '';
-    }
-    if(prefix === 'p'){
-      __cumpleISO_personales = '';
-    }
-
-    const cum = document.getElementById(prefix + '-cumple');
-    if(cum) cum.value = '';
-  }
-}
-
-function bindDocTipo(prefix){
-  const sel = document.getElementById(prefix + '-docTipo');
-  if(!sel) return;
-
-  setDocTipoMode(prefix, ''); // inicial: oculto y no requerido hasta elegir
-
-  sel.addEventListener('change', ()=>{
-    setDocTipoMode(prefix, sel.value);
-  });
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  bindDocTipo('reg');
-  bindDocTipo('p');
-});
 
   // Helper simple: detecta si es móvil (iOS/Android)
 function isMobileDevice(){
@@ -6169,14 +6120,82 @@ fillSelect('reg-arl', ARL);
 bindQuery('reg-expedida','dl-expedida');
 bindQuery('reg-municipio','dl-municipio');
 
+function applyTipoDocRulesRegistro(){
+  const tipo = (document.getElementById('reg-tipoDoc')?.value || '').trim().toUpperCase();
+  const block = document.getElementById('reg-cc-only-block');
+  const expedida = document.getElementById('reg-expedida');
+  const cumple = document.getElementById('reg-cumple');
+
+  const isCC = (tipo === 'CC');
+
+  if(block){
+    block.classList.toggle('hidden', !isCC);
+  }
+
+  if(expedida){
+    expedida.required = isCC;
+    if(!isCC) expedida.value = '';
+  }
+
+  if(cumple){
+    cumple.required = isCC;
+    if(!isCC) cumple.value = '';
+  }
+
+  if(!isCC){
+    // Si es NIT, se guardan vacíos
+    __cumpleISO = '';
+  }
+}
+
+function applyTipoDocRulesPersonales(){
+  const tipo = (document.getElementById('p-tipoDoc')?.value || '').trim().toUpperCase();
+  const block = document.getElementById('p-cc-only-block');
+  const expedida = document.getElementById('p-expedida');
+  const cumple = document.getElementById('p-cumple');
+
+  const isCC = (tipo === 'CC');
+
+  if(block){
+    block.classList.toggle('hidden', !isCC);
+  }
+
+  if(expedida){
+    expedida.required = isCC;
+    if(!isCC) expedida.value = '';
+  }
+
+  if(cumple){
+    cumple.required = isCC;
+    if(!isCC) cumple.value = '';
+  }
+
+  if(!isCC){
+    __cumpleISO_personales = '';
+  }
+}
+
+document.getElementById('reg-tipoDoc')?.addEventListener('change', applyTipoDocRulesRegistro);
+document.getElementById('p-tipoDoc')?.addEventListener('change', applyTipoDocRulesPersonales);
+
+// Estado inicial: ocultos hasta que el usuario elija CC
+applyTipoDocRulesRegistro();
+applyTipoDocRulesPersonales();
+
+/* Validación: SOLO correo Gmail */
+function isGmail_(email){
+  const v = String(email || '').trim().toLowerCase();
+  return /^[^\s@]+@gmail\.com$/.test(v);
+}
+
 document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
- const correoRegex = /^[^\s@]+@(example\.org|...|gmail\.com|...|me\.com)$/;
   const numeroCuentaRaw = (document.getElementById('reg-numeroCuenta').value||'').replace(/\D/g,'');
   const body = {
     documento: currentUser.documento,
-    expedida: document.getElementById('reg-expedida').value.trim(),
+    expedida: (document.getElementById('reg-tipoDoc')?.value === 'CC') ? document.getElementById('reg-expedida').value.trim() : '',
+    cumpleISO: (document.getElementById('reg-tipoDoc')?.value === 'CC') ? (__cumpleISO || '') : '',
     telefono: document.getElementById('reg-telefono').value.trim(),
     direccion: document.getElementById('reg-direccion').value.trim(),
     municipio: document.getElementById('reg-municipio').value.trim(),
@@ -6187,22 +6206,22 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
     eps: document.getElementById('reg-eps').value,
     pension: document.getElementById('reg-pension').value,
     arl: document.getElementById('reg-arl').value,
-    firmaDataUrl: regFirmaDataUrl || '',
-    cumpleISO: __cumpleISO || '' // se llena desde el modal
+    firmaDataUrl: regFirmaDataUrl || ''
   };
-
-  const regDocTipo = (document.getElementById('reg-docTipo')?.value || '').toUpperCase();
-const regIsCC = regDocTipo === 'CC';
-  
   // Requeridos
-  const requiredOk =
+ const isCC_reg = (document.getElementById('reg-tipoDoc')?.value || '') === 'CC';
+const requiredOk =
   body.telefono && body.direccion && body.municipio && body.correo &&
   body.tipoCuenta && body.numeroCuenta && body.banco && body.eps && body.pension && body.arl &&
   body.firmaDataUrl &&
-  (regIsCC ? (body.expedida && body.cumpleISO) : true);
+  (isCC_reg ? (body.expedida && body.cumpleISO) : true) &&
+  (document.getElementById('reg-tipoDoc')?.value || '').trim();
   if(!requiredOk){ Swal.fire({icon:'warning', title:'Faltan campos Requeridos'}); return; }
   if(!telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
-  if(!correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
+  if(!isGmail_(body.correo)){
+  Swal.fire({icon:'warning', title:'Correo inválido', text:'Solo se permite correo @gmail.com'});
+  return;
+}
   if(!(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
 
   // Validación exacta de municipios (expedida/municipio) en GS también, pero aplicamos verificación previa
@@ -6546,10 +6565,11 @@ document.getElementById('p-cancelar').addEventListener('click', ()=>{
 document.getElementById('p-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
-  const correoRegex = /^[^\s@]+@(example\.org|...|gmail\.com|...|me\.com)$/;
+
   const body = {
     documento: currentUser.documento,
-    expedida: document.getElementById('p-expedida').value.trim(),
+    expedida: (document.getElementById('p-tipoDoc')?.value === 'CC') ? document.getElementById('p-expedida').value.trim() : '',
+    cumpleISO: (document.getElementById('p-tipoDoc')?.value === 'CC') ? (__cumpleISO_personales || '') : '',
     telefono: document.getElementById('p-telefono').value.trim(),
     direccion: document.getElementById('p-direccion').value.trim(),
     municipio: document.getElementById('p-municipio').value.trim(),
@@ -6560,12 +6580,8 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
     eps: document.getElementById('p-eps').value,
     pension: document.getElementById('p-pension').value,
     arl: document.getElementById('p-arl').value,
-    firmaDataUrl: pFirmaDataUrl || '',
-    cumpleISO: __cumpleISO_personales || ''
+    firmaDataUrl: pFirmaDataUrl || ''
   };
-
-  const pDocTipo = (document.getElementById('p-docTipo')?.value || '').toUpperCase();
-const pIsCC = pDocTipo === 'CC';
 
   // Validación exacta (expedida/municipio) si vienen
   if(body.expedida){
@@ -6590,17 +6606,6 @@ if (!hayCambiosPersonales) {
   Swal.fire({ icon:'info', title:'Sin cambios', text:'No hay campos editados para guardar.' });
   return;
 }
-
-  if(pIsCC){
-  if(!body.expedida){
-    Swal.fire({icon:'warning', title:'Faltan campos Requeridos', text:'Debes diligenciar Municipio de Expedición (CC).' });
-    return;
-  }
-  if(!body.cumpleISO){
-    Swal.fire({icon:'warning', title:'Faltan campos Requeridos', text:'Debes diligenciar Fecha de nacimiento (CC).' });
-    return;
-  }
-}
   
   // Resumen solo campos editados
   const resumen = [];
@@ -6614,7 +6619,10 @@ if (!hayCambiosPersonales) {
   if(!rs.isConfirmed) return;
 
   if(body.telefono && !telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
-  if(body.correo && !correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
+  if(body.correo && !isGmail_(body.correo)){
+  Swal.fire({icon:'warning', title:'Correo inválido', text:'Solo se permite correo @gmail.com'});
+  return;
+}
   if(body.numeroCuenta && !(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
 
   try{
