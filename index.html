@@ -1030,6 +1030,7 @@
 
         <label>Municipio de Expedición del Documento</label>
          <div class="muted" style="margin:6px 0 8px;">Debes esperar un par de segundos mientras cargan las opciones</div>
+        <div class="muted" style="margin:6px 0 8px;"><b>NO APLICA PARA PERSONAS JURÍDICAS</b></div>
         <input id="reg-expedida" list="dl-expedida" placeholder="Escribe y selecciona" autocomplete="off">
         <datalist id="dl-expedida"></datalist>
 
@@ -1081,6 +1082,7 @@
         <img id="reg-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
         <label>Fecha de nacimiento</label>
+        <div class="muted" style="margin:6px 0 8px;"><b>NO APLICA PARA PERSONAS JURÍDICAS</b></div>
         <input
           id="reg-cumple"
           type="text"
@@ -1254,6 +1256,7 @@
         <div id="personales-form" class="hidden" style="margin-top:10px;">
           <label>Municipio de Expedición del Documento</label>
           <div class="muted" style="margin:6px 0 8px;">Desbes esperar un par de segundos mientras cargan las opciones</div>
+          <div class="muted" style="margin:6px 0 8px;"><b>NO APLICA PARA PERSONAS JURÍDICAS</b></div>
           <input id="p-expedida" list="dl-expedida2" placeholder="Escribe y selecciona" autocomplete="off">
           <datalist id="dl-expedida2"></datalist>
 
@@ -1306,6 +1309,7 @@
           <img id="p-firma-preview" src="" alt="Vista previa firma" style="display:none; max-width:100%; border-radius:10px; border:1.5px solid #d8e4ff; margin-top:8px;" />
 
            <label>Fecha de nacimiento</label>
+          <div class="muted" style="margin:6px 0 8px;"><b>NO APLICA PARA PERSONAS JURÍDICAS</b></div>
         <input
           id="p-cumple"
           type="text"
@@ -2770,7 +2774,9 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
 
         document.getElementById('inicio-nombre').textContent = d.nombre || '';
         document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
-        document.getElementById('inicio-cc').innerHTML = (d.documento || '') + (d.expedida ? (' <b>DE</b> ' + d.expedida) : '');
+        document.getElementById('inicio-cc').innerHTML =
+        (d.documento || '') +
+        (String(d.expedida || '').trim() ? (' <b>DE</b> ' + String(d.expedida || '').trim()) : '');
         document.getElementById('inicio-contacto').textContent = d.telefono || '';
         document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
         document.getElementById('inicio-correo').textContent = d.correo || '';
@@ -2954,7 +2960,9 @@ async function cargarInicio(){
   const d = await apiGet('getInicio', { documento: currentUser.documento });
   document.getElementById('inicio-nombre').textContent = d.nombre || '';
   document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
-  document.getElementById('inicio-cc').innerHTML = (d.documento || '') + (d.expedida ? (' <b>DE</b> ' + d.expedida) : '');
+  document.getElementById('inicio-cc').innerHTML =
+  (d.documento || '') +
+  (String(d.expedida || '').trim() ? (' <b>DE</b> ' + String(d.expedida || '').trim()) : '');
   document.getElementById('inicio-contacto').textContent = d.telefono || '';
   document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
   document.getElementById('inicio-correo').textContent = d.correo || '';
@@ -6100,7 +6108,7 @@ bindQuery('reg-municipio','dl-municipio');
 document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
-  const correoRegex = /^[^\s@]+@(example\.org|nomedominio\.net|dominio\.edu\.co|examplo\.edu\.co|empresa\.com|nombreempresa\.org|correo\.es|dominio\.es|outlook\.com|hotmail\.com|live\.com|gmail\.com|icloud\.com|me\.com)$/; // solo dominios explícitos
+  const correoRegex = /^[^\s@]+@gmail\.com$/i;
   const numeroCuentaRaw = (document.getElementById('reg-numeroCuenta').value||'').replace(/\D/g,'');
   const body = {
     documento: currentUser.documento,
@@ -6119,19 +6127,41 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
     cumpleISO: __cumpleISO || '' // se llena desde el modal
   };
   // Requeridos
-  const requiredOk = body.expedida && body.telefono && body.direccion && body.municipio && body.correo && body.tipoCuenta && body.numeroCuenta && body.banco && body.eps && body.pension && body.arl && body.firmaDataUrl && body.cumpleISO;
-  if(!requiredOk){ Swal.fire({icon:'warning', title:'Faltan campos Requeridos'}); return; }
+  const requiredOk =
+  body.telefono &&
+  body.direccion &&
+  body.municipio &&
+  body.correo &&
+  body.tipoCuenta &&
+  body.numeroCuenta &&
+  body.banco &&
+  body.eps &&
+  body.pension &&
+  body.arl &&
+  body.firmaDataUrl;
+
+if(!requiredOk){
+  Swal.fire({icon:'warning', title:'Faltan campos Requeridos'});
+  return;
+}
   if(!telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
-  if(!correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
+  if(!correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Debe ser un correo Gmail'}); return; }
   if(!(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
 
   // Validación exacta de municipios (expedida/municipio) en GS también, pero aplicamos verificación previa
-  const exactExp = await apiGet('validateMunicipioExact', { nombre: body.expedida });
-  const exactMup = await apiGet('validateMunicipioExact', { nombre: body.municipio });
-  if(!exactExp || !exactMup){
-    Swal.fire({icon:'warning', title:'Municipio inválido', text:'Debe coincidir exactamente con la lista.'});
-    return;
-  }
+  let exactMup = true;
+  let exactExp = true;
+
+exactMup = await apiGet('validateMunicipioExact', { nombre: body.municipio });
+
+if(body.expedida){
+  exactExp = await apiGet('validateMunicipioExact', { nombre: body.expedida });
+}
+
+if(!exactMup || !exactExp){
+  Swal.fire({icon:'warning', title:'Municipio inválido', text:'Debe coincidir exactamente con la lista.'});
+  return;
+}
 
   const resumenHtml = [
     body.expedida && `<b>Municipio de Expedición:</b> ${body.expedida}`,
@@ -6466,7 +6496,7 @@ document.getElementById('p-cancelar').addEventListener('click', ()=>{
 document.getElementById('p-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const telefonoRegex = /^[0-9]{10}$/;
-  const correoRegex = /^[^\s@]+@(example\.org|nomedominio\.net|dominio\.edu\.co|examplo\.edu\.co|empresa\.com|nombreempresa\.org|correo\.es|dominio\.es|outlook\.com|hotmail\.com|live\.com|gmail\.com|icloud\.com|me\.com)$/;
+  const correoRegex = /^[^\s@]+@gmail\.com$/i;
 
   const body = {
     documento: currentUser.documento,
@@ -6486,13 +6516,20 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
   };
 
   // Validación exacta (expedida/municipio) si vienen
-  if(body.expedida){
-    const ok = await apiGet('validateMunicipioExact', { nombre: body.expedida });
-    if(!ok){ Swal.fire({icon:'warning', title:'Municipio de Expedición inválido', text:'Debe coincidir exactamente con la lista.'}); return; }
-  }
   if(body.municipio){
     const ok = await apiGet('validateMunicipioExact', { nombre: body.municipio });
-    if(!ok){ Swal.fire({icon:'warning', title:'Municipio de Residencia inválido', text:'Debe coincidir exactamente con la lista.'}); return; }
+    if(!ok){
+      Swal.fire({icon:'warning', title:'Municipio de Residencia inválido', text:'Debe coincidir exactamente con la lista.'});
+      return;
+    }
+  }
+
+  if(body.expedida){
+    const ok = await apiGet('validateMunicipioExact', { nombre: body.expedida });
+    if(!ok){
+      Swal.fire({icon:'warning', title:'Municipio de Expedición inválido', text:'Debe coincidir exactamente con la lista.'});
+      return;
+    }
   }
 
    const hayCambiosPersonales = [
@@ -6521,7 +6558,7 @@ if (!hayCambiosPersonales) {
   if(!rs.isConfirmed) return;
 
   if(body.telefono && !telefonoRegex.test(body.telefono)){ Swal.fire({icon:'warning', title:'Whatsapp inválido'}); return; }
-  if(body.correo && !correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Correo inválido'}); return; }
+  if(body.correo && !correoRegex.test(body.correo)){ Swal.fire({icon:'warning', title:'Debe ser un correo Gmail'}); return; }
   if(body.numeroCuenta && !(body.numeroCuenta.length>=7 && body.numeroCuenta.length<=16)){ Swal.fire({icon:'warning', title:'Número de cuenta inválido'}); return; }
 
   try{
