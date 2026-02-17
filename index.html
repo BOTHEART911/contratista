@@ -1569,6 +1569,24 @@
         </div>
       <input id="ic-riesgos" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla">
 
+      <label>Aportes a Caja de Compensación</label>
+      <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Si no realizas aportes, NO EDITES</b>
+        </div>
+      <input id="caja1" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+      
+      <label>Aportes a SENA</label>
+       <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Si no realizas aportes, NO EDITES</b>
+        </div>
+      <input id="sena1" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+      
+      <label>Aportes a ICBF</label>
+       <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Si no realizas aportes, NO EDITES</b>
+        </div>
+      <input id="icbf1" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+
       <input id="ic-solidario" type="text" readonly style="display:none;">
       <input id="ic-aporte" type="text" readonly style="display:none;">
     </div>
@@ -1611,6 +1629,24 @@
           <b>Revisa en tu Planilla Aportes Riesgos, sin intereses<br><br>Si la entidad realiza los aportes por ser Tipo 3, 4 0 5; escribe el valor que consignado por la entidad</b>
         </div>
       <input id="ic-riesgos2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+
+      <label>Aportes a Caja de Compensación (Anexa)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Si no realizas aportes, NO EDITES</b>
+        </div>
+      <input id="caja2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+      
+      <label>Aportes a SENA (Anexa)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Si no realizas aportes, NO EDITES</b>
+        </div>
+      <input id="sena2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
+      
+      <label>Aportes a ICBF (Anexa)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
+          <b>Si no realizas aportes, NO EDITES</b>
+        </div>
+      <input id="icbf2" type="tel" inputmode="numeric" placeholder="Cómo aparece en la Planilla (opcional)">
 
       <input id="ic-solidario2" type="text" readonly style="display:none;">
       <input id="ic-aporte2" type="text" readonly style="display:none;">
@@ -1714,6 +1750,14 @@
           <button type="button" class="chip danger" id="factElect-clear" style="display:none;">Quitar</button>
         </div>
         <div id="factElect-status" class="muted" style="margin-top:6px;"></div>
+
+        <label>Certificado Parafíscales (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify;"><b>REQUERIDO SOLO PARA PERSONAS JURÍDICAS</b></div>
+        <input id="otroPdf" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="otroPdf-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="otroPdf-status" class="muted" style="margin-top:6px;"></div>
         
         <label>Certificado NO aportes a Pensión (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS PENSIONADAS</b></div>
@@ -2401,7 +2445,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
 }
 
 async function collectBankPlanPdfsBase64_(){
-  const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','factElect','noafp','actAnexos'];
+ const ids = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','factElect','otroPdf','noafp','actAnexos'];
   const out = {};
 
   for(const id of ids){
@@ -5073,6 +5117,14 @@ IC_STATE.bankPlanUrls = {
     if(fondoEl) fondoEl.value = String(base.fondo||'');
     const riesgosEl = document.getElementById('ic-riesgos');
     if(riesgosEl) riesgosEl.value = String(base.riesgos||'');
+    const caja1El = document.getElementById('caja1');
+    if(caja1El) caja1El.value = String(base.caja1||'');
+    
+    const sena1El = document.getElementById('sena1');
+    if(sena1El) sena1El.value = String(base.sena1||'');
+    
+    const icbf1El = document.getElementById('icbf1');
+    if(icbf1El) icbf1El.value = String(base.icbf1||'');
 
     // Planilla anexa
     const plan2El = document.getElementById('ic-planilla2');
@@ -5081,6 +5133,14 @@ IC_STATE.bankPlanUrls = {
     const sal2El  = document.getElementById('ic-salud2');
     const fon2El  = document.getElementById('ic-fondo2');
     const rie2El  = document.getElementById('ic-riesgos2');
+    const caja2El = document.getElementById('caja2');
+    if(caja2El) caja2El.value = String(base.caja2||'');
+    
+    const sena2El = document.getElementById('sena2');
+    if(sena2El) sena2El.value = String(base.sena2||'');
+    
+    const icbf2El = document.getElementById('icbf2');
+    if(icbf2El) icbf2El.value = String(base.icbf2||'');
 
     if(plan2El)  plan2El.value  = String(base.numeroPlanilla2||'');
     if(mes2El)   mes2El.value   = String(base.mesPlanilla2||'');
@@ -5222,7 +5282,12 @@ function showPickerSelectAlert(){
 }
 
 // Formato COP en inputs
-const COP_INPUT_IDS = ['ic-saldo','ic-cobro','ic-base','ic-salud','ic-riesgos','ic-base2','ic-salud2','ic-fondo','ic-fondo2','ic-riesgos2'];
+const COP_INPUT_IDS = [
+  'ic-saldo','ic-cobro','ic-base','ic-salud','ic-fondo','ic-riesgos',
+  'caja1','sena1','icbf1',
+  'ic-base2','ic-salud2','ic-fondo2','ic-riesgos2',
+  'caja2','sena2','icbf2'
+];
 
 function formatCOPInstant(el){
   if(!el) return;
@@ -5312,6 +5377,7 @@ bindPdfInputStrict('rutsg',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('noafp',       { required:false, forbidEncrypted:true });
 bindPdfInputStrict('actAnexos',   { required:false, forbidEncrypted:true, maxMb: MAX_ACT_ANEXOS_MB });
 bindPdfInputStrict('factElect',   { required:false, forbidEncrypted:true, maxMb: MAX_PDF_MB });
+bindPdfInputStrict('otroPdf',     { required:false, forbidEncrypted:true, maxMb: MAX_PDF_MB });
 
 // Siempre iniciar oculto el bloque de "Más Documentos Anexos" al entrar a la vista
 document.getElementById('ic-novedades-wrap')?.classList.add('hidden');
@@ -5324,6 +5390,7 @@ const FILE_LABELS = {
   planaporte2: 'Planilla Anexa.pdf',
   rutsg:       'RUT (Régimen Simple).pdf',
   factElect:   'Factura Electrónica.pdf',
+  otroPdf:     'Otro Documento.pdf',
   noafp:       'Certificación NO Aportes Pensión.pdf',
   actAnexos:   'ANEXOS DE ACTIVIDADES.pdf',
   actaI:       'Acta de Inicio.pdf',
@@ -5370,7 +5437,7 @@ function setPreloadedUi_(id, url){
 }
 
 // IDs de PDFs en esta vista (los que tienen status/clear)
-const bankIds = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','factElect','noafp','actAnexos'];
+const bankIds = ['bancaria','baucher1','planaporte1','baucher2','planaporte2','rutsg','factElect','otroPdf','noafp','actAnexos'];
 const novIds  = ['actaI','clasulados','cdpC','rpC','rutpn','arlC','otrosi','cdpAc','rpAc','actaL','otroR'];
 
 if(IC_MODE !== 'correccion'){
@@ -5590,7 +5657,7 @@ if(IC_MODE === 'correccion'){
    'ic-radicado','ic-diaRad','ic-mesRad','ic-saldo','ic-cobro','ic-nuevoSaldo','ic-planilla',
    'ic-mesPlanilla','ic-base','ic-salud','ic-fondo','ic-riesgos',
    'ic-planilla2','ic-mesPlanilla2','ic-base2','ic-salud2','ic-fondo2','ic-riesgos2',
-   'ic-solidario','ic-aporte','ic-solidario2','ic-aporte2'
+   'ic-solidario','ic-aporte','ic-solidario2','ic-aporte2', 'caja1','sena1','icbf1','caja2','sena2','icbf2'
   ].forEach(id=>{
     const el = document.getElementById(id);
     if(el){ el.value=''; }
@@ -5905,8 +5972,17 @@ if(!allowNovedades()){
   return;
 }
 
+  
+const caja1 = numPure(document.getElementById('caja1').value);
+const sena1 = numPure(document.getElementById('sena1').value);
+const icbf1 = numPure(document.getElementById('icbf1').value);
 
+const caja2 = numPure(document.getElementById('caja2').value);
+const sena2 = numPure(document.getElementById('sena2').value);
+const icbf2 = numPure(document.getElementById('icbf2').value);
+  
   const novedadesPdfs = await collectNovedadesPdfsBase64_();
+
 
   const body = {
     documento: currentUser.documento,
@@ -5934,6 +6010,9 @@ if(!allowNovedades()){
     salud: String(numPure(document.getElementById('ic-salud').value)),
     fondo: String(numPure(document.getElementById('ic-fondo').value)),
     riesgos: String(numPure(document.getElementById('ic-riesgos').value)),
+    caja1: String(caja1 || 0),
+    sena1: String(sena1 || 0),
+    icbf1: String(icbf1 || 0),
     solidario: String(solidario),
     aporte: aporte,
     planilla2: emptyIfZero(document.getElementById('ic-planilla2').value||''),
@@ -5942,6 +6021,9 @@ if(!allowNovedades()){
     salud2: emptyIfZero(document.getElementById('ic-salud2').value||''),
     fondo2: emptyIfZero(document.getElementById('ic-fondo2').value||''),
     riesgos2: emptyIfZero(document.getElementById('ic-riesgos2').value||''),
+    caja2: String(caja2 || 0),
+    sena2: String(sena2 || 0),
+    icbf2: String(icbf2 || 0),
     solidario2: emptyIfZero(document.getElementById('ic-solidario2').value||''),
     aporte2: aporte2,
     actividades,
@@ -5968,18 +6050,24 @@ if(!allowNovedades()){
     `<b>Aportes Salud:</b> ${formatCOPView(body.salud)}`,
     `<b>Aportes Pensión:</b> ${formatCOPView(body.fondo)}`,
     `<b>Aportes ARL:</b> ${formatCOPView(body.riesgos)}`,
+    resumenParts.push(`<b>Aportes Caja:</b> ${formatCOPView(body.caja1)}`);
+    resumenParts.push(`<b>Aportes SENA:</b> ${formatCOPView(body.sena1)}`);
+    resumenParts.push(`<b>Aportes ICBF:</b> ${formatCOPView(body.icbf1)}`);
     `<b>Aporte Solidario:</b> ${formatCOPView(body.solidario)}`,
     `<b>Aporte (entidad):</b> ${body.aporte || '-'}`
   ];
 
   // Solo mostrar campos de Planilla Anexa si tienen algún valor
-  if (body.planilla2 || body.mesPlanilla2 || body.base2 || body.salud2 || body.fondo2 || body.riesgos2 || body.solidario2 || body.aporte2) {
+  if (body.planilla2 || body.mesPlanilla2 || body.base2 || body.salud2 || body.fondo2 || body.riesgos2 || body.caja2 || body.sena2 || body.icbf2 || body.solidario2 || body.aporte2) {
     if (body.planilla2)     resumenParts.push(`<b>Planilla Anexa:</b> ${body.planilla2}`);
     if (body.mesPlanilla2)  resumenParts.push(`<b>Mes Planilla Anexa:</b> ${body.mesPlanilla2}`);
     if (body.base2)         resumenParts.push(`<b>Base Anexa:</b> ${formatCOPView(body.base2)}`);
     if (body.salud2)        resumenParts.push(`<b>Salud Anexa:</b> ${formatCOPView(body.salud2)}`);
     if (body.fondo2)        resumenParts.push(`<b>Pensión Anexa:</b> ${formatCOPView(body.fondo2)}`);
     if (body.riesgos2)      resumenParts.push(`<b>ARL Anexa:</b> ${formatCOPView(body.riesgos2)}`);
+    if (body.caja2)   resumenParts.push(`<b>Caja Anexa:</b> ${formatCOPView(body.caja2)}`);
+    if (body.sena2)   resumenParts.push(`<b>SENA Anexa:</b> ${formatCOPView(body.sena2)}`);
+    if (body.icbf2)   resumenParts.push(`<b>ICBF Anexa:</b> ${formatCOPView(body.icbf2)}`);
     if (body.solidario2)    resumenParts.push(`<b>Aporte Solidario Anexo:</b> ${formatCOPView(body.solidario2)}`);
     if (body.aporte2)       resumenParts.push(`<b>Aporte Anexo (entidad):</b> ${body.aporte2}`);
   }
