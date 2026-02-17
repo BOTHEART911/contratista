@@ -1534,6 +1534,8 @@
       <label>Nuevo Saldo</label>
       <input id="ic-nuevoSaldo" type="text" readonly placeholder="$ 0" />
 
+      <h3 class="center" style="margin-top:12px;color:#333;">RELACIÓN DE PLANILLA</h3>
+
       <label>N° de Planilla</label>
       <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
           <b>Revisa que el Número de Planilla coincida</b>
@@ -1677,6 +1679,26 @@
             </button>
           </div>
 
+             <h3 class="center" style="margin-top:6px;color:#5b5b5b;">LOS SIGUIENTES DOCUMENTOS SON OPCIONALES</h3>
+
+        <label>Baucher Planilla Anexa (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
+        <input id="baucher2" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+        <button type="button" class="chip danger" id="baucher2-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="baucher2-status" class="muted" style="margin-top:6px;"></div>
+
+        <label>Planilla Anexa (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL, SIN CONTRASEÑA</b></div>
+        <input id="planaporte2" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="planaporte2-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="planaporte2-status" class="muted" style="margin-top:6px;"></div>
+
+        <h3 class="center" style="margin-top:6px;color:#5b5b5b;">DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE Y JURÍDICAS</h3>
+
         <label>RUT (Régimen Simple) (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS DEL REGIMEN SIMPLE</b></div>
         <input id="rutsg" type="file" accept="application/pdf" />
@@ -1700,24 +1722,6 @@
           <button type="button" class="chip danger" id="noafp-clear" style="display:none;">Quitar</button>
         </div>
         <div id="noafp-status" class="muted" style="margin-top:6px;"></div>
-
-        <h3 class="center" style="margin-top:6px;color:#5b5b5b;">LOS SIGUIENTES CAMPOS SON OPCIONALES</h3>
-
-        <label>Baucher Planilla Anexa (PDF)</label>
-        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
-        <input id="baucher2" type="file" accept="application/pdf" />
-        <div class="btn-row" style="margin-top:6px;">
-        <button type="button" class="chip danger" id="baucher2-clear" style="display:none;">Quitar</button>
-        </div>
-        <div id="baucher2-status" class="muted" style="margin-top:6px;"></div>
-
-        <label>Planilla Anexa (PDF)</label>
-        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL, SIN CONTRASEÑA</b></div>
-        <input id="planaporte2" type="file" accept="application/pdf" />
-        <div class="btn-row" style="margin-top:6px;">
-          <button type="button" class="chip danger" id="planaporte2-clear" style="display:none;">Quitar</button>
-        </div>
-        <div id="planaporte2-status" class="muted" style="margin-top:6px;"></div>
 
         <div class="center" style="margin-top:10px;">
           <button id="btn-novedades-show" class="chip">Adjunta Documentos Primera - última Cuenta, Otros</button>
