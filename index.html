@@ -4936,7 +4936,7 @@ function monthNameDMY(dmy){
   return MESES_LIT[idx];
 }
 
-  function emptyIfZero(n){
+function emptyIfZero(n){
   const x = Number(String(n||'').replace(/\D/g,''))||0;
   return x === 0 ? '' : String(x);
 }
@@ -6010,9 +6010,9 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
     salud: String(numPure(document.getElementById('ic-salud').value)),
     fondo: String(numPure(document.getElementById('ic-fondo').value)),
     riesgos: String(numPure(document.getElementById('ic-riesgos').value)),
-    caja1: String(caja1 || 0),
-    sena1: String(sena1 || 0),
-    icbf1: String(icbf1 || 0),
+    caja1: emptyIfZero(document.getElementById('caja1').value||''),
+    sena1: emptyIfZero(document.getElementById('sena1').value||''),
+    icbf1: emptyIfZero(document.getElementById('icbf1').value||''),
     solidario: String(solidario),
     aporte: aporte,
     planilla2: emptyIfZero(document.getElementById('ic-planilla2').value||''),
@@ -6021,9 +6021,9 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
     salud2: emptyIfZero(document.getElementById('ic-salud2').value||''),
     fondo2: emptyIfZero(document.getElementById('ic-fondo2').value||''),
     riesgos2: emptyIfZero(document.getElementById('ic-riesgos2').value||''),
-    caja2: String(caja2 || 0),
-    sena2: String(sena2 || 0),
-    icbf2: String(icbf2 || 0),
+    caja2: emptyIfZero(document.getElementById('caja2').value||''),
+    sena2: emptyIfZero(document.getElementById('sena2').value||''),
+    icbf2: emptyIfZero(document.getElementById('icbf2').value||''),
     solidario2: emptyIfZero(document.getElementById('ic-solidario2').value||''),
     aporte2: aporte2,
     actividades,
@@ -6050,9 +6050,9 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
     `<b>Aportes Salud:</b> ${formatCOPView(body.salud)}`,
     `<b>Aportes Pensión:</b> ${formatCOPView(body.fondo)}`,
     `<b>Aportes ARL:</b> ${formatCOPView(body.riesgos)}`,
-    `<b>Aportes Caja:</b> ${formatCOPView(body.caja1)}`,
-    `<b>Aportes SENA:</b> ${formatCOPView(body.sena1)}`,
-    `<b>Aportes ICBF:</b> ${formatCOPView(body.icbf1)}`,
+    `<b>Aportes Caja:</b> ${body.caja1 ? formatCOPView(body.caja1) : '-'}`,
+    `<b>Aportes SENA:</b> ${body.sena1 ? formatCOPView(body.sena1) : '-'}`,
+    `<b>Aportes ICBF:</b> ${body.icbf1 ? formatCOPView(body.icbf1) : '-'}`,
     `<b>Aporte Solidario:</b> ${formatCOPView(body.solidario)}`,
     `<b>Aporte (entidad):</b> ${body.aporte || '-'}`
   ];
