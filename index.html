@@ -2848,7 +2848,7 @@ if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
   }
 }
             // ACTIVO
-    currentUser = { documento: res.documento, secretaria: secretariaElegida };
+    currentUser = { documento: res.documento, secretaria: secretariaElegida, supervisor: (res.supervisor || '') };
     const nombreCorto = res.nombreCorto || '';
     const tituloBienvenida = nombreCorto ? 'BIENVENIDO(A) ' + nombreCorto : 'BIENVENIDO(A)';
 
