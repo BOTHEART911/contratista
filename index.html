@@ -6014,6 +6014,33 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     Swal.fire({icon:'warning',title:'Faltan campos requeridos'}); return;
   }
 
+    // ================== VALIDACIÓN CONTRATO ANTES DE CREAR CUENTA ==================
+  // Solo aplica en modo ingreso (no corrección)
+  if(IC_MODE !== 'correccion'){
+    try{
+      const v = await apiGet('validarContratoParaCuenta', { documento: currentUser.documento });
+
+      if(v && v.allow === false){
+        await Swal.fire({
+          icon:'info',
+          title:'NO PUEDES CREAR CUENTA',
+          html:'No completaste los datos del contrato previamente<br>Debes hacer clic en <b>DATOS DE PROCESO</b>, después en DATOS DE CONTRATO y finalmente en <b>Actualizar</b><br><br>Una vez termines este proceso, podrás ingresar tu primera cuenta.'
+        });
+
+        resetIngresarCuentaView();
+        showView('view-inicio');
+        return;
+      }
+    }catch(e){
+      await Swal.fire({
+        icon:'error',
+        title:'Error',
+        text:String(e.message||e)
+      });
+      return;
+    }
+  }
+
   // Actividades
   const n = Math.max(1, IC_STATE.obligaciones.length);
   const actividades = [];
