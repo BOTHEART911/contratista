@@ -2588,7 +2588,8 @@ function sendBuilderbotMessage(destino, mensaje){
   }).catch(err => console.warn('Error BuilderBot', err));
 }
 /* ================== ESTADO ================== */
-let currentUser = null;
+let currentUser = null; 
+// currentUser = { documento: '...', secretaria: '...', supervisor: '...' }
 
 /* ================== VISTAS ================== */
 function resetVistas(){
@@ -2779,30 +2780,75 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
   }
 
   try{
-    const res = await apiGet('loginContratista', { documento });
-    if(!res?.existe){
-      await Swal.fire({
-        icon:'info',
-        title:'NO TIENES ACCESO AÚN',
-        text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-        timer:6000,
-        showConfirmButton:false
-      });
-      return;
-    }
-    if(String(res.estado||'').toUpperCase()==='INACTIVO'){
-      await Swal.fire({
-        icon:'info',
-        title:'NO TIENES ACCESO AÚN',
-        text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-        timer:6000,
-        showConfirmButton:false
-      });
-      return;
-    }
+   const res = await apiGet('loginContratista', { documento });
 
+if(!res?.existe){
+  await Swal.fire({
+    icon:'info',
+    title:'NO TIENES ACCESO AÚN',
+    text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
+    timer:6000,
+    showConfirmButton:false
+  });
+  return;
+}
+
+if(String(res.estado||'').toUpperCase()==='INACTIVO'){
+  await Swal.fire({
+    icon:'info',
+    title:'NO TIENES ACCESO AÚN',
+    text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
+    timer:6000,
+    showConfirmButton:false
+  });
+  return;
+}
+
+// Si el documento aparece 2 veces ACTIVO, el backend devuelve secretariasActivas[]
+let secretariaElegida = String(res.secretaria || '').trim();
+if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
+  const opts = res.secretariasActivas.map(s => String(s||'').trim()).filter(Boolean);
+
+  const swalRes = await Swal.fire({
+    icon:'info',
+    title:'Elige la Secretaría de Ingreso',
+    showCancelButton:true,
+    showConfirmButton:false,
+    cancelButtonText:'Atrás',
+    allowOutsideClick:false,
+    allowEscapeKey:false,
+    html: `
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+        ${opts.map(sec => `
+          <button type="button" class="swal2-confirm swal2-styled" data-sec="${sec}" style="display:block; width:100%; margin:0;">
+            ${sec}
+          </button>
+        `).join('')}
+      </div>
+    `,
+    didOpen: ()=>{
+      const container = Swal.getHtmlContainer();
+      if(!container) return;
+      container.querySelectorAll('button[data-sec]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const sec = btn.getAttribute('data-sec') || '';
+          Swal.close({ isConfirmed:true, value: sec });
+        });
+      });
+    }
+  });
+
+  if(!swalRes.isConfirmed){
+    return;
+  }
+
+  secretariaElegida = String(swalRes.value || '').trim();
+  if(!secretariaElegida){
+    return;
+  }
+}
             // ACTIVO
-    currentUser = { documento: res.documento };
+    currentUser = { documento: res.documento, secretaria: secretariaElegida };
     const nombreCorto = res.nombreCorto || '';
     const tituloBienvenida = nombreCorto ? 'BIENVENIDO(A) ' + nombreCorto : 'BIENVENIDO(A)';
 
@@ -2825,7 +2871,7 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
 }else{
       // Antes: flujo original sin alerta de bienvenida
       (async ()=>{
-        const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento });
+        const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento, secretaria: currentUser.secretaria });
         const d = boot?.inicio || {};
         const list = boot?.noticias || [];
 
@@ -3014,7 +3060,7 @@ document.getElementById('soporte-volver')?.addEventListener('click', ()=>{
 function thumbById(id){ return id ? ('https://drive.google.com/thumbnail?sz=w1000&id='+id) : ''; }
 async function cargarInicio(){
   if(!currentUser) return;
-  const d = await apiGet('getInicio', { documento: currentUser.documento });
+  const d = await apiGet('getInicio', { documento: currentUser.documento, secretaria: currentUser.secretaria });
   document.getElementById('inicio-nombre').textContent = d.nombre || '';
   document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
   document.getElementById('inicio-cc').innerHTML =
@@ -3028,6 +3074,7 @@ async function cargarInicio(){
   document.getElementById('inicio-afp').textContent = d.pension || '';
   document.getElementById('inicio-arl').textContent = d.arl || '';
   document.getElementById('inicio-supervisor').textContent = d.supervisor || '';
+  currentUser.supervisor = d.supervisor || '';
   const firmaEl = document.getElementById('inicio-firma');
   if(d.firmaId){ firmaEl.src = thumbById(d.firmaId); firmaEl.style.display=''; } else { firmaEl.style.display='none'; }
 
@@ -4433,7 +4480,7 @@ document.getElementById('go-estado-cuenta')?.addEventListener('click', async ()=
   }
 
   try{
-    const res = await apiGet('getEstadoCuenta', { documento: currentUser.documento });
+    const res = await apiGet('getEstadoCuenta', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
     mostrarEstadoCuenta(res);
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
@@ -4646,7 +4693,7 @@ function mostrarEstadoCuenta(res){
   });
 
   try{
-    const data = await apiGet('descargarEgresosContratista', { documento: currentUser.documento });
+   const data = await apiGet('descargarEgresosContratista', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
 
     await Swal.close();
 
@@ -4712,7 +4759,7 @@ function mostrarEstadoCuenta(res){
   });
 
   try{
-    const data = await apiGet('generarCertificacionContrato', { documento: currentUser.documento });
+    const data = await apiGet('generarCertificacionContrato', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
     await Swal.close();
 
     if(!data || !data.base64){
@@ -4759,7 +4806,10 @@ document.getElementById('go-borrador')?.addEventListener('click', async ()=>{
     Swal.fire({icon:'warning', title:'Sesión inválida'}); return;
   }
   try{
-    const data = await apiGet('getBorradorActividades', { documento: currentUser.documento });
+    const data = await apiGet('getBorradorActividades', { 
+  documento: currentUser.documento, 
+  supervisor: currentUser.supervisor || '' 
+});
   if (data.blocked && String(data.estado||'').toUpperCase() !== 'DEVUELTA'){
   await Swal.fire({
     icon:'info',
@@ -4861,6 +4911,7 @@ document.getElementById('ba-guardar')?.addEventListener('click', async ()=>{
 try{
     await apiPost('saveBorradorActividades', {
       documento: currentUser.documento,
+      supervisor: currentUser.supervisor || '',
       nombre: BA_STATE.nombre || '',
       informe: BA_STATE.informe || 1,
       total: totalVal, // se guarda en columna E
@@ -5007,7 +5058,7 @@ document.getElementById('go-corregir-cuenta')?.addEventListener('click', async (
   IC_EDIT_ROW = null;
 
   try{
-    const base = await apiGet('getCorreccionCuentaData', { documento: currentUser.documento });
+    const base = await apiGet('getCorreccionCuentaData', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
 
     // No hay ninguna fila para este documento
     if(!base || base.found === false){
@@ -5224,7 +5275,7 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
 IC_MODE = 'ingreso';
   IC_EDIT_ROW = null;
     // Usa una sola llamada optimizada del backend (CONTRATISTAS + CUENTAS)
-    const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento });
+    const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
 
     // Bloqueos por estado BJ
      const bj = String(base.estado||'').toUpperCase();
@@ -6281,6 +6332,7 @@ document.getElementById('reg-guardar').addEventListener('click', async ()=>{
   const numeroCuentaRaw = (document.getElementById('reg-numeroCuenta').value||'').replace(/\D/g,'');
   const body = {
     documento: currentUser.documento,
+    secretaria: currentUser.secretaria || '',
     expedida: document.getElementById('reg-expedida').value.trim(),
     telefono: document.getElementById('reg-telefono').value.trim(),
     direccion: document.getElementById('reg-direccion').value.trim(),
@@ -6532,6 +6584,7 @@ const numP = numPraw.padStart(3,'0').slice(-3);
 
   const body = {
     documento: currentUser.documento,
+    secretaria: currentUser.secretaria || '',
     numP: (document.getElementById('numP')?.value || '').trim(),
     fechaInicioISO: fechaInicioISO,
     diaInicio: document.getElementById('c-diaInicio').value||'',
@@ -6670,6 +6723,7 @@ document.getElementById('p-guardar').addEventListener('click', async ()=>{
 
   const body = {
     documento: currentUser.documento,
+    secretaria: currentUser.secretaria || '',
     expedida: document.getElementById('p-expedida').value.trim(),
     telefono: document.getElementById('p-telefono').value.trim(),
     direccion: document.getElementById('p-direccion').value.trim(),
@@ -6748,7 +6802,7 @@ if (!hayCambiosPersonales) {
 /* ================== CONTRATO: cargar lectura ================== */
 async function cargarContratoLectura(){
   if(!currentUser) return;
-  const d = await apiGet('getDatosContrato', { documento: currentUser.documento });
+  const d = await apiGet('getDatosContrato', { documento: currentUser.documento, secretaria: currentUser.secretaria });
   const box = document.getElementById('contrato-lectura');
 
   const lines = [
@@ -6780,7 +6834,7 @@ async function cargarContratoLectura(){
 /* ================== PERSONALES: cargar lectura ================== */
 async function cargarPersonalesLectura(){
   if(!currentUser) return;
-  const d = await apiGet('getDatosPersonales', { documento: currentUser.documento });
+ const d = await apiGet('getDatosPersonales', { documento: currentUser.documento, secretaria: currentUser.secretaria });
   const box = document.getElementById('personales-lectura');
   const lines = [
     `<b>NOMBRE:</b> ${d.nombre||''}`,
@@ -7760,7 +7814,7 @@ function esHorarioHabilAhora(){
   }
 
   try{
-    const res = await apiGet('getCuentaDrive', { documento: currentUser.documento });
+    const res = await apiGet('getCuentaDrive', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
     if(!res || !res.found){
       await Swal.fire({
         icon:'info',
@@ -7856,7 +7910,7 @@ function esHorarioHabilAhora(){
     return;
   }
   try{
-    const res = await apiGet('reportarCuentaDrive', { documento: currentUser.documento });
+    const res = await apiGet('reportarCuentaDrive', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
     if(!res || !res.found){
       Swal.fire({icon:'info', title:'NO PUEDES REPORTAR', text:'Primero debes Ingresar un Cuenta', timer:3000, showConfirmButton:false});
       return;
@@ -7896,7 +7950,7 @@ if(!r.isConfirmed){
   return;
 }
     if(grupo) sendBuilderbotMessage(grupo, msg);
-    await apiPost('marcarCuentaReportada', { documento: currentUser.documento });
+    await apiPost('marcarCuentaReportada', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
     await Swal.fire({icon:'success', title:'Cuenta reportada', timer:2500, showConfirmButton:false});
     showView('view-inicio');
   }catch(e){
@@ -7927,7 +7981,7 @@ if(!r.isConfirmed){
   }
 
   try{
-    const res = await apiGet('reportarPlanPagos', { documento: currentUser.documento });
+   const res = await apiGet('reportarPlanPagos', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
 
     // Si NO encontró registros (o no encontró ninguna APROBADA)
     if(!res || res.found === false){
@@ -7989,7 +8043,7 @@ if(!r.isConfirmed){
 
 if(grupo) sendBuilderbotMessage(grupo, msg);
 
-await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, pago: egreso });
+await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, supervisor: currentUser.supervisor || '', pago: egreso });
 
 await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
 showView('view-inicio');
