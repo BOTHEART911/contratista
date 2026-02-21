@@ -5108,7 +5108,11 @@ document.getElementById('go-corregir-cuenta')?.addEventListener('click', async (
   IC_EDIT_ROW = null;
 
   try{
-    const base = await apiGet('getCorreccionCuentaData', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+    const base = await apiGet('getCorreccionCuentaData', {
+  documento: currentUser.documento,
+  supervisor: currentUser.supervisor || '',
+  secretaria: currentUser.secretaria || ''
+});
 
     // No hay ninguna fila para este documento
     if(!base || base.found === false){
@@ -5325,7 +5329,11 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
 IC_MODE = 'ingreso';
   IC_EDIT_ROW = null;
     // Usa una sola llamada optimizada del backend (CONTRATISTAS + CUENTAS)
-    const base = await apiGet('getIngresarCuentaData', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+    const base = await apiGet('getIngresarCuentaData', {
+  documento: currentUser.documento,
+  supervisor: currentUser.supervisor || '',
+  secretaria: currentUser.secretaria || ''
+});
 
     // Bloqueos por estado BJ
      const bj = String(base.estado||'').toUpperCase();
@@ -6157,6 +6165,7 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
 
   const body = {
     documento: currentUser.documento,
+    secretaria: currentUser.secretaria || '',
     nombre: IC_STATE.nombre || '',
     contrato: IC_STATE.contrato || '',
     supervisor: document.getElementById('ic-supervisor').value || '',
