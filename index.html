@@ -2847,29 +2847,64 @@ if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
     return;
   }
 }
-            // ACTIVO
+                      // ACTIVO
     currentUser = { documento: res.documento, secretaria: secretariaElegida, supervisor: (res.supervisor || '') };
+
+    // Determinar incompleto con base en la SECRETARÍA elegida (no con res.incompleto)
+    let incompletoSel = false;
+    try{
+      const inicioSel = await apiGet('getInicio', { documento: currentUser.documento, secretaria: currentUser.secretaria });
+
+      const faltantes = [];
+      const campos = [
+        'expedida','telefono','direccion','correo','municipio',
+        'tipoCuenta','cuenta','banco','eps','pension','arl'
+      ];
+
+      for(const k of campos){
+        const v = inicioSel ? inicioSel[k] : '';
+        if(v === null || v === undefined || String(v).trim() === ''){
+          faltantes.push(k);
+        }
+      }
+
+      if(faltantes.length === 0){
+        incompletoSel = false;
+      }else if(faltantes.length === 1 && faltantes[0] === 'expedida'){
+        incompletoSel = false;
+      }else{
+        incompletoSel = true;
+      }
+
+      // También actualiza supervisor desde la fila ACTIVO seleccionada
+      if(inicioSel && inicioSel.supervisor){
+        currentUser.supervisor = inicioSel.supervisor;
+      }
+    }catch(_){
+      // Si falla, conserva el comportamiento anterior como fallback
+      incompletoSel = !!res.incompleto;
+    }
+
     const nombreCorto = res.nombreCorto || '';
     const tituloBienvenida = nombreCorto ? 'BIENVENIDO(A) ' + nombreCorto : 'BIENVENIDO(A)';
 
-    if(res.incompleto){
-  const accepted = await showDataPolicyAlert();
-  if(!accepted){
-    currentUser = null;
-    loginDoc.value = '';
-    showView('view-login');
-    return;
-  }
+    if(incompletoSel){
+      const accepted = await showDataPolicyAlert();
+      if(!accepted){
+        currentUser = null;
+        loginDoc.value = '';
+        showView('view-login');
+        return;
+      }
 
-  await Swal.fire({
-    icon:'success',
-    title: tituloBienvenida,
-    html: 'Esta App será tu guía en el proceso contractual 2026<br>Valida muy bien todos los datos que ingreses.',
-    confirmButtonText:'Completar Registro'
-  });
-  showView('view-registro');
-}else{
-      // Antes: flujo original sin alerta de bienvenida
+      await Swal.fire({
+        icon:'success',
+        title: tituloBienvenida,
+        html: 'Esta App será tu guía en el proceso contractual 2026<br>Valida muy bien todos los datos que ingreses.',
+        confirmButtonText:'Completar Registro'
+      });
+      showView('view-registro');
+    }else{
       (async ()=>{
         const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento, secretaria: currentUser.secretaria });
         const d = boot?.inicio || {};
