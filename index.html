@@ -2238,6 +2238,18 @@ const BUILDERBOT_API_KEY  = 'bb-7f9ef630-5cfc-4ba4-9258-5e7cecbb4f65';
   const DATA_POLICY_LOGO = 'https://res.cloudinary.com/dqqeavica/image/upload/v1746906622/Logo_hzevh9.png';
 const DATA_POLICY_BANNER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif';
 
+  async function validarContratoParaIngresarCuenta_(){
+  if(!currentUser || !currentUser.documento){
+    return { ok:false, reason:'sesion' };
+  }
+  const res = await apiGet('canCrearCuenta', {
+    documento: currentUser.documento,
+    secretaria: currentUser.secretaria || '',
+    supervisor: currentUser.supervisor || ''
+  });
+  return res || { ok:false, reason:'unknown' };
+}
+
 /* ================== SONIDOS ================== */
 const SOUNDS = {
   question: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_fail_ls2aif.mp3',
@@ -5326,57 +5338,76 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
   }
 
  try{
-IC_MODE = 'ingreso';
-  IC_EDIT_ROW = null;
+    const v = await validarContratoParaIngresarCuenta_();
+    if(!v || v.ok !== true){
+      if(v && v.reason === 'z_empty'){
+        await Swal.fire({
+          icon:'info',
+          title:'NO PUEDES CREAR CUENTA',
+          html:'No completaste los datos del contrato previamente<br>Debes hacer clic en <b>DATOS DE PROCESO</b>, después en DATOS DE CONTRATO y finalmente en <b>Actualizar</b><br><br>Una vez termines este proceso, podrás ingresar tu primera cuenta.'
+        });
+
+        resetIngresarCuentaView();
+        showView('view-inicio');
+        return;
+      }
+
+      // Si por algún motivo no se encontró la fila ACTIVO con doc/sec/sup, o error lógico
+      // no bloqueamos con el mensaje de Z vacío, pero evitamos romper el flujo.
+    }
+
+    IC_MODE = 'ingreso';
+    IC_EDIT_ROW = null;
+
     // Usa una sola llamada optimizada del backend (CONTRATISTAS + CUENTAS)
     const base = await apiGet('getIngresarCuentaData', {
-  documento: currentUser.documento,
-  supervisor: currentUser.supervisor || '',
-  secretaria: currentUser.secretaria || ''
-});
+      documento: currentUser.documento,
+      supervisor: currentUser.supervisor || '',
+      secretaria: currentUser.secretaria || ''
+    });
 
     // Bloqueos por estado BJ
-     const bj = String(base.estado||'').toUpperCase();
-    
-   if (bj === 'DEVUELTA') {
-    await Swal.fire({
-      icon:'info',
-      title:'OPCIÓN NO VÁLIDA POR AHORA',
-      html:'Toma la opción <b>CORREGIR CUENTA</b>',
-      timer:5000,
-      showConfirmButton:false
-    });
-    showView('view-inicio');
-    return;
-  }
+    const bj = String(base.estado||'').toUpperCase();
 
-if (bj === 'INGRESADA' || bj === 'REPORTADA') {
-  await Swal.fire({
-    icon:'info',
-    title:'NO PUEDES ACUMULAR CUENTAS',
-    html: `Tu Supervisor no ha revisado y por ende, la oficina de Contratación no ha Aprobado tu cuenta recientemente reportada<br><br>
-           Puedes ir adelantado el registro de las Actividades de la <b>siguiente cuenta</b> desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
-           ¡No dejes acumular cuentas!`,
-    timer:13000,
-    showConfirmButton:false
-  });
-  showView('view-inicio');
-  return;
-}
+    if (bj === 'DEVUELTA') {
+      await Swal.fire({
+        icon:'info',
+        title:'OPCIÓN NO VÁLIDA POR AHORA',
+        html:'Toma la opción <b>CORREGIR CUENTA</b>',
+        timer:5000,
+        showConfirmButton:false
+      });
+      showView('view-inicio');
+      return;
+    }
 
-if (bj === 'REVISADA POR SUPERVISOR') {
-  await Swal.fire({
-    icon:'info',
-    title:'DEBES ESPERAR UN POCO MÁS',
-    html: `La oficina de Contratación no ha Aprobado tu anterior cuenta<br><br>
-           Puedes ir adelantado el registro de las Actividades de la <b>siguiente cuenta</b> desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
-           ¡No dejes acumular cuentas!`,
-    timer:11000,
-    showConfirmButton:false
-  });
-  showView('view-inicio');
-  return;
-}
+    if (bj === 'INGRESADA' || bj === 'REPORTADA') {
+      await Swal.fire({
+        icon:'info',
+        title:'NO PUEDES ACUMULAR CUENTAS',
+        html: `Tu Supervisor no ha revisado y por ende, la oficina de Contratación no ha Aprobado tu cuenta recientemente reportada<br><br>
+               Puedes ir adelantado el registro de las Actividades de la <b>siguiente cuenta</b> desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
+               ¡No dejes acumular cuentas!`,
+        timer:13000,
+        showConfirmButton:false
+      });
+      showView('view-inicio');
+      return;
+    }
+
+    if (bj === 'REVISADA POR SUPERVISOR') {
+      await Swal.fire({
+        icon:'info',
+        title:'DEBES ESPERAR UN POCO MÁS',
+        html: `La oficina de Contratación no ha Aprobado tu anterior cuenta<br><br>
+               Puedes ir adelantado el registro de las Actividades de la <b>siguiente cuenta</b> desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
+               ¡No dejes acumular cuentas!`,
+        timer:11000,
+        showConfirmButton:false
+      });
+      showView('view-inicio');
+      return;
+    }
 
     // Cargar estado único
     IC_STATE.informe       = Number(base.informe||1);
@@ -5406,12 +5437,12 @@ if (bj === 'REVISADA POR SUPERVISOR') {
       }
     }
 
-   const facEl = document.getElementById('ic-facturaNum');
-if(facEl){
-  if(IC_MODE !== 'correccion'){
-    facEl.value = '';
-  }
-}
+    const facEl = document.getElementById('ic-facturaNum');
+    if(facEl){
+      if(IC_MODE !== 'correccion'){
+        facEl.value = '';
+      }
+    }
 
     showView('view-ingresar-cuenta');
   }catch(e){
@@ -6014,32 +6045,7 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     Swal.fire({icon:'warning',title:'Faltan campos requeridos'}); return;
   }
 
-    // ================== VALIDACIÓN CONTRATO ANTES DE CREAR CUENTA ==================
-  // Solo aplica en modo ingreso (no corrección)
-  if(IC_MODE !== 'correccion'){
-    try{
-      const v = await apiGet('validarContratoParaCuenta', { documento: currentUser.documento });
-
-      if(v && v.allow === false){
-        await Swal.fire({
-          icon:'info',
-          title:'NO PUEDES CREAR CUENTA',
-          html:'No completaste los datos del contrato previamente<br>Debes hacer clic en <b>DATOS DE PROCESO</b>, después en DATOS DE CONTRATO y finalmente en <b>Actualizar</b><br><br>Una vez termines este proceso, podrás ingresar tu primera cuenta.'
-        });
-
-        resetIngresarCuentaView();
-        showView('view-inicio');
-        return;
-      }
-    }catch(e){
-      await Swal.fire({
-        icon:'error',
-        title:'Error',
-        text:String(e.message||e)
-      });
-      return;
-    }
-  }
+  
 
   // Actividades
   const n = Math.max(1, IC_STATE.obligaciones.length);
