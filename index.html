@@ -4841,6 +4841,15 @@ document.getElementById('go-borrador')?.addEventListener('click', async ()=>{
     Swal.fire({icon:'warning', title:'Sesión inválida'}); return;
   }
   try{
+    // RESET DURO: evita “cache visual” si cambia secretaría/supervisor
+BA_STATE = { informe:1, obligaciones:[], actividades:[], cuentaExiste:false, activo:false, nombre:'', total:'' };
+
+const wrap = document.getElementById('ba-list');
+if(wrap) wrap.innerHTML = '';
+
+const totInput = document.getElementById('ba-total-input');
+if(totInput) totInput.value = '';
+    
     const data = await apiGet('getBorradorActividades', { 
   documento: currentUser.documento, 
   supervisor: currentUser.supervisor || '' 
@@ -4896,6 +4905,12 @@ function renderBorradorActividades(){
 
   const wrap = document.getElementById('ba-list');
   wrap.innerHTML = '';
+    // Limpia cualquier textarea anterior por seguridad (si el DOM llegara a persistir)
+  for(let j=1;j<=26;j++){
+    const old = document.getElementById('ba-act-'+j);
+    if(old) old.value = '';
+  }
+  
   const n = Math.max(1, (BA_STATE.obligaciones||[]).length);
   for(let i=0;i<n && i<26;i++){
     const idx = i+1;
