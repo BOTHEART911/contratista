@@ -5156,29 +5156,19 @@ document.getElementById('go-corregir-cuenta')?.addEventListener('click', async (
 
     const estado = String(base.estado||'').toUpperCase();
 
-    // Encontrado pero no corregible
-    if(base.corregible === false){
-      if(estado === 'INCOMPLETA'){
-        await Swal.fire({
-          icon:'info',
-          title:'DEBES COMPLETAR',
-          html:'Toma la opción <b>MI CUENTA DRIVE</b> y completa los Documentos',
-          timer:6000,
-          showConfirmButton:false
-        });
-      }else{
-        await Swal.fire({
-          icon:'info',
-          title:'OPCIÓN NO VÁLIDA',
-          html:'tu anterior cuenta se encuentra en un Estado que no requiere Corrección',
-          timer:6000,
-          showConfirmButton:false
-        });
-      }
-      return;
-    }
+// Encontrado pero no corregible
+if(base.corregible === false){
+  await Swal.fire({
+    icon:'info',
+    title:'OPCIÓN NO VÁLIDA',
+    html:'tu anterior cuenta se encuentra en un Estado que no requiere Corrección',
+    timer:6000,
+    showConfirmButton:false
+  });
+  return;
+}
 
-    // Corregible: INGRESADA o DEVUELTA
+    // Corregible: INGRESADA, DEVUELTA o INCOMPLETA
     IC_EDIT_ROW = base.rowIndex || null;
 
     // Llenar IC_STATE con datos de CUENTAS para precargar todos los campos
@@ -7966,15 +7956,17 @@ function esHorarioHabilAhora(){
     }
 
     if(estado === 'INCOMPLETA'){
-      const r = await Swal.fire({
-        icon:'info',
-        title:'COMPLETA TUS DOCUMENTOS',
-        text:'Después de completar, recuerda de nuevo tomar la opción REPORTAR CUENTA DRIVE en el Menú Principal',
-        confirmButtonText:'OK'
-      });
-      if(r.isConfirmed) openFolder();
-      return;
-    }
+  await Swal.fire({
+    icon:'info',
+    title:'DEBES IR A CORREGIR CUENTA',
+    text:'Adjunta solo los documentos requeridos',
+    confirmButtonText:'OK',
+    allowOutsideClick:true,
+    allowEscapeKey:true
+  });
+  showView('view-inicio');
+  return;
+}
 
     if(estado === 'REPORTADA'){
       const r = await Swal.fire({
