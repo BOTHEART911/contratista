@@ -3130,6 +3130,21 @@ async function cargarInicio(){
   try{ await loadNoticias(); }catch(_){}
 }
 
+  /* ================== CORREO CONTRATISTA (para alertas) ================== */
+let CONTRATISTA_EMAIL_CACHE = '';
+
+async function getContratistaEmail_(){
+  if(CONTRATISTA_EMAIL_CACHE) return CONTRATISTA_EMAIL_CACHE;
+  if(!currentUser || !currentUser.documento) return '';
+  try{
+    const email = await apiGet('getContratistaEmail', { documento: currentUser.documento });
+    CONTRATISTA_EMAIL_CACHE = String(email || '').trim();
+    return CONTRATISTA_EMAIL_CACHE;
+  }catch(_){
+    return '';
+  }
+}
+
 /* ================== COMUNICADOS (NOTICIAS) ================== */
 
 let NOTICIAS_CACHE = [];
@@ -7939,7 +7954,11 @@ function esHorarioHabilAhora(){
       const r = await Swal.fire({
         icon:'success',
         title:'DESCARGA TUS DOCUMENTOS',
-        html:'Unificalos guiándote con la explicación en <b>TUTORIALES DE USO</b><br>Ya solo falta el cargue en el SECOP II',
+        html: `
+            Unificalos guiándote con la explicación en TUTORIALES DE USO<br>
+            Ya solo falta el cargue en el SECOP II<br><br>
+            ⚠ Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. ⚠
+          `,
         confirmButtonText:'OK'
       });
       if(r.isConfirmed) openFolder();
@@ -7972,7 +7991,11 @@ function esHorarioHabilAhora(){
       const r = await Swal.fire({
         icon:'info',
         title:'REVISA TUS DOCUMENTOS',
-        html:'Verifica que los Datos estén correctos y completos.<br><br>Para realizar correctamente este proceso, revisa en el botón GUIA, <b>TUTORIALES DE USO</b>',
+        html: `
+              Verifica que los Datos estén correctos y completos.<br><br>
+              ⚠ Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. ⚠<br><br>
+              Para realizar correctamente este proceso, revisa en el botón GUIA, TUTORIALES DE USO
+            `,
         confirmButtonText:'IR A MI CARPETA DRIVE'
       });
       if(r.isConfirmed) openFolder();
