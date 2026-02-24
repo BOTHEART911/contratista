@@ -1738,7 +1738,7 @@
         </div>
         <div id="planaporte2-status" class="muted" style="margin-top:6px;"></div>
 
-        <h3 class="center" style="margin-top:6px;color:#5b5b5b;">DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE Y JURÍDICAS</h3>
+        <h3 class="center" style="margin-top:6px;color:#5b5b5b;">DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE, JURÍDICAS, NO APORTES A PENSIÓN</h3>
 
         <label>RUT (Régimen Simple) (PDF)</label>
         <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>REQUERIDO SOLO PARA PERSONAS DEL REGIMEN SIMPLE</b></div>
@@ -7955,9 +7955,9 @@ function esHorarioHabilAhora(){
         icon:'success',
         title:'DESCARGA TUS DOCUMENTOS',
         html: `
-            Unificalos guiándote con la explicación en TUTORIALES DE USO<br>
+            Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
             Ya solo falta el cargue en el SECOP II<br><br>
-            ⚠ Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. ⚠
+            📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
           `,
         confirmButtonText:'OK'
       });
@@ -7993,8 +7993,8 @@ function esHorarioHabilAhora(){
         title:'REVISA TUS DOCUMENTOS',
         html: `
               Verifica que los Datos estén correctos y completos.<br><br>
-              ⚠ Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. ⚠<br><br>
-              Para realizar correctamente este proceso, revisa en el botón GUIA, TUTORIALES DE USO
+              📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
+              Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
             `,
         confirmButtonText:'IR A MI CARPETA DRIVE'
       });
