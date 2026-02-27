@@ -4612,11 +4612,20 @@ function mostrarEstadoCuenta(res){
         showConfirmButton:false
       });
       break;
+      case 'PRE-ORDEN':
+      Swal.fire({
+        icon:'success',
+        title:'ORDEN EN PROCESO',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> tiene ORDEN DE PAGO por la Oficina de Contabilidad<br><br>en breve se Emitirá a la oficina de Tesorería`,
+        timer:8000,
+        showConfirmButton:false
+      });
+      break;
     case 'ORDEN DE PAGO':
       Swal.fire({
         icon:'success',
         title:'ORDEN DE PAGO EMITADA',
-        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> tiene ORDEN DE PAGO por la Oficina de Contabilidad<br><br>A la espera de EGRESO por la oficina de Tesorería`,
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> Está a la espera de EGRESO por la oficina de Tesorería`,
         timer:8000,
         showConfirmButton:false
       });
