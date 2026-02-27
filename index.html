@@ -7745,11 +7745,11 @@ function icEsHabil(d){
   return true;
 }
 function icAbrirRadicado(){
-  const m = document.getElementById('icRadicadoModal');
-  const dSel = document.getElementById('icRadDia');
-  const mSel = document.getElementById('icRadMes');
-  const aSel = document.getElementById('icRadAnio');
-  if(!m || !dSel || !mSel || !aSel) return;
+  const modal = document.getElementById('icRadicadoModal');
+  const dSel  = document.getElementById('icRadDia');
+  const mSel  = document.getElementById('icRadMes');
+  const aSel  = document.getElementById('icRadAnio');
+  if(!modal || !dSel || !mSel || !aSel) return;
 
   // Reset options
   dSel.innerHTML = '';
@@ -7761,42 +7761,66 @@ function icAbrirRadicado(){
   let count = 0;
   let cursor = new Date(hoy);
 
-  // hoy + 2 hábiles (diciembre: todos hábiles salvo feriados)
-  while(count<3){
+  // hoy + 2 hábiles (según icEsHabil)
+  while(count < 3){
     if(icEsHabil(cursor)){
       opciones.push(new Date(cursor));
       count++;
     }
-    cursor.setDate(cursor.getDate()+1);
+    cursor.setDate(cursor.getDate() + 1);
   }
 
-  // Mes/Año fijados por la primera opción
-  const d0 = opciones[0];
-  __icRadYear  = String(d0.getFullYear());
-  __icRadMonth = icPad2(d0.getMonth()+1);
+  // --- NUEVO: guardar opciones por día para actualizar mes/año dinámicamente ---
+  const byDay = new Map(); // key: "DD" -> { month: "MM", year:"YYYY", monthName:"..." }
+  opciones.forEach(dt=>{
+    const dd = icPad2(dt.getDate());
+    const mm = icPad2(dt.getMonth()+1);
+    const yy = String(dt.getFullYear());
+    byDay.set(dd, { month:mm, year:yy, monthName: icMesesNombres[dt.getMonth()] });
+  });
 
-  const optM = document.createElement('option');
-  optM.value = __icRadMonth;
-  optM.textContent = icMesesNombres[d0.getMonth()];
-  mSel.appendChild(optM);
-
-  const optY = document.createElement('option');
-  optY.value = __icRadYear;
-  optY.textContent = __icRadYear;
-  aSel.appendChild(optY);
-
-  // Días posibles
-  opciones.forEach(d=>{
+  // Días posibles (pueden ser de otro mes)
+  opciones.forEach(dt=>{
     const opt = document.createElement('option');
-    opt.value = icPad2(d.getDate());
-    opt.textContent = icPad2(d.getDate());
+    opt.value = icPad2(dt.getDate());
+    opt.textContent = icPad2(dt.getDate());
     dSel.appendChild(opt);
   });
-  // por seguridad, selecciona el primer día
-  if (dSel.options.length) dSel.selectedIndex = 0;
 
-  m.style.display='flex';
-  m.setAttribute('aria-hidden','false');
+  // --- NUEVO: función que ajusta Mes/Año según el día seleccionado ---
+  function syncMesAnioFromDia(){
+    const dd = (dSel.value || '').trim();
+    const info = byDay.get(dd);
+    if(!info) return;
+
+    __icRadYear  = info.year;
+    __icRadMonth = info.month;
+
+    // Mes (1 opción, disabled) y Año (1 opción, disabled) pero coherentes
+    mSel.innerHTML = '';
+    aSel.innerHTML = '';
+
+    const optM = document.createElement('option');
+    optM.value = info.month;
+    optM.textContent = info.monthName;
+    mSel.appendChild(optM);
+
+    const optY = document.createElement('option');
+    optY.value = info.year;
+    optY.textContent = info.year;
+    aSel.appendChild(optY);
+  }
+
+  // Selecciona el primer día y sincroniza
+  if(dSel.options.length) dSel.selectedIndex = 0;
+  syncMesAnioFromDia();
+
+  // Escucha cambios de día para activar mes/año correctos (ej: 02/03/2026)
+  dSel.onchange = syncMesAnioFromDia;
+
+  // Mostrar modal
+  modal.style.display = 'flex';
+  modal.setAttribute('aria-hidden','false');
 }
 function icCancelarRadicado(){
   const m=document.getElementById('icRadicadoModal');
