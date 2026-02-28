@@ -5315,6 +5315,34 @@ IC_STATE.bankPlanUrls = {
     if(fon2El)   fon2El.value   = String(base.fondo2||'');
     if(rie2El)   rie2El.value   = String(base.riesgos2||'');
 
+  // --- FORMATEAR A PESOS al cargar CORRECCIÓN (sin esperar a que el usuario toque el input) ---
+try{
+  // Formatear inputs COP que ya tienen valores precargados (incluye "0")
+  (function formatCopOnLoadForCorreccion_(){
+    if(IC_MODE !== 'correccion') return;
+
+    const ids = [
+      'ic-saldo','ic-cobro','ic-base','ic-salud','ic-fondo','ic-riesgos',
+      'caja1','sena1','icbf1',
+      'ic-base2','ic-salud2','ic-fondo2','ic-riesgos2',
+      'caja2','sena2','icbf2'
+    ];
+
+    ids.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      const raw = String(el.value ?? '').trim();
+
+      if(raw === ''){
+        return;
+      }
+
+      const n = numPure(raw);
+      el.value = (n === 0) ? '$ 0' : formatCOPView(n);
+    });
+  })();
+}catch(_){}
+
     showView('view-ingresar-cuenta');
   }catch(e){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
