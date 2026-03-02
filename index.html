@@ -830,6 +830,155 @@
   @media (min-width: 1024px){
     .tut-video-card{ max-width: 900px; }
   }
+
+    /* ================== BANNERS DINÁMICOS (SOLO INICIO) ================== */
+.home-banner-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  margin: 6px 0 4px;
+}
+
+.home-banner-viewport{
+  width: 100%;
+  max-width: 860px;         /* similar a tutorial (limitado en desktop) */
+  aspect-ratio: 16 / 9;     /* mismo “formato” visual del tutorial */
+  border-radius: 14px;
+  overflow:hidden;
+  border:2px solid #ddd;
+  box-shadow: 0 10px 24px rgba(0,0,0,.22);
+  background:#000;
+  position:relative;
+}
+
+/* Track que se mueve */
+.home-banner-track{
+  position:absolute;
+  inset:0;
+  display:flex;
+  transform: translateX(0);
+  transition: transform 650ms cubic-bezier(.2,.85,.2,1);
+  will-change: transform;
+}
+
+/* Cada slide ocupa 100% del viewport */
+.home-banner-slide{
+  min-width:100%;
+  height:100%;
+  position:relative;
+  cursor:pointer;
+  user-select:none;
+}
+
+/* Imagen del banner */
+.home-banner-slide img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* Overlay sutil opcional para texto (si luego quieres títulos encima) */
+.home-banner-overlay{
+  position:absolute;
+  inset:auto 0 0 0;
+  padding:10px 12px;
+  background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0));
+  color:#fff;
+  font-weight:900;
+  font-size: .95rem;
+}
+
+/* Animación “sale a la izquierda” al cambiar (más dinámica) */
+.home-banner-viewport.leaving{
+  animation: bannerLeaveLeft 420ms ease-in;
+}
+@keyframes bannerLeaveLeft{
+  from{ transform: translateX(0); opacity:1; }
+  to{ transform: translateX(-10px); opacity:.92; }
+}
+
+/* ================== MODAL BANNER (INNOVADOR) ================== */
+.banner-modal{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.55);
+  z-index: 10005;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding: 16px;
+}
+
+.banner-modal[aria-hidden="false"]{
+  display:flex;
+}
+
+.banner-modal-card{
+  width:min(820px, 96vw);
+  max-height:min(84vh, 760px);
+  overflow:auto;
+  background: rgba(255,255,255,.95);
+  border:2px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.28);
+  backdrop-filter: blur(6px);
+}
+
+.banner-modal-head{
+  position:sticky;
+  top:0;
+  background: rgba(6,64,43,.92);
+  color:#fff;
+  padding: 12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.banner-modal-title{
+  font-weight: 1000;
+  letter-spacing:.3px;
+  margin:0;
+  font-size: 1rem;
+}
+
+.banner-modal-close{
+  width:auto;
+  border-radius:999px;
+  padding:8px 12px;
+  border:2px solid #fff;
+  background: transparent;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.banner-modal-body{
+  padding: 14px;
+  color:#111;
+}
+
+.banner-modal-hero{
+  width:100%;
+  border-radius: 14px;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  display:block;
+  margin: 10px auto 12px;
+  object-fit:cover;
+  background:#000;
+}
+
+.banner-modal-body p,
+.banner-modal-body li{
+  line-height:1.45;
+}
+.banner-modal-body ol{
+  padding-left: 20px;
+}
   </style>
 </head>
 <body>
@@ -906,14 +1055,23 @@
           <button class="chip" id="btn-open-menu">MENÚ</button>
         </div>
 
-        <div class="image-center">
-          <div class="notif-wrap">
-            <img class="avatar-emoji" src="https://res.cloudinary.com/dqqeavica/image/upload/v1758738139/user_zefosv.png" alt="">
-            <img id="notif-bell" class="notif-bell" src="https://res.cloudinary.com/dqqeavica/image/upload/v1759767447/Notificaci%C3%B3n_jtptyw.webp" alt="">
-            <span id="notif-count" class="notif-count">0</span>
-            <span id="notif-label" class="notif-label">Ver Noticias</span>
-          </div>
-        </div>
+       <!-- BANNERS DINÁMICOS (solo INICIO) -->
+<div class="home-banner-wrap" id="home-banner-wrap" aria-label="Banners informativos">
+  <div class="home-banner-viewport">
+    <div class="home-banner-track" id="home-banner-track">
+      <!-- Slides inyectados por JS -->
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICACIONES (quedan justo debajo del banner, centradas) -->
+<div class="image-center" style="margin-top:10px;">
+  <div class="notif-wrap">
+    <img id="notif-bell" class="notif-bell" src="https://res.cloudinary.com/dqqeavica/image/upload/v1759767447/Notificaci%C3%B3n_jtptyw.webp" alt="">
+    <span id="notif-count" class="notif-count">0</span>
+    <span id="notif-label" class="notif-label">Ver Noticias</span>
+  </div>
+</div>
 
         <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
         <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
@@ -2248,6 +2406,19 @@
         </div>
       </div>
     </section>
+
+    <!-- MODAL BANNERS (solo INICIO) -->
+<div id="bannerModal" class="banner-modal" aria-hidden="true">
+  <div class="banner-modal-card" role="dialog" aria-modal="true" aria-label="Información del banner">
+    <div class="banner-modal-head">
+      <h3 id="bannerModalTitle" class="banner-modal-title">Título</h3>
+      <button type="button" id="bannerModalClose" class="banner-modal-close">Cerrar</button>
+    </div>
+    <div id="bannerModalBody" class="banner-modal-body">
+      <!-- contenido dinámico -->
+    </div>
+  </div>
+</div>
     
 <script>
 /* ================== CONFIGURACIÓN ================== */
@@ -2835,6 +3006,249 @@ function isMobileDevice(){
 
   return !!res.isConfirmed;
 }
+
+  /* ================== BANNERS DINÁMICOS (SOLO INICIO) ================== */
+const HOME_BANNERS = [
+  {
+    id: 'app_actualizada',
+    title: 'APP 100% ACTUALIZADA',
+    img: 'https://res.cloudinary.com/dqqeavica/image/upload/v1772417403/app_version_jpcpqr.png',
+    modal: {
+      heroImg: 'https://res.cloudinary.com/dqqeavica/image/upload/v1772452588/app_actualziada_nopaxl.png',
+      html: `
+        <p style="font-weight:900; color:#06402B; margin-top:0;">
+          Sigue estos pasos para estar siempre en la última versión de la App:
+        </p>
+        <ol>
+          <li>Clic en los 3 punticos, cerca al botón minimizar.</li>
+          <li>
+            Clic en info. de la aplicación.<br>
+            Revisa que estén activos los campos <b>Notificaciones</b>, <b>Sonidos</b>, <b>Descargas automáticas</b>.
+          </li>
+          <li>
+            Clic en Configuración.<br>
+            Revisa que estén activos los campos <b>Abrir como ventana</b>, <b>Notificaciones</b>.
+          </li>
+          <li>Finalmente actualiza o ejecuta <b>Ctrl + R</b>.</li>
+        </ol>
+      `
+    }
+  },
+  {
+    id: 'no_colgarte',
+    title: '¿Por qué no debes colgarte con tus cuentas de cobro?',
+    img: 'https://res.cloudinary.com/dqqeavica/image/upload/v1772417404/DATOS_DEL_CONTRATO_mlmwhi.png',
+    modal: {
+      heroImg: '', // opcional: si luego quieres imagen aquí, coloca url
+      html: `
+        <p style="margin-top:0;">
+          No puedes colgarte ni acumular cuentas de cobro debido a que una de las obligaciones de tu contrato es:
+        </p>
+        <div style="
+          background:#f8fafc;
+          border:2px solid #e5e7eb;
+          border-radius:14px;
+          padding:12px;
+          font-weight:800;
+          color:#111;
+        ">
+          “Entregar la cuenta de cobro dentro de los cinco días hábiles siguientes al vencimiento de la misma, conforme a la forma de pago estipulada, con los respectivos soportes, resaltando que las mismas no deben ser acumuladas.”
+        </div>
+        <p style="margin-bottom:0;">
+          Es decir que, si excedes el tiempo de entrega de la misma o acumulas dos cuentas de cobro,
+          estarías incumpliendo esta obligación de tu contrato y la entidad puede tomar decisiones basadas en ello.
+        </p>
+      `
+    }
+  },
+  {
+    id: 'usar_correctamente',
+    title: '¿Cómo usar correctamente la App en el proceso de cuentas y trámites?',
+    img: 'https://res.cloudinary.com/dqqeavica/image/upload/v1772417403/opcion_tutoriales_lc7gyx.png',
+    modal: {
+      heroImg: 'https://res.cloudinary.com/dqqeavica/image/upload/v1772453472/tUTORIALES_lanqhy.png',
+      html: `
+        <p style="margin-top:0;">
+          Una forma eficiente de realizar los procesos es conociéndolos correctamente. Por esta razón,
+          puedes capacitarte a tu ritmo con cada uno de los videos tutoriales dispuestos para la adaptación de esta gran App.
+        </p>
+        <p style="font-weight:900; color:#06402B;">
+          Ruta rápida:
+        </p>
+        <div style="
+          display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+          margin: 8px 0 0;
+        ">
+          <span class="chip">MENÚ</span>
+          <span class="chip">GUIA DE USO</span>
+          <span class="chip">TUTORIALES</span>
+        </div>
+      `
+    }
+  }
+];
+
+// Estado del carrusel
+let __homeBannerTimer = null;
+let __homeBannerIndex = 0;
+let __homeBannerRunning = false;
+
+function homeBannerElements_(){
+  return {
+    wrap: document.getElementById('home-banner-wrap'),
+    viewport: document.querySelector('#home-banner-wrap .home-banner-viewport'),
+    track: document.getElementById('home-banner-track')
+  };
+}
+
+function renderHomeBanners_(){
+  const { track } = homeBannerElements_();
+  if(!track) return;
+
+  track.innerHTML = '';
+  HOME_BANNERS.forEach((b)=>{
+    const slide = document.createElement('div');
+    slide.className = 'home-banner-slide';
+    slide.dataset.bannerId = b.id;
+
+    const img = document.createElement('img');
+    img.src = b.img;
+    img.alt = b.title || '';
+    img.loading = 'lazy';
+
+    slide.appendChild(img);
+
+    slide.addEventListener('click', ()=>{
+      try{ playSoundOnce(SOUNDS.back); }catch(_){}
+      openBannerModal_(b);
+    });
+
+    track.appendChild(slide);
+  });
+
+  // Coloca el track en el índice actual
+  homeBannerGoTo_(__homeBannerIndex, false);
+}
+
+function homeBannerGoTo_(idx, animate=true){
+  const { track, viewport } = homeBannerElements_();
+  if(!track || !viewport) return;
+
+  const max = HOME_BANNERS.length;
+  if(!max) return;
+
+  __homeBannerIndex = ((idx % max) + max) % max;
+
+  if(!animate){
+    track.style.transition = 'none';
+    track.style.transform = `translateX(-${__homeBannerIndex * 100}%)`;
+    // forzar reflow y reactivar transición
+    // eslint-disable-next-line no-unused-expressions
+    track.offsetHeight;
+    track.style.transition = 'transform 650ms cubic-bezier(.2,.85,.2,1)';
+    return;
+  }
+
+  // pequeño “leave” para sensación de salida a la izquierda
+  viewport.classList.add('leaving');
+  setTimeout(()=> viewport.classList.remove('leaving'), 450);
+
+  track.style.transform = `translateX(-${__homeBannerIndex * 100}%)`;
+}
+
+function startHomeBanners_(){
+  if(__homeBannerRunning) return;
+  const { wrap, track } = homeBannerElements_();
+  if(!wrap || !track) return;
+
+  __homeBannerRunning = true;
+
+  // Render inicial (por si todavía no existe DOM)
+  renderHomeBanners_();
+
+  // Autoplay: cada 5 segundos
+  __homeBannerTimer = setInterval(()=>{
+    homeBannerGoTo_(__homeBannerIndex + 1, true);
+  }, 5000);
+}
+
+function stopHomeBanners_(){
+  __homeBannerRunning = false;
+  if(__homeBannerTimer){
+    clearInterval(__homeBannerTimer);
+    __homeBannerTimer = null;
+  }
+}
+
+/* ================== MODAL BANNER ================== */
+function openBannerModal_(banner){
+  const modal = document.getElementById('bannerModal');
+  const title = document.getElementById('bannerModalTitle');
+  const body  = document.getElementById('bannerModalBody');
+  if(!modal || !title || !body) return;
+
+  title.textContent = banner.title || 'Información';
+
+  const hero = (banner.modal && banner.modal.heroImg) ? String(banner.modal.heroImg).trim() : '';
+  const html = (banner.modal && banner.modal.html) ? String(banner.modal.html) : '';
+
+  body.innerHTML = `
+    ${hero ? `<img class="banner-modal-hero" src="${hero}" alt="">` : ''}
+    ${html}
+  `;
+
+  modal.setAttribute('aria-hidden','false');
+
+  // al abrir, detener autoplay (opcional; si quieres que siga, quita esto)
+  stopHomeBanners_();
+}
+
+function closeBannerModal_(){
+  const modal = document.getElementById('bannerModal');
+  if(!modal) return;
+  modal.setAttribute('aria-hidden','true');
+
+  // si seguimos en inicio, reiniciamos
+  if(document.getElementById('view-inicio')?.classList.contains('active')){
+    startHomeBanners_();
+  }
+}
+
+// Cerrar con botón
+document.getElementById('bannerModalClose')?.addEventListener('click', ()=>{
+  try{ playSoundOnce(SOUNDS.back); }catch(_){}
+  closeBannerModal_();
+});
+
+// Cerrar clic por fuera (en el backdrop)
+document.getElementById('bannerModal')?.addEventListener('click', (e)=>{
+  if(e.target && e.target.id === 'bannerModal'){
+    try{ playSoundOnce(SOUNDS.back); }catch(_){}
+    closeBannerModal_();
+  }
+});
+
+/* ================== HOOK: iniciar/detener según vista ==================
+   Importante: lo hacemos “wrappeando” showView sin romper lo demás.
+*/
+(function hookShowViewForHomeBanners_(){
+  if(typeof showView !== 'function') return;
+
+  const __origShowView = showView;
+  showView = function(id){
+    __origShowView(id);
+
+    // cerrar modal si cambian de vista
+    const modal = document.getElementById('bannerModal');
+    if(modal) modal.setAttribute('aria-hidden','true');
+
+    if(id === 'view-inicio'){
+      startHomeBanners_();
+    }else{
+      stopHomeBanners_();
+    }
+  };
+})();
 
 /* ================== LOGIN ================== */
 const loginDoc = document.getElementById('login-doc');
