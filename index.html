@@ -2886,34 +2886,37 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
       const opts = res.secretariasActivas.map(s => String(s||'').trim()).filter(Boolean);
 
-      const swalRes = await Swal.fire({
-        icon:'info',
-        title:'Elige la Secretaría de Ingreso',
-        showCancelButton:true,
-        showConfirmButton:false,
-        cancelButtonText:'Atrás',
-        allowOutsideClick:false,
-        allowEscapeKey:false,
-        html: `
-          <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-            ${opts.map(sec => `
-              <button type="button" class="swal2-confirm swal2-styled" data-sec="${sec}" style="display:block; width:100%; margin:0;">
-                ${sec}
-              </button>
-            `).join('')}
-          </div>
-        `,
-        didOpen: ()=>{
-          const container = Swal.getHtmlContainer();
-          if(!container) return;
-          container.querySelectorAll('button[data-sec]').forEach(btn=>{
-            btn.addEventListener('click', ()=>{
-              const sec = btn.getAttribute('data-sec') || '';
-              Swal.close({ isConfirmed:true, value: sec });
-            });
-          });
-        }
+      hideConnectingLoginLoader_();        // 👈 mata el loader "CONECTANDO TU INFORMACIÓN..."
+suppressLoader = false;             // 👈 permite que Swal maneje su loader normal si aplica
+
+const swalRes = await Swal.fire({
+  icon:'info',
+  title:'Elige la Secretaría de Ingreso',
+  showCancelButton:true,
+  showConfirmButton:false,
+  cancelButtonText:'Atrás',
+  allowOutsideClick:false,
+  allowEscapeKey:false,
+  html: `
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+      ${opts.map(sec => `
+        <button type="button" class="swal2-confirm swal2-styled" data-sec="${sec}" style="display:block; width:100%; margin:0;">
+          ${sec}
+        </button>
+      `).join('')}
+    </div>
+  `,
+  didOpen: ()=>{
+    const container = Swal.getHtmlContainer();
+    if(!container) return;
+    container.querySelectorAll('button[data-sec]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const sec = btn.getAttribute('data-sec') || '';
+        Swal.close({ isConfirmed:true, value: sec });
       });
+    });
+  }
+});
 
       if(!swalRes.isConfirmed){
         bootStop();
