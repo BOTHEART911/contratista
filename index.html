@@ -841,6 +841,25 @@
     </div>
   </div>
 
+    <!-- Loader OVERLAY de inicio de sesión (no se reinicia por llamadas múltiples) -->
+  <div id="boot-overlay" class="loader hidden" aria-hidden="true" style="z-index:10002;">
+    <div class="card narrow" style="max-width:520px; text-align:center; background:rgba(255,255,255,.92);">
+      <h3 style="margin:0 0 10px; color:var(--primary); font-weight:900;">
+        CONECTANDO TU INFORMACIÓN...
+      </h3>
+
+      <img
+        src="https://res.cloudinary.com/dqqeavica/image/upload/v1772411980/inicio_pp7o9q.gif"
+        alt="Conectando"
+        style="width:220px; max-width:80vw; height:auto; display:block; margin:0 auto;"
+      />
+
+      <p class="muted" style="margin:10px 0 0; font-weight:700;">
+        Por favor espera unos segundos
+      </p>
+    </div>
+  </div>
+
   <div class="container">
     <!-- VISTA INSTALAR -->
      <section id="view-instalar" class="view">
@@ -2541,6 +2560,46 @@ function stopLoading(){
   }
 }
 
+  /* ================== BOOT OVERLAY (LOGIN) ================== */
+const bootOverlay = document.getElementById('boot-overlay');
+let bootLoadingCount = 0;
+
+function bootStart(){
+  bootLoadingCount++;
+  if(bootLoadingCount === 1){
+    try{
+      if(bootOverlay){
+        bootOverlay.classList.remove('hidden');
+        bootOverlay.setAttribute('aria-hidden','false');
+      }
+    }catch(_){}
+  }
+}
+
+function bootStop(){
+  if(bootLoadingCount <= 0) return;
+  bootLoadingCount--;
+  if(bootLoadingCount === 0){
+    try{
+      if(bootOverlay){
+        bootOverlay.classList.add('hidden');
+        bootOverlay.setAttribute('aria-hidden','true');
+      }
+    }catch(_){}
+  }
+}
+
+// Por seguridad: si algo revienta, permite “resetear” el overlay.
+function bootReset(){
+  bootLoadingCount = 0;
+  try{
+    if(bootOverlay){
+      bootOverlay.classList.add('hidden');
+      bootOverlay.setAttribute('aria-hidden','true');
+    }
+  }catch(_){}
+}
+
 /* ================== API ================== */
 async function apiGet(action, params = {}){
   startLoading();
@@ -2792,75 +2851,82 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     return;
   }
 
+   bootReset();
+  bootStart();
+
   try{
-   const res = await apiGet('loginContratista', { documento });
+    const res = await apiGet('loginContratista', { documento });
 
-if(!res?.existe){
-  await Swal.fire({
-    icon:'info',
-    title:'NO TIENES ACCESO AÚN',
-    text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-    timer:6000,
-    showConfirmButton:false
-  });
-  return;
-}
-
-if(String(res.estado||'').toUpperCase()==='INACTIVO'){
-  await Swal.fire({
-    icon:'info',
-    title:'NO TIENES ACCESO AÚN',
-    text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-    timer:6000,
-    showConfirmButton:false
-  });
-  return;
-}
-
-// Si el documento aparece 2 veces ACTIVO, el backend devuelve secretariasActivas[]
-let secretariaElegida = String(res.secretaria || '').trim();
-if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
-  const opts = res.secretariasActivas.map(s => String(s||'').trim()).filter(Boolean);
-
-  const swalRes = await Swal.fire({
-    icon:'info',
-    title:'Elige la Secretaría de Ingreso',
-    showCancelButton:true,
-    showConfirmButton:false,
-    cancelButtonText:'Atrás',
-    allowOutsideClick:false,
-    allowEscapeKey:false,
-    html: `
-      <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-        ${opts.map(sec => `
-          <button type="button" class="swal2-confirm swal2-styled" data-sec="${sec}" style="display:block; width:100%; margin:0;">
-            ${sec}
-          </button>
-        `).join('')}
-      </div>
-    `,
-    didOpen: ()=>{
-      const container = Swal.getHtmlContainer();
-      if(!container) return;
-      container.querySelectorAll('button[data-sec]').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const sec = btn.getAttribute('data-sec') || '';
-          Swal.close({ isConfirmed:true, value: sec });
-        });
+    if(!res?.existe){
+      bootStop();
+      await Swal.fire({
+        icon:'info',
+        title:'NO TIENES ACCESO AÚN',
+        text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
+        timer:6000,
+        showConfirmButton:false
       });
+      return;
     }
-  });
 
-  if(!swalRes.isConfirmed){
-    return;
-  }
+    if(String(res.estado||'').toUpperCase()==='INACTIVO'){
+      bootStop();
+      await Swal.fire({
+        icon:'info',
+        title:'NO TIENES ACCESO AÚN',
+        text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
+        timer:6000,
+        showConfirmButton:false
+      });
+      return;
+    }
 
-  secretariaElegida = String(swalRes.value || '').trim();
-  if(!secretariaElegida){
-    return;
-  }
-}
-                      // ACTIVO
+    // Si el documento aparece 2 veces ACTIVO, el backend devuelve secretariasActivas[]
+    let secretariaElegida = String(res.secretaria || '').trim();
+    if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
+      const opts = res.secretariasActivas.map(s => String(s||'').trim()).filter(Boolean);
+
+      const swalRes = await Swal.fire({
+        icon:'info',
+        title:'Elige la Secretaría de Ingreso',
+        showCancelButton:true,
+        showConfirmButton:false,
+        cancelButtonText:'Atrás',
+        allowOutsideClick:false,
+        allowEscapeKey:false,
+        html: `
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+            ${opts.map(sec => `
+              <button type="button" class="swal2-confirm swal2-styled" data-sec="${sec}" style="display:block; width:100%; margin:0;">
+                ${sec}
+              </button>
+            `).join('')}
+          </div>
+        `,
+        didOpen: ()=>{
+          const container = Swal.getHtmlContainer();
+          if(!container) return;
+          container.querySelectorAll('button[data-sec]').forEach(btn=>{
+            btn.addEventListener('click', ()=>{
+              const sec = btn.getAttribute('data-sec') || '';
+              Swal.close({ isConfirmed:true, value: sec });
+            });
+          });
+        }
+      });
+
+      if(!swalRes.isConfirmed){
+        bootStop();
+        return;
+      }
+
+      secretariaElegida = String(swalRes.value || '').trim();
+      if(!secretariaElegida){
+        bootStop();
+        return;
+      }
+    }
+
     currentUser = { documento: res.documento, secretaria: secretariaElegida, supervisor: (res.supervisor || '') };
 
     // Determinar incompleto con base en la SECRETARÍA elegida (no con res.incompleto)
@@ -2869,10 +2935,7 @@ if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
       const inicioSel = await apiGet('getInicio', { documento: currentUser.documento, secretaria: currentUser.secretaria });
 
       const faltantes = [];
-      const campos = [
-        'expedida','telefono','direccion','correo','municipio',
-        'tipoCuenta','cuenta','banco','eps','pension','arl'
-      ];
+      const campos = ['expedida','telefono','direccion','correo','municipio','tipoCuenta','cuenta','banco','eps','pension','arl'];
 
       for(const k of campos){
         const v = inicioSel ? inicioSel[k] : '';
@@ -2881,20 +2944,14 @@ if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
         }
       }
 
-      if(faltantes.length === 0){
-        incompletoSel = false;
-      }else if(faltantes.length === 1 && faltantes[0] === 'expedida'){
-        incompletoSel = false;
-      }else{
-        incompletoSel = true;
-      }
+      if(faltantes.length === 0) incompletoSel = false;
+      else if(faltantes.length === 1 && faltantes[0] === 'expedida') incompletoSel = false;
+      else incompletoSel = true;
 
-      // También actualiza supervisor desde la fila ACTIVO seleccionada
       if(inicioSel && inicioSel.supervisor){
         currentUser.supervisor = inicioSel.supervisor;
       }
     }catch(_){
-      // Si falla, conserva el comportamiento anterior como fallback
       incompletoSel = !!res.incompleto;
     }
 
@@ -2902,6 +2959,9 @@ if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
     const tituloBienvenida = nombreCorto ? 'BIENVENIDO(A) ' + nombreCorto : 'BIENVENIDO(A)';
 
     if(incompletoSel){
+      // En este flujo vas a cambiar a registro, entonces cerramos overlay
+      bootStop();
+
       const accepted = await showDataPolicyAlert();
       if(!accepted){
         currentUser = null;
@@ -2917,42 +2977,47 @@ if(Array.isArray(res.secretariasActivas) && res.secretariasActivas.length >= 2){
         confirmButtonText:'Completar Registro'
       });
       showView('view-registro');
-    }else{
-      (async ()=>{
-        const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento, secretaria: currentUser.secretaria });
-        const d = boot?.inicio || {};
-        const list = boot?.noticias || [];
-
-        document.getElementById('inicio-nombre').textContent = d.nombre || '';
-        document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
-        document.getElementById('inicio-cc').innerHTML =
-        (d.documento || '') +
-        (String(d.expedida || '').trim() ? (' <b>DE</b> ' + String(d.expedida || '').trim()) : '');
-        document.getElementById('inicio-contacto').textContent = d.telefono || '';
-        document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
-        document.getElementById('inicio-correo').textContent = d.correo || '';
-        document.getElementById('inicio-cuenta').textContent = ((d.cuenta||'') + ' ' + (d.tipoCuenta||'') + ' ' + (d.banco||'')).trim();
-        document.getElementById('inicio-eps').textContent = d.eps || '';
-        document.getElementById('inicio-afp').textContent = d.pension || '';
-        document.getElementById('inicio-arl').textContent = d.arl || '';
-        document.getElementById('inicio-supervisor').textContent = d.supervisor || '';
-        const firmaEl = document.getElementById('inicio-firma');
-        if(d.firmaId){
-          firmaEl.src = thumbById(d.firmaId);
-          firmaEl.style.display='';
-        } else {
-          firmaEl.style.display='none';
-        }
-
-        NOTICIAS_CACHE = Array.isArray(list) ? list : [];
-        renderNoticiasList(NOTICIAS_CACHE);
-        refreshNoticiasBadge();
-
-        playSoundOnce(SOUNDS.login);
-        showView('view-inicio');
-      })();
+      return;
     }
+
+    // Flujo a INICIO: mantener overlay vivo durante todo el bootstrap
+    const boot = await apiGet('bootstrapInicio', { documento: currentUser.documento, secretaria: currentUser.secretaria });
+    const d = boot?.inicio || {};
+    const list = boot?.noticias || [];
+
+    document.getElementById('inicio-nombre').textContent = d.nombre || '';
+    document.getElementById('inicio-sub').textContent = 'CONTRATISTA - ' + (d.secretaria || '');
+    document.getElementById('inicio-cc').innerHTML =
+      (d.documento || '') + (String(d.expedida || '').trim() ? (' <b>DE</b> ' + String(d.expedida || '').trim()) : '');
+    document.getElementById('inicio-contacto').textContent = d.telefono || '';
+    document.getElementById('inicio-direccion').textContent = ((d.direccion||'') + ' ' + (d.municipio||'')).trim();
+    document.getElementById('inicio-correo').textContent = d.correo || '';
+    document.getElementById('inicio-cuenta').textContent = ((d.cuenta||'') + ' ' + (d.tipoCuenta||'') + ' ' + (d.banco||'')).trim();
+    document.getElementById('inicio-eps').textContent = d.eps || '';
+    document.getElementById('inicio-afp').textContent = d.pension || '';
+    document.getElementById('inicio-arl').textContent = d.arl || '';
+    document.getElementById('inicio-supervisor').textContent = d.supervisor || '';
+
+    const firmaEl = document.getElementById('inicio-firma');
+    if(d.firmaId){
+      firmaEl.src = thumbById(d.firmaId);
+      firmaEl.style.display='';
+    }else{
+      firmaEl.style.display='none';
+    }
+
+    NOTICIAS_CACHE = Array.isArray(list) ? list : [];
+    renderNoticiasList(NOTICIAS_CACHE);
+    refreshNoticiasBadge();
+
+    playSoundOnce(SOUNDS.login);
+    showView('view-inicio');
+
+    // Ahora sí lo apagamos (ya estás en inicio)
+    bootStop();
+
   }catch(e){
+    bootStop();
     Swal.fire({ icon:'error', title:'Error', text:e.message });
   }
 });
