@@ -2560,26 +2560,6 @@ function stopLoading(){
   }
 }
 
- /* ================== LOADER ================== */
-const loader = document.getElementById('loader');
-let loadingCount = 0, loaderTimer = null; let suppressLoader = false;
-function startLoading(){
-  if (suppressLoader) return;
-  loadingCount++;
-  if (loadingCount === 1){
-    loaderTimer = setTimeout(()=>{ loader.classList.remove('hidden'); loaderTimer = null; }, 120);
-  }
-}
-function stopLoading(){
-  if (suppressLoader) return;
-  if (loadingCount === 0) return;
-  loadingCount--;
-  if (loadingCount === 0){
-    if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
-    loader.classList.add('hidden');
-  }
-}
-
 /* ================== LOGIN OVERLAY LOADER (CONECTANDO...) ================== */
 /** Loader overlay exclusivo para el flujo de login (no se reinicia por llamadas API internas). */
 let __loginOverlayOpen = false;
