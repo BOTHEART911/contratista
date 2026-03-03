@@ -980,106 +980,49 @@
   padding-left: 20px;
 }
 /* ================== GUÍA FLOTANTE (INGRESAR / CORREGIR CUENTA) ================== */
+/* REEMPLAZA COMPLETO tu bloque actual de .guia-float por este */
+
 .guia-float{
   position: fixed;
-
-  /* AJUSTE: más pegado al contenedor (card) */
-  left: calc(50% + 295px);   /* antes 320px -> ahora 295px (25px más a la izquierda) */
-
   top: 50%;
   transform: translateY(-50%);
-
   z-index: 10006;
   display: none;
   pointer-events: auto;
+
+  /* Anclaje “pegado al card” (PC y Móvil) */
+  left: calc(50% + min(410px, 46vw)); /* muévelo “otro poquito”: baja/sube 410px */
 }
 
-/* Si el card cambia de ancho (desktop), también acercarlo */
+/* Ajuste fino para pantallas grandes */
 @media (min-width: 1024px){
   .guia-float{
-    left: calc(50% + 335px); /* antes 360px -> ahora 335px (25px más a la izquierda) */
+    left: calc(50% + 420px); /* pegado al contenedor; ajusta 410/420 a gusto */
   }
 }
 
-/* En móviles: mejor dejarlo al borde derecho para no tapar */
+/* IMPORTANTE: en móvil YA NO se va al borde derecho (evita tapar el formulario) */
 @media (max-width: 700px){
   .guia-float{
-    left: auto;
-    right: 10px;
+    left: calc(50% + min(300px, 44vw)); /* mantiene al lado del card en móvil */
   }
 }
-/* ====== MODAL GUÍA ====== */
-.guia-modal{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  z-index: 10007;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-.guia-modal[aria-hidden="false"]{
-  display: flex;
-}
-.guia-modal-card{
-  width: min(880px, 96vw);
-  max-height: min(84vh, 820px);
-  overflow: auto;
-  background: rgba(255,255,255,.96);
-  border: 2px solid #e5e7eb;
-  border-radius: 18px;
-  box-shadow: 0 18px 44px rgba(0,0,0,.32);
-  backdrop-filter: blur(6px);
-}
-.guia-modal-head{
-  position: sticky;
-  top: 0;
-  background: rgba(6,64,43,.94);
-  color: #fff;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.guia-modal-title{
-  margin: 0;
-  font-weight: 1000;
-  letter-spacing: .3px;
-  font-size: 1rem;
-}
-.guia-modal-close{
-  width: auto;
-  border-radius: 999px;
-  padding: 8px 12px;
-  border: 2px solid #fff;
-  background: transparent;
-  color: #fff;
-  font-weight: 900;
+
+.guia-float img{
+  width: 54px;
+  height: auto;
   cursor: pointer;
+  user-select: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  background: rgba(255,255,255,.35);
+  border: 2px solid rgba(255,255,255,.55);
+  backdrop-filter: blur(2px);
 }
-.guia-modal-body{
-  padding: 14px;
-  color: #111;
-}
-.guia-modal-body h4{
-  margin: 0 0 8px;
-  color: #06402B;
-  font-weight: 1000;
-}
-.guia-modal-body p,
-.guia-modal-body li{
-  line-height: 1.45;
-}
-.guia-modal-body .guia-box{
-  background: #f8fafc;
-  border: 2px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 12px;
-  margin-top: 10px;
-}
-.guia-modal-body .guia-box b{ color:#06402B; }
+
+@media (max-width: 700px){
+  .guia-float img{ width: 46px; }
+    }
   </style>
 </head>
 <body>
