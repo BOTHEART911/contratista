@@ -2615,56 +2615,8 @@ if (window.Swal && typeof Swal.fire === 'function'){
 
   function el_(id){ return document.getElementById(id); }
 
-  // 1) Mapa: TÍTULO DEL BLOQUE -> AUDIO
-  // IMPORTANTE: las llaves deben coincidir con data.title en MAYÚSCULAS
-  const GUIA_AUDIO_BY_TITLE = {
-    'RELACIÓN DE FECHAS': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772572021/fechas_ghuz9b.mp3',
-    // 'RELACIÓN DE PAGO': 'https://.../pago.mp3',
-    // 'RELACIÓN DE PLANILLA': 'https://.../planilla.mp3',
-    // 'RELACIÓN DE ACTIVIDADES': 'https://.../actividades.mp3',
-    // 'CARGUE DE ARCHIVOS DE CUENTA': 'https://.../archivos.mp3',
-  };
-
-  // 2) Un solo reproductor reutilizable (evita solapes)
-  let __guiaAudio = null;
-
-  function stopGuiaAudio_(){
-    try{
-      if(__guiaAudio){
-        __guiaAudio.pause();
-        __guiaAudio.currentTime = 0; // corta el audio
-      }
-    }catch(_){}
-  }
-
-  async function playGuiaAudioForTitle_(title){
-    try{
-      const key = String(title || '').trim().toUpperCase();
-      const url = GUIA_AUDIO_BY_TITLE[key];
-      if(!url){
-        stopGuiaAudio_();
-        return;
-      }
-
-      // corta cualquier audio anterior
-      stopGuiaAudio_();
-
-      if(!__guiaAudio){
-        __guiaAudio = new Audio();
-        __guiaAudio.preload = 'auto';
-      }
-
-      __guiaAudio.src = url;
-
-      // Esto “autoplay” al abrir modal (pero realmente está autorizado por el toque del usuario)
-      await __guiaAudio.play();
-    }catch(_){
-      // Si algún navegador lo bloquea, no rompemos la app.
-      // (si quieres, aquí podrías mostrar un aviso “toca para activar audio”)
-    }
-  }
-
   function isGuiaViewActive_(){
+    // solo en esta vista
     return !!document.getElementById('view-ingresar-cuenta')?.classList.contains('active');
   }
 
@@ -2825,28 +2777,21 @@ if (window.Swal && typeof Swal.fire === 'function'){
 
   function openGuiaModal_(){
     const modal = el_(MODAL_ID);
-    const titleEl = el_('guiaModalTitle');
+    const title = el_('guiaModalTitle');
     const body  = el_('guiaModalBody');
-    if(!modal || !titleEl || !body) return;
+    if(!modal || !title || !body) return;
 
     const data = guiaContentBySection_();
-    const title = data.title || 'GUÍA';
-
-    titleEl.textContent = title;
+    title.textContent = data.title || 'GUÍA';
     body.innerHTML = data.html || '';
-    modal.setAttribute('aria-hidden','false');
 
-    // 3) Arranca audio según el bloque abierto
-    playGuiaAudioForTitle_(title);
+    modal.setAttribute('aria-hidden','false');
   }
 
   function closeGuiaModal_(){
     const modal = el_(MODAL_ID);
     if(!modal) return;
     modal.setAttribute('aria-hidden','true');
-
-    // 4) Al cerrar: cortar audio
-    stopGuiaAudio_();
   }
 
   // Eventos
@@ -2867,17 +2812,23 @@ if (window.Swal && typeof Swal.fire === 'function'){
     }
   });
 
-  // Si cambias de vista: cerrar modal y cortar audio
+  // Hook showView para mostrar solo en ingresar/corregir (esta vista es la misma)
   if(typeof window.showView === 'function'){
     const __orig = window.showView;
     window.showView = function(id){
       __orig(id);
+
+      // cerrar modal siempre al cambiar de vista
       closeGuiaModal_();
+
+      // mostrar/ocultar flotante
       showGuiaFloat_();
     };
   }
 
-  document.addEventListener('DOMContentLoaded', showGuiaFloat_);
+  // primer estado por si ya está activa
+  document.addEventListener('DOMContentLoaded', ()=>{
+    showGuiaFloat_();
   });
 
   // por si se hace scroll dentro de la vista (no es necesario moverla: es fixed, pero refresca visibilidad)
@@ -2888,6 +2839,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
     }
   }, { passive:true });
 })();
+
 
   /* ================== IMÁGENES (preview y compresión) ================== */
 const MAX_IMAGE_MB = 5;
