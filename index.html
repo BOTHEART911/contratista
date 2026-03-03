@@ -2635,7 +2635,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
     const headings = Array.from(view.querySelectorAll('h3'));
     if(!headings.length) return { title:'GUÍA', html:'' };
 
-    const mid = window.innerHeight / 2;
+    const mid = window.innerHeight * 0.25;
     let best = headings[0];
     let bestDist = Infinity;
 
