@@ -979,18 +979,39 @@
 .banner-modal-body ol{
   padding-left: 20px;
 }
-    /* ====== GUÍA FLOTANTE (solo INGRESAR / CORREGIR) ====== */
+/* ================== GUÍA FLOTANTE (INGRESAR / CORREGIR CUENTA) ================== */
 .guia-float{
   position: fixed;
-  right: 12px;
+
+  /* Antes: right: 12px;  (pegado al borde) */
+  /* Ahora: lo “anclamos” al costado del card (como en tu imagen) */
+
+  left: calc(50% + 320px);   /* 50% = centro pantalla; +320 ≈ costado derecho del card (560/2=280) + margen */
   top: 50%;
   transform: translateY(-50%);
+
   z-index: 10006;
   display: none;
   pointer-events: auto;
 }
+
+/* Si el card cambia de ancho (desktop), lo empujamos un poco más */
+@media (min-width: 1024px){
+  .guia-float{
+    left: calc(50% + 360px);
+  }
+}
+
+/* En móviles: mejor dejarlo al borde derecho para no tapar */
+@media (max-width: 700px){
+  .guia-float{
+    left: auto;
+    right: 10px;
+  }
+}
+
 .guia-float img{
-  width: 54px;         /* tamaño similar al ejemplo */
+  width: 54px;
   height: auto;
   cursor: pointer;
   user-select: none;
@@ -1001,10 +1022,8 @@
   backdrop-filter: blur(2px);
 }
 @media (max-width: 700px){
-  .guia-float{ right: 8px; }
   .guia-float img{ width: 46px; }
 }
-
 /* ====== MODAL GUÍA ====== */
 .guia-modal{
   position: fixed;
