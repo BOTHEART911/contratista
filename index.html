@@ -979,6 +979,106 @@
 .banner-modal-body ol{
   padding-left: 20px;
 }
+
+    /* ================== GUÍA FLOTANTE (INGRESAR / CORREGIR CUENTA) ================== */
+.guia-float{
+  position: fixed;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10006;                 /* por encima de overlays normales */
+  display: none;                  /* se activa solo en view-ingresar-cuenta */
+  pointer-events: auto;
+}
+.guia-float img{
+  width: 54px;                    /* ajusta si deseas, aprox como en la imagen */
+  height: auto;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  background: rgba(255,255,255,.35);
+  border: 2px solid rgba(255,255,255,.55);
+  backdrop-filter: blur(2px);
+}
+@media (max-width: 700px){
+  .guia-float img{ width: 46px; }
+}
+
+/* ================== MODAL GUÍA (DINÁMICO) ================== */
+.guia-modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 10007;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.guia-modal[aria-hidden="false"]{
+  display: flex;
+}
+.guia-modal-card{
+  width: min(880px, 96vw);
+  max-height: min(84vh, 820px);
+  overflow: auto;
+  background: rgba(255,255,255,.96);
+  border: 2px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgba(0,0,0,.32);
+  backdrop-filter: blur(6px);
+}
+.guia-modal-head{
+  position: sticky;
+  top: 0;
+  background: rgba(6,64,43,.94);
+  color: #fff;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.guia-modal-title{
+  margin: 0;
+  font-weight: 1000;
+  letter-spacing: .3px;
+  font-size: 1rem;
+}
+.guia-modal-close{
+  width: auto;
+  border-radius: 999px;
+  padding: 8px 12px;
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+.guia-modal-body{
+  padding: 14px;
+  color: #111;
+}
+.guia-modal-body h4{
+  margin: 0 0 8px;
+  color: #06402B;
+  font-weight: 1000;
+}
+.guia-modal-body p,
+.guia-modal-body li{
+  line-height: 1.45;
+}
+.guia-modal-body .guia-box{
+  background: #f8fafc;
+  border: 2px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 10px;
+}
+.guia-modal-body .guia-box b{
+  color:#06402B;
+}
   </style>
 </head>
 <body>
@@ -1054,6 +1154,26 @@
           <button class="chip danger" id="btn-logout">Cerrar Sesión</button>
           <button class="chip" id="btn-open-menu">MENÚ</button>
         </div>
+
+        <!-- GUÍA FLOTANTE (solo se muestra en INGRESAR / CORREGIR CUENTA) -->
+<div id="guiaFloat" class="guia-float" aria-hidden="true">
+  <img
+    id="guiaFloatImg"
+    src="https://res.cloudinary.com/dqqeavica/image/upload/v1772411982/guia_ksuzul.gif"
+    alt="Guía"
+  />
+</div>
+
+<!-- MODAL GUÍA -->
+<div id="guiaModal" class="guia-modal" aria-hidden="true">
+  <div class="guia-modal-card" role="dialog" aria-modal="true" aria-label="Guía de ingreso de cuenta">
+    <div class="guia-modal-head">
+      <h3 id="guiaModalTitle" class="guia-modal-title">GUÍA</h3>
+      <button type="button" id="guiaModalClose" class="guia-modal-close">Cerrar</button>
+    </div>
+    <div id="guiaModalBody" class="guia-modal-body"></div>
+  </div>
+</div>
 
        <!-- BANNERS DINÁMICOS (solo INICIO) -->
 <div class="home-banner-wrap" id="home-banner-wrap" aria-label="Banners informativos">
@@ -8761,6 +8881,295 @@ showView('view-inicio');
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
 });
+
+  /* ================== GUÍA FLOTANTE + MODAL DINÁMICO (INGRESAR / CORREGIR) ================== */
+
+const GUIA_SECTIONS = [
+  {
+    key: 'RELACIÓN DE FECHAS',
+    match: /RELACIÓN DE FECHAS/i,
+    title: 'RELACIÓN DE FECHAS',
+    html: `
+      <h4>Selecciona muy bien las fechas del periodo relacionado</h4>
+      <div class="guia-box">
+        <ul style="margin:0; padding-left:18px;">
+          <li><b>Inicio de Periodo Relacionado</b></li>
+          <li><b>Fin de Periodo Relacionado</b></li>
+          <li><b>Fecha de Radicación</b></li>
+        </ul>
+        <p style="margin:10px 0 0;">
+          Recuerda que la <b>Fecha de Radicación</b> debe estar <b>fuera</b> del periodo relacionado.
+        </p>
+      </div>
+    `
+  },
+  {
+    key: 'RELACIÓN DE PAGO',
+    match: /RELACIÓN DE PAGO/i,
+    title: 'RELACIÓN DE PAGO',
+    html: `
+      <h4>Recomendaciones</h4>
+      <div class="guia-box">
+        <ul style="margin:0; padding-left:18px;">
+          <li>Si es la primera vez, digita el <b>valor de tu contrato</b> en <b>Saldo Actual</b>.</li>
+          <li>Si no manejas <b>Factura Electrónica</b>, deja el campo <b>vacío</b>.</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    key: 'RELACIÓN DE PLANILLA',
+    match: /RELACIÓN DE PLANILLA/i,
+    title: 'RELACIÓN DE PLANILLA',
+    html: `
+      <h4>Ten en cuenta estas recomendaciones</h4>
+      <div class="guia-box">
+        <ul style="margin:0; padding-left:18px;">
+          <li>Revisa en la planilla ya pagada el <b>número</b> de la misma.</li>
+          <li><b>Base de cotización mínima:</b> $ 1.750.905</li>
+          <li>Aportes a <b>salud</b> según planilla.</li>
+          <li>Aportes a <b>pensión</b> según planilla; si no haces aportes, escribe <b>0</b>.</li>
+          <li>Aportes a <b>ARL</b>: si la alcaldía paga tus riesgos, igualmente escribe el valor del aporte (no dejar en 0).</li>
+          <li>Si no eres persona jurídica, no diligencies el resto de campos.</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    key: 'RELACIÓN DE PAGO PLANILLA ANEXA',
+    match: /RELACIÓN DE PAGO PLANILLA ANEXA/i,
+    title: 'RELACIÓN DE PAGO PLANILLA ANEXA',
+    html: `
+      <h4>Ten en cuenta estas recomendaciones</h4>
+      <div class="guia-box">
+        <ul style="margin:0; padding-left:18px;">
+          <li>Revisa en la planilla anexa ya pagada el <b>número</b> de la misma.</li>
+          <li><b>Base de cotización mínima:</b> $ 1.750.905</li>
+          <li>Aportes a <b>salud</b> según planilla anexa.</li>
+          <li>Aportes a <b>pensión</b> según planilla anexa; si no haces aportes, escribe <b>0</b>.</li>
+          <li>Aportes a <b>ARL</b>: si la alcaldía paga tus riesgos, igualmente escribe el valor del aporte (no dejar en 0).</li>
+          <li>Si no eres persona jurídica, no diligencies el resto de campos.</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    key: 'RELACIÓN DE ACTIVIDADES',
+    match: /RELACIÓN DE ACTIVIDADES/i,
+    title: 'RELACIÓN DE ACTIVIDADES',
+    html: `
+      <h4>Descripción detallada (casos que aplique)</h4>
+      <div class="guia-box">
+        <ol style="margin:0; padding-left:18px;">
+          <li>Relaciona metas del Plan de Desarrollo (si aplica).</li>
+          <li>Lugares de realización (barrios, veredas, oficina, etc.).</li>
+          <li>Relación de cantidades (atención, revisiones, reuniones, visitas, etc.).</li>
+          <li>N° de personas impactadas.</li>
+          <li>Medios de corroboración (links, anexos, descripción de archivos, etc.).</li>
+          <li>Solo 1 imagen por evidencia; si tienes 2 o 3, crea un collage sin bordes ni espacios.</li>
+          <li>No subas imágenes de un archivo: deja el campo vacío y sube el archivo como evidencia.</li>
+        </ol>
+        <p style="margin:10px 0 0;">
+          Si tienes archivos por anexar, unifícalos en un solo PDF y súbelos en <b>Anexos de Actividades</b>.
+        </p>
+        <div style="margin-top:10px;">
+          <b>Pre-avisos:</b>
+          <ol style="margin:6px 0 0; padding-left:18px;">
+            <li>No copies las mismas actividades en cada cuenta (están bajo seguimiento).</li>
+            <li>Las cuentas que no cumplan parámetros serán devueltas.</li>
+            <li>Un informe de cuenta equivale a un informe de gestión; los supervisores no pueden aprobar sin criterios.</li>
+          </ol>
+        </div>
+      </div>
+    `
+  },
+  {
+    key: 'CARGUE DE ARCHIVOS DE CUENTA',
+    match: /CARGUE DE ARCHIVOS DE CUENTA/i,
+    title: 'CARGUE DE ARCHIVOS DE CUENTA',
+    html: `
+      <h4>Ten en cuenta las siguientes recomendaciones</h4>
+      <div class="guia-box">
+        <ul style="margin:0; padding-left:18px;">
+          <li><b>Anexos de Actividades:</b> aplica cuando manejas archivos diferentes a imágenes.</li>
+          <li><b>Certificación Bancaria:</b> quita la contraseña antes de subirla.</li>
+          <li><b>Baucher Planilla:</b> recibo o comprobante de pago.</li>
+          <li><b>Planilla:</b> sube la planilla ya paga y sin contraseña.</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    key: 'LOS SIGUIENTES DOCUMENTOS SON OPCIONALES',
+    match: /LOS SIGUIENTES DOCUMENTOS SON OPCIONALES/i,
+    title: 'DOCUMENTOS OPCIONALES',
+    html: `
+      <h4>Recomendaciones</h4>
+      <div class="guia-box">
+        <ul style="margin:0; padding-left:18px;">
+          <li><b>Baucher Planilla Anexa:</b> recibo o comprobante de pago de la planilla anexa.</li>
+          <li><b>Planilla Anexa:</b> sube la planilla anexa ya paga y sin contraseña.</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    key: 'DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE, JURÍDICAS, NO APORTES A PENSIÓN',
+    match: /DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE|DOCUMENTOS PARA PERSONAS RÉGIMEN SIMPLE/i,
+    title: 'DOCUMENTOS (RÉGIMEN SIMPLE / JURÍDICAS / NO PENSIÓN)',
+    html: `
+      <h4>Ten en cuenta estas recomendaciones</h4>
+      <div class="guia-box">
+        <ul style="margin:0; padding-left:18px;">
+          <li><b>RUT (Régimen Simple):</b> aplica únicamente para personas jurídicas en todas sus cuentas.</li>
+          <li><b>Factura Electrónica:</b> revisa muy bien tu factura antes de anexarla.</li>
+          <li><b>Certificado Parafiscales:</b> aplica únicamente para personas jurídicas.</li>
+          <li><b>Certificado NO aportes a Pensión:</b> aplica para quienes no realizan este aporte.</li>
+        </ul>
+      </div>
+    `
+  },
+  {
+    key: 'DOCUMENTOS ANEXOS (PRIMERA Y ÚLTIMA CUENTA, NOVEDADES)',
+    match: /DOCUMENTOS ANEXOS \(PRIMERA Y ÚLTIMA CUENTA, NOVEDADES\)/i,
+    title: 'DOCUMENTOS ANEXOS (PRIMERA / ÚLTIMA / NOVEDADES)',
+    html: `
+      <h4>Adjunta según corresponda</h4>
+      <div class="guia-box">
+        <p style="margin:0;"><b>Primera cuenta:</b></p>
+        <ul style="margin:6px 0 10px; padding-left:18px;">
+          <li>Acta de Inicio, Clausulados, CDP, RP, RUT Persona Natural, Certificado ARL (no para jurídicas)</li>
+        </ul>
+
+        <p style="margin:0;"><b>Casos que apliquen:</b></p>
+        <ul style="margin:6px 0 10px; padding-left:18px;">
+          <li>OTROSI, Otro Requerido</li>
+        </ul>
+
+        <p style="margin:0;"><b>Primera cuenta de adición:</b></p>
+        <ul style="margin:6px 0 10px; padding-left:18px;">
+          <li>CDP Adición, RP Adición</li>
+        </ul>
+
+        <p style="margin:0;"><b>Última cuenta:</b></p>
+        <ul style="margin:6px 0 0; padding-left:18px;">
+          <li>Acta de Liquidación</li>
+        </ul>
+      </div>
+    `
+  }
+];
+
+function guiaGetActiveSection_(){
+  // Detecta qué "título/sección" está más cerca al centro del viewport.
+  // Buscamos dentro de view-ingresar-cuenta: <h3 class="center">...</h3>
+  const view = document.getElementById('view-ingresar-cuenta');
+  if(!view) return null;
+
+  const headers = Array.from(view.querySelectorAll('h3.center'));
+  if(!headers.length) return null;
+
+  const midY = window.innerHeight * 0.46;
+
+  let best = null;
+  let bestDist = Infinity;
+
+  for(const h of headers){
+    const txt = String(h.textContent||'').trim();
+    if(!txt) continue;
+
+    const rect = h.getBoundingClientRect();
+    // si está completamente fuera, aún puede ser el más cercano (pero evitamos extremos)
+    const y = rect.top + rect.height/2;
+    const dist = Math.abs(y - midY);
+
+    if(dist < bestDist){
+      bestDist = dist;
+      best = txt;
+    }
+  }
+
+  if(!best) return null;
+
+  // Mapear el texto del header a la sección de guía
+  for(const s of GUIA_SECTIONS){
+    if(s.match.test(best)){
+      return s;
+    }
+  }
+
+  // fallback genérico
+  return {
+    title: 'GUÍA',
+    html: `<div class="guia-box"><b>Desplázate</b> por el formulario y toca la guía para ver recomendaciones de la sección actual.</div>`
+  };
+}
+
+function guiaOpenModal_(){
+  const modal = document.getElementById('guiaModal');
+  const title = document.getElementById('guiaModalTitle');
+  const body  = document.getElementById('guiaModalBody');
+  if(!modal || !title || !body) return;
+
+  const sec = guiaGetActiveSection_() || { title:'GUÍA', html:'' };
+  title.textContent = sec.title || 'GUÍA';
+  body.innerHTML = sec.html || '';
+
+  modal.setAttribute('aria-hidden','false');
+}
+
+function guiaCloseModal_(){
+  const modal = document.getElementById('guiaModal');
+  if(!modal) return;
+  modal.setAttribute('aria-hidden','true');
+}
+
+function guiaSetVisible_(visible){
+  const flo = document.getElementById('guiaFloat');
+  if(!flo) return;
+  flo.style.display = visible ? '' : 'none';
+  flo.setAttribute('aria-hidden', visible ? 'false' : 'true');
+
+  if(!visible){
+    guiaCloseModal_();
+  }
+}
+
+// Click en imagen => abre modal + sonido back
+document.getElementById('guiaFloatImg')?.addEventListener('click', ()=>{
+  try{ playSoundOnce(SOUNDS.back); }catch(_){}
+  guiaOpenModal_();
+});
+
+// Botón cerrar => cierra + sonido back
+document.getElementById('guiaModalClose')?.addEventListener('click', ()=>{
+  try{ playSoundOnce(SOUNDS.back); }catch(_){}
+  guiaCloseModal_();
+});
+
+// Click por fuera (backdrop) => cierra + sonido back
+document.getElementById('guiaModal')?.addEventListener('click', (e)=>{
+  if(e.target && e.target.id === 'guiaModal'){
+    try{ playSoundOnce(SOUNDS.back); }catch(_){}
+    guiaCloseModal_();
+  }
+});
+
+// Hook a tu showView para activar solo en view-ingresar-cuenta
+(function hookShowViewForGuia_(){
+  if(typeof showView !== 'function') return;
+
+  const __origShowView = showView;
+  showView = function(id){
+    __origShowView(id);
+
+    const active = (id === 'view-ingresar-cuenta');
+    guiaSetVisible_(active);
+  };
+})();
+
+// Al finalizar guardar o volver, tu código ya hace showView('view-inicio') y/o reset,
+// con eso la guía se ocultará automáticamente por el hook.
   
 /* ================== FIN ================== */
 </script>
