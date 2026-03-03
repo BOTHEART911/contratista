@@ -2656,6 +2656,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
         <h4>RELACIÓN DE FECHAS</h4>
         <div class="guia-box">
           <p><b>Selecciona muy bien las fechas del periodo relacionado:</b></p>
+          <p>Si es tu primera cuenta corrobora que total de informes esté correcto.</p>
           <ul>
             <li>Inicio de Periodo Relacionado</li>
             <li>Fin de Periodo Relacionado</li>
@@ -2674,25 +2675,27 @@ if (window.Swal && typeof Swal.fire === 'function'){
       'RELACIÓN DE PLANILLA': `
         <h4>RELACIÓN DE PLANILLA</h4>
         <div class="guia-box">
+         <p><b>Todos los datos deben coincidar con la planilla YA pagada.</p>
           <ul>
-            <li>Revisa en la planilla ya pagada el número de la misma.</li>
-            <li>Base de cotización mínima: <b>$ 1.750.905</b>.</li>
+            <li>Revisa en la planilla el número de la misma.</li>
+            <li>Base de cotización mínima para mes completo: <b>$ 1.750.905</b>, corrobora en tu planilla.</li>
             <li>Aportes a salud según planilla.</li>
-            <li>Aportes a pensión según planilla. Si no haces aportes, escribe <b>0</b>.</li>
-            <li>Aportes a ARL: si la alcalía paga tus riesgos, escribe el valor del aporte (no dejar en 0).</li>
-            <li>Si no eres persona jurídica, no diligencies el resto de campos.</li>
+            <li>Aportes a pensión según planilla. Si no haces aportes, escribe <b>0</b> NO dejes elñ campo vacio.</li>
+            <li>Aportes a ARL: <b>si la alcalía paga tus riesgos</b>, escribe el valor del aporte <b>(no dejar en 0 ó vacío)</b>.</li>
+            <li>Si no eres persona jurídica, NO diligencies el resto de campos.</li>
           </ul>
         </div>
       `,
       'RELACIÓN DE PAGO PLANILLA ANEXA': `
         <h4>RELACIÓN DE PAGO PLANILLA ANEXA</h4>
         <div class="guia-box">
+         <p><b>Todos los datos deben coincidar con la planilla Anexa YA pagada.</p>
           <ul>
             <li>Revisa en la planilla anexa ya pagada el número de la misma.</li>
-            <li>Base de cotización mínima: <b>$ 1.750.905</b>.</li>
+            <li>Base de cotización mínima: <b>$ 1.750.905</b> corrobora en tu planilla.</li>
             <li>Aportes a salud según planilla anexa.</li>
-            <li>Aportes a pensión según planilla anexa. Si no haces aportes, escribe <b>0</b>.</li>
-            <li>Aportes a ARL: si la alcalía paga tus riesgos, escribe el valor del aporte (no dejar en 0).</li>
+            <li>Aportes a pensión según planilla Anexa. Si no haces aportes, escribe <b>0</b> NO dejes elñ campo vacio.</li>
+            <li>Aportes a ARL: <b>si la alcalía paga tus riesgos</b>, escribe el valor del aporte <b>(no dejar en 0 ó vacío)</b>.</li>
             <li>Si no eres persona jurídica, no diligencies el resto de campos.</li>
           </ul>
         </div>
@@ -2707,8 +2710,8 @@ if (window.Swal && typeof Swal.fire === 'function'){
             <li>Relación de cantidades (atenciones, revisiones, visitas, reuniones, etc.).</li>
             <li>N° personas impactadas.</li>
             <li>Medios de corroboración (links, anexos, descripción de archivos, etc.).</li>
-            <li>Solo 1 imagen por evidencia. Si tienes 2–3, crea un collage sin bordes.</li>
-            <li>No subas imágenes de un archivo: deja el campo vacío y sube el archivo como evidencia.</li>
+            <li><b>Solo 1 imagen por evidencia. Si tienes 2–3, crea un collage sin bordes</b>.</li>
+            <li>No subas imágenes o captura de un archivo: deja el campo vacío y sube el archivo como evidencia.</li>
           </ol>
           <p>Si tienes archivos por anexar, unifícalos en un solo PDF y súbelos en <b>Anexos de Actividades</b>.</p>
           <p><b>Pre-avisos:</b></p>
@@ -2728,6 +2731,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
             <li><b>Baucher Planilla:</b> recibo/comprobante de pago.</li>
             <li><b>Planilla:</b> sube la planilla ya pagada y sin contraseña.</li>
           </ul>
+          <p><b>Tienes botones para unificar y desboquear archivos.</p>
         </div>
       `,
       'LOS SIGUIENTES DOCUMENTOS SON OPCIONALES': `
@@ -2764,7 +2768,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
     const html = blocks[t] || `
       <h4>GUÍA</h4>
       <div class="guia-box">
-        <p>Úbicate al lado de uno de los títulos y vuleve a tocar a Digital Friend.</p>
+        <p>Úbicate al lado de uno de los títulos y vuleve a tocarme, soy Digital Friend.</p>
       </div>
     `;
 
