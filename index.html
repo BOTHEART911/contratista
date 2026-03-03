@@ -6378,13 +6378,18 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     // Pintar vista
     renderIngresarCuenta();
 
-    // Precargar SALDO ACTUAL si viene
+     // Precargar SALDO ACTUAL si viene
     const saldoEl = document.getElementById('ic-saldo');
     if(saldoEl){
       if(IC_STATE.saldoQ){
-        saldoEl.value = IC_STATE.saldoQ;
+        // 2da cuenta en adelante: mostrar en formato pesos
+        const inf = Number(IC_STATE.informe || 1);
+        const saldoNum = numPure(IC_STATE.saldoQ);
+
+        saldoEl.value = (inf >= 2) ? formatCOPView(saldoNum) : String(IC_STATE.saldoQ);
+
         const cobro = numPure(document.getElementById('ic-cobro').value||'');
-        document.getElementById('ic-nuevoSaldo').value = formatCOPView(numPure(IC_STATE.saldoQ) - cobro);
+        document.getElementById('ic-nuevoSaldo').value = formatCOPView(saldoNum - cobro);
       }else{
         saldoEl.placeholder = 'Primera cuenta: valor del contrato';
       }
@@ -7049,94 +7054,6 @@ if(!total){
   document.getElementById('ic-total')?.focus();
   return;
 }
-
-  // ================== NOVEDADES: validar combinaciones permitidas ==================
-  function hasFile(id){
-    const inp = document.getElementById(id);
-    return !!(inp && inp.files && inp.files[0]);
-  }
-
-  const nov = {
-    actaI: hasFile('actaI'),
-    clasulados: hasFile('clasulados'),
-    cdpC: hasFile('cdpC'),
-    rpC: hasFile('rpC'),
-    rutpn: hasFile('rutpn'),
-    arlC: hasFile('arlC'),
-    otrosi: hasFile('otrosi'),
-    actaL: hasFile('actaL'),
-    otroR: hasFile('otroR'),
-    cdpAc: hasFile('cdpAc'),
-    rpAc: hasFile('rpAc')
-  };
-
-  const anyNovedades = Object.values(nov).some(Boolean);
-
-  function allowNovedades(){
-  if(!anyNovedades) return true;
-
-  const group1Base =
-    nov.actaI &&
-    nov.clasulados &&
-    nov.cdpC &&
-    nov.rpC;
-
-  const group1Ok =
-    group1Base &&
-    !nov.actaL &&
-    !nov.cdpAc &&
-    !nov.rpAc;
-
-  const group2Ok =
-    nov.cdpAc &&
-    nov.rpAc &&
-    !nov.actaI &&
-    !nov.clasulados &&
-    !nov.cdpC &&
-    !nov.rpC &&
-    !nov.actaL;
-
-  const group3Ok =
-    nov.actaL &&
-    nov.otroR &&
-    !nov.actaI &&
-    !nov.clasulados &&
-    !nov.cdpC &&
-    !nov.rpC &&
-    !nov.cdpAc &&
-    !nov.rpAc;
-
-  const group4Ok =
-    (nov.otrosi || nov.actaL || nov.otroR) &&
-    !nov.actaI &&
-    !nov.clasulados &&
-    !nov.cdpC &&
-    !nov.rpC &&
-    !nov.cdpAc &&
-    !nov.rpAc;
-
-  return !!(group1Ok || group2Ok || group3Ok || group4Ok);
-}
-if(!allowNovedades()){
-  await Swal.fire({
-    icon:'info',
-    title:'REVISA MUY BIEN LOS DOCUMENTOS ADJUNTOS',
-    html: `Para <b>1ra Cuenta:</b><br>
-      - Acta de Inicio<br>
-      - CDP<br>
-      - RP<br>
-      - RUT<br>
-      - Certificación ARL<br>
-      - OtroSi (Si Aplica)<br>
-      - Otro Requerido (Si Aplica)<br><br>
-      Para <b>Última Cuenta:</b><br>
-      - Acta de Liquidación<br>
-      - Otro Requerido (Si Aplica)<br><br>
-      Para otros casos, consulta primero con tu SUPERVISOR.`
-  });
-  return;
-}
-
   
 const caja1 = numPure(document.getElementById('caja1').value);
 const sena1 = numPure(document.getElementById('sena1').value);
