@@ -4184,6 +4184,7 @@ document.getElementById('go-personales').addEventListener('click', async ()=>{
 document.getElementById('go-soporte')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
+
   if(!currentUser){
     Swal.fire({icon:'warning', title:'Sesión inválida'});
     return;
@@ -4192,7 +4193,7 @@ document.getElementById('go-soporte')?.addEventListener('click', ()=>{
   showView('view-soporte');
 });
 
-  // Botón VOLVER en vista SOPORTE
+// VOLVER
 document.getElementById('soporte-volver')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
   showView('view-inicio');
@@ -8391,75 +8392,63 @@ window.addEventListener('load', initPWAVista);
   
 /* ================== Enviar soporte CONTRATISTA ================== */
 document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
-  if(!currentUser){
-    Swal.fire({icon:'warning', title:'Sesión inválida'});
+  playSoundOnce(SOUNDS.login);
+
+  if(!currentUser || !currentUser.documento){
+    Swal.fire({ icon:'warning', title:'Sesión inválida' });
     return;
   }
 
-  const texto = (document.getElementById('soporte-text').value || '').trim();
-  if(!texto){
-    Swal.fire({icon:'warning', title:'Debes escribir tu solicitud o sugerencia'});
+  const soporte = String(document.getElementById('soporte-text')?.value || '').trim();
+  if(!soporte){
+    Swal.fire({ icon:'warning', title:'Debes escribir tu solicitud' });
     return;
   }
 
+  // Datos base desde backend (nombre/secretaría/teléfono), para que no dependas del front
   try{
     const base = await apiGet('getSoporteContratista', { documento: currentUser.documento });
-    if(!base || !base.found){
-      Swal.fire({icon:'info', title:'No se encontró tu registro', text:'Valida primero tus datos en la App.'});
-      return;
-    }
-    if(String(base.estado||'').toUpperCase() !== 'ACTIVO'){
-      Swal.fire({icon:'info', title:'Contrato INACTIVO', text:'Solo contratistas ACTIVO pueden enviar soporte.'});
+
+    if(!base || base.found !== true){
+      Swal.fire({ icon:'error', title:'No se encontró tu información' });
       return;
     }
 
-    const nombreCompleto = base.nombre || '';
-    const partes = String(nombreCompleto).trim().split(/\s+/);
-    let nombreCorto = '';
-    if(partes.length === 1){
-      nombreCorto = partes[0];
-    }else if(partes.length === 2 || partes.length === 3){
-      nombreCorto = partes[0];
-    }else if(partes.length >= 4){
-      nombreCorto = partes[0] + ' ' + partes[1];
+    if(String(base.estado||'').toUpperCase() !== 'ACTIVO'){
+      Swal.fire({ icon:'info', title:'Contrato INACTIVO', text:'Solo contratistas ACTIVO pueden usar soporte.' });
+      return;
     }
 
     const payload = {
       documento: currentUser.documento,
-      soporte: texto,
-      celular: base.telefono || '',
-      nombre: nombreCompleto,
-      secretaria: base.secretaria || ''
+      soporte: soporte,
+      celular: String(base.telefono || ''),
+      nombre: String(base.nombre || ''),
+      secretaria: String(base.secretaria || '')
     };
 
-   const tel57 = normalizeNumber57(base.telefono || '');
-if(tel57){
-  const msg =
-    'Estimado(a) *' + (nombreCorto || '') + '*\n\n' +
-    'He recibido tu solicitud, la revisaré en el menor tiempo posible y me pondré en contacto contigo para ayudarte.\n' +
-    'Agradezco tu comprensión en mi tiempo de respuesta según demanda o solicitudes.\n\n' +
-    'Muchas gracias por ser parte de este gran Equipo.\n\n' +
-    'Cordialmente;\n\n' +
-    '*Oscar Polania*\n' +
-    '> Desarrollador Gobierno Digital\n' +
-    '> Alcaldía de Flandes';
+    const r = await apiPost('guardarSoporteContratista', payload);
 
-  sendBuilderbotMessage(tel57, msg);
-}
+    if(!r || r.success !== true){
+      Swal.fire({ icon:'error', title:'No se pudo guardar', text:'Intenta nuevamente.' });
+      return;
+    }
 
     await Swal.fire({
       icon:'success',
-      title:'Solicitud enviada',
-      text:'Pronto recibirás respuesta a través de WhatsApp.',
-      timer:3500,
-      showConfirmButton:false
+      title:'Soporte enviado',
+      html:`Tu solicitud fue registrada con el código: <b>${String(r.codigo||'')}</b>`,
+      confirmButtonText:'Ok'
     });
+
+    document.getElementById('soporte-text').value = '';
     showView('view-inicio');
+
   }catch(e){
-    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }
 });
-
+  
     /* ================== Enviar SOLICITUD TESORERIA ================== */
 
     document.getElementById('go-solicitud-tesoreria')?.addEventListener('click', async ()=>{
