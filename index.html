@@ -1096,6 +1096,12 @@
   margin-top: 10px;
 }
 .guia-modal-body .guia-box b{ color:#06402B; }
+
+    /* Latido para botones de Novedades */
+.pulse-heartbeat{
+  animation: heartbeat 1.2s infinite;
+  transform-origin: center;
+}
   </style>
 </head>
 <body>
@@ -1959,21 +1965,6 @@
     </div>
 
     <h3 class="center" style="margin-top:12px;color:#333;">RELACIÓN DE ACTIVIDADES</h3>
-
-     <div class="muted" style="margin:6px 0 8px; text-align: justify; ">
-            <b>DESCRIPCIÓN DETALLADA CON LOS CASOS QUE APLIQUE:</b><br>
-            <b>1.</b> En tus Actividades relaciona metas del Plan de Desarrollo (Si Aplica).<br>
-            <b>2.</b> Lugares de realización de actividades (barrios, veredas, conjuntos, oficina, etc.).<br>
-            <b>3.</b> Relación de Cantidades (Atención al Público, Revisiones, limpiezas, estudios, creación de archivos, recepción y envío de Documentos, visitas, reuniones, suministros entregados, trabajos realizados, etc.).<br>
-            <b>4.</b> N° Personas Impactadas por la Actividad.<br>
-            <b>5.</b> Medios de Corroboración de la Información (Link Fanpage, ANEXOS, descripción de archivos, etc.).<br>
-            <b>6. Solo se permite una imagen por Evidencia, si tienes 2 o <b>3 como máximo</b>; debes crear un collage sin rebordes ni espacios.</b><br><br>
-            Si tienes archivos por anexar, debes unifircarlos en un solo PDF y subirlos en el campo <b>Anexos de Actividades</b>.<br><br>
-            <b>PRE-AVISOS:</b><br>
-            <b>1.</b> No copies las mismas actividades en cada cuenta (están bajo seguimiento).<br>
-            <b>2.</b> Las cuentas que no cumplan los parámetros según los casos, serán devueltas.<br>
-            <b>3. Un informe de cuenta tiene el mismo valor que un Informe de Gestión, por tal razón, los supervisores no pueden aprobar cuentas que no cumplan con los críterios anteriores.</b>
-        </div>
     
     <div id="ic-oblig-wrap" class="narrow"></div>
 
@@ -2067,7 +2058,7 @@
         <div id="noafp-status" class="muted" style="margin-top:6px;"></div>
 
         <div class="center" style="margin-top:10px;">
-          <button id="btn-novedades-show" class="chip">Adjunta Documentos Primera - última Cuenta, Otros</button>
+          <button id="btn-novedades-show" class="chip pulse-heartbeat">Adjunta Documentos Primera - última Cuenta, Otros</button>
         </div>
 
         <div id="ic-novedades-wrap" class="narrow hidden" style="margin-top:8px;">
@@ -2162,7 +2153,7 @@
           <div id="otroR-status" class="muted" style="margin-top:6px;"></div>
 
           <div class="center" style="margin-top:8px;">
-            <button id="btn-novedades-hide" class="chip danger">Ocultar Documentos Primera - Última Cuenta</button>
+            <button id="btn-novedades-hide" class="chip danger pulse-heartbeat">Ocultar Documentos Primera - Última Cuenta</button>
           </div>
         </div>
             
@@ -2618,11 +2609,15 @@ if (window.Swal && typeof Swal.fire === 'function'){
   // 1) Mapa: TÍTULO DEL BLOQUE -> AUDIO
   // IMPORTANTE: las llaves deben coincidir con data.title en MAYÚSCULAS
   const GUIA_AUDIO_BY_TITLE = {
-    'RELACIÓN DE FECHAS': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772572021/fechas_ghuz9b.mp3',
-    // 'RELACIÓN DE PAGO': 'https://.../pago.mp3',
-    // 'RELACIÓN DE PLANILLA': 'https://.../planilla.mp3',
-    // 'RELACIÓN DE ACTIVIDADES': 'https://.../actividades.mp3',
-    // 'CARGUE DE ARCHIVOS DE CUENTA': 'https://.../archivos.mp3',
+    'RELACIÓN DE FECHAS': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772593271/fechas_nellk8.mp3',
+    'RELACIÓN DE PAGO': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772593525/pagos_daw8tc.mp3',
+    'RELACIÓN DE PLANILLA': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772593710/planilla_jdl3al.mp3',
+    'RELACIÓN DE PAGO PLANILLA ANEXA': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772594118/planilla_anexa_yjqcxw.mp3',
+    'RELACIÓN DE ACTIVIDADES': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772594152/actividades_mjb38z.mp3',
+    'CARGUE DE ARCHIVOS DE CUENTA': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772594394/archivos_cuenta_kzy6y3.mp3',
+    'LOS SIGUIENTES DOCUMENTOS SON OPCIONALES': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772594866/doc_opcionales_usv2ay.mp3',
+    'DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE, JURÍDICAS, NO APORTES A PENSIÓN':'https://res.cloudinary.com/dqqeavica/video/upload/v1772594659/doc_regimen_dgnqzm.mp3',
+    'DOCUMENTOS ANEXOS (PRIMERA Y ÚLTIMA CUENTA, NOVEDADES)': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772595248/primera_tesfpf.mp3',
   };
 
   // 2) Un solo reproductor reutilizable (evita solapes)
@@ -2703,11 +2698,11 @@ if (window.Swal && typeof Swal.fire === 'function'){
       'RELACIÓN DE FECHAS': `
         <h4>RELACIÓN DE FECHAS</h4>
         <div class="guia-box">
-          <p><b>Selecciona muy bien las fechas del periodo relacionado:</b></p>
-          <p>Si es tu primera cuenta corrobora que total de informes esté correcto.</p>
+        <p><b>Si es tu primera cuenta, corrobora que Total de Informes esté correcto</b></p>
+          <p>Ingresa de forma correcta:</p>
           <ul>
-            <li>Inicio de Periodo Relacionado</li>
-            <li>Fin de Periodo Relacionado</li>
+            <li><b>Inicio de Periodo Relacionado</b> Ejemplo: 20/01/2026</li>
+            <li><b>Fin de Periodo Relacionado</b> Ejemplo: 19/02/2026</li>
             <li>Fecha de Radicación</li>
           </ul>
           <p><b>Recuerda:</b> la <b>Fecha de Radicación</b> debe estar <b>fuera</b> del periodo relacionado.</p>
@@ -2716,7 +2711,9 @@ if (window.Swal && typeof Swal.fire === 'function'){
       'RELACIÓN DE PAGO': `
         <h4>RELACIÓN DE PAGO</h4>
         <div class="guia-box">
-          <p><b>Primera vez:</b> digita el valor total de tu contrato en <b>Saldo Actual</b>.</p>
+          <p><b>Si es la primera cuenta</b> digita el valor total de tu contrato en <b>Saldo Actual</b>.</p>
+          <p>Ingresa el valor a cobrar.</p>
+          <p>El campo nuevo saldo es automático.</p>
           <p><b>Factura Electrónica:</b> si no manejas, deja el campo vacío.</p>
         </div>
       `,
@@ -2726,87 +2723,94 @@ if (window.Swal && typeof Swal.fire === 'function'){
          <p><b>Todos los datos deben coincidar con la planilla YA pagada.</b></p>
           <ul>
             <li>Revisa en la planilla el número de la misma.</li>
-            <li>Base de cotización mínima para mes completo: <b>$ 1.750.905</b>, corrobora en tu planilla.</li>
-            <li>Aportes a salud según planilla.</li>
-            <li>Aportes a pensión según planilla. Si no haces aportes, escribe <b>0</b> NO dejes elñ campo vacio.</li>
-            <li>Aportes a ARL: <b>si la alcalía paga tus riesgos</b>, escribe el valor del aporte <b>(no dejar en 0 ó vacío)</b>.</li>
-            <li>Si no eres persona jurídica, NO diligencies el resto de campos.</li>
+            <li>Base de cotización mínima para mes completo: <b>$ 1.750.905</b>. Sin embargo, corrobora en tu planilla, todos los valores ingresados deben coincidir.</li>
+            <li>Ingresa la base de cotización que aparece en tu planilla..</li>
+            <li>Ingresa el aporte a salud que aparece en tu planilla.</li>
+            <li>Ingresa el aporte a pensión que aparece en tu planilla. Si no haces aportes a pensión, escribe <b>0</b> NO dejes el campo vacio.</li>
+            <li>Ingresa el aporte a riesgos que aparece en tu planilla. <b>si la alcalía paga tus riesgos</b>, escribe el valor del aporte <b>(no dejar en 0 ó vacío)</b>.</li>
+            <li>Si no eres persona jurídica, NO diligencies el resto de campos como caja de compensación, SENA e ICBF.</li>
           </ul>
         </div>
       `,
       'RELACIÓN DE PAGO PLANILLA ANEXA': `
         <h4>RELACIÓN DE PAGO PLANILLA ANEXA</h4>
         <div class="guia-box">
-         <p><b>Todos los datos deben coincidar con la planilla Anexa YA pagada.</b></p>
+        <p><b>Ingresa estos valores si vas a relacionar una segunda planilla en esta cuenta de cobro.</b></p>
+        <p>Todos los datos deben coincidir con la planilla Anexa YA pagada.</p>
           <ul>
-            <li>Revisa en la planilla anexa ya pagada el número de la misma.</li>
-            <li>Base de cotización mínima: <b>$ 1.750.905</b> corrobora en tu planilla.</li>
-            <li>Aportes a salud según planilla anexa.</li>
-            <li>Aportes a pensión según planilla Anexa. Si no haces aportes, escribe <b>0</b> NO dejes elñ campo vacio.</li>
-            <li>Aportes a ARL: <b>si la alcalía paga tus riesgos</b>, escribe el valor del aporte <b>(no dejar en 0 ó vacío)</b>.</li>
-            <li>Si no eres persona jurídica, no diligencies el resto de campos.</li>
+            <li>Revisa en la planilla el número de la misma.</li>
+            <li>Base de cotización mínima para mes completo: <b>$ 1.750.905</b>. Sin embargo, corrobora en tu planilla, todos los valores ingresados deben coincidir.</li>
+            <li>Ingresa la base de cotización que aparece en tu planilla..</li>
+            <li>Ingresa el aporte a salud que aparece en tu planilla.</li>
+            <li>Ingresa el aporte a pensión que aparece en tu planilla. Si no haces aportes a pensión, escribe <b>0</b> NO dejes el campo vacio.</li>
+            <li>Ingresa el aporte a riesgos que aparece en tu planilla. <b>si la alcalía paga tus riesgos</b>, escribe el valor del aporte <b>(no dejar en 0 ó vacío)</b>.</li>
+            <li>Si no eres persona jurídica, NO diligencies el resto de campos como caja de compensación, SENA e ICBF.</li>
           </ul>
         </div>
       `,
       'RELACIÓN DE ACTIVIDADES': `
         <h4>RELACIÓN DE ACTIVIDADES</h4>
         <div class="guia-box">
-          <p><b>Descripción detallada (según aplique):</b></p>
+          <p><b>Ten en cuentas estos puntos para que tu informe de actividades cumpla los estándares de aprobación:</b></p>
           <ol>
             <li>Relaciona metas del Plan de Desarrollo (si aplica).</li>
-            <li>Lugares de realización (barrios, veredas, oficina, etc.).</li>
-            <li>Relación de cantidades (atenciones, revisiones, visitas, reuniones, etc.).</li>
+            <li>Lugares de realización (barrios, veredas, conjuntos, oficina, etc.).</li>
+            <li>Relación de cantidades (Atención al Público, Revisiones, limpiezas, estudios, creación de archivos, recepción y envío de Documentos, visitas, reuniones, suministros entregados, trabajos realizados, etc.).</li>
             <li>N° personas impactadas.</li>
-            <li>Medios de corroboración (links, anexos, descripción de archivos, etc.).</li>
-            <li><b>Solo 1 imagen por evidencia. Si tienes 2–3, crea un collage sin bordes</b>.</li>
-            <li>No subas imágenes o captura de un archivo: deja el campo vacío y sube el archivo como evidencia.</li>
+            <li>Medios de corroboración (Link página de Facebook de la Alcaldía, ANEXOS, descripción de archivos, etc.).</li>
+            <li><b>Solo se permite una imagen por Evidencia, si tienes 2 o 3 como máximo; debes crear un collage sin rebordes ni espacios y subirlo como una sola imagen.</b>.</li>
           </ol>
-          <p>Si tienes archivos por anexar, unifícalos en un solo PDF y súbelos en <b>Anexos de Actividades</b>.</p>
+          <pSi tienes archivos por anexar, debes unificarlos en un solo PDF y subirlos en el campo <b>Anexos de Actividades</b>.</p>
           <p><b>Pre-avisos:</b></p>
           <ol>
-            <li>No copies las mismas actividades en cada cuenta.</li>
-            <li>Si no cumples parámetros, tu cuenta será devuelta.</li>
-            <li>Un informe de cuenta tiene el mismo valor que un Informe de Gestión.</li>
+            <li>No copies las mismas actividades en cada cuenta (están bajo seguimiento).</li>
+            <li>Las cuentas que no cumplan los parámetros según los casos, serán devueltas.</li>
+            <li>Los supervisores no pueden aprobar cuentas que no cumplan con los criterios anteriores.</li>
           </ol>
         </div>
       `,
       'CARGUE DE ARCHIVOS DE CUENTA': `
         <h4>CARGUE DE ARCHIVOS DE CUENTA</h4>
         <div class="guia-box">
+        <p>Debes cargar los siguientes archivos en todas tus cuentas.</p>
           <ul>
-            <li><b>Anexos de Actividades:</b> para archivos diferentes a imágenes.</li>
-            <li><b>Certificación Bancaria:</b> quita contraseña antes de subir.</li>
-            <li><b>Baucher Planilla:</b> recibo/comprobante de pago.</li>
-            <li><b>Planilla:</b> sube la planilla ya pagada y sin contraseña.</li>
+            <li><b>Anexos de Actividades:</b> para archivos diferentes a imágenes en los casos que aplique o sugiera tu Supervisor.</li>
+            <li><b>Certificación Bancaria:</b> debes quitar la contraseña de este archivo antes de adjuntarlo.</li>
+            <li><b>Baucher Planilla:</b> adjunta el recibo ó comprobante de pago.</li>
+            <li><b>Planilla:</b> adjunta la planilla ya pagada y sin contraseña.</li>
           </ul>
-          <p><b>Tienes botones para unificar y desboquear archivos.</p>
+          <p><b>Tienes botones para unificar y desbloquear archivos.</p>
         </div>
       `,
       'LOS SIGUIENTES DOCUMENTOS SON OPCIONALES': `
         <h4>DOCUMENTOS OPCIONALES</h4>
         <div class="guia-box">
+         <p>Si relacionaste otra planilla de pago, debes adjuntar también:</p>
           <ul>
             <li><b>Baucher Planilla Anexa:</b> comprobante de pago.</li>
-            <li><b>Planilla Anexa:</b> súbela ya pagada y sin contraseña.</li>
+            <li><b>Planilla Anexa:</b> adjunta ya pagada y sin contraseña.</li>
           </ul>
         </div>
       `,
       'DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE, JURÍDICAS, NO APORTES A PENSIÓN': `
-        <h4>DOCUMENTOS (RÉGIMEN SIMPLE / JURÍDICAS / SIN PENSIÓN)</h4>
+        <h4>DOCUMENTOS (RÉGIMEN SIMPLE / JURÍDICAS / NO APORTES A PENSIÓN)</h4>
         <div class="guia-box">
+        <p>Deben anexar los siguientes documentos en los casos que aplique:</p>
           <ul>
-            <li><b>RUT (Régimen Simple):</b> aplica según tu caso.</li>
-            <li><b>Factura Electrónica:</b> revisa muy bien antes de anexarla.</li>
-            <li><b>Certificado Parafiscales:</b> aplica para jurídicas.</li>
+            <li><b>RUT (Régimen Simple):</b> Si eres Persona Natural, no adjuntes el RUT en esta parte.</li>
+            <li><b>Factura Electrónica:</b> revisa muy bien antes de adjuntar.</li>
+            <li><b>Certificado Parafiscales:</b> aplica para personas jurídicas.</li>
             <li><b>Certificado NO aportes a Pensión:</b> para quienes no realizan ese aporte.</li>
           </ul>
+           <p>Estos archivos según el caso,se adjuntas en todas las cuentas, si no aplicas, no adjuntes ningún archivo de forma equivoca</p>
         </div>
       `,
-      'DOCUMENTOS ANEXOS (PRIMERA Y ÚLTIMA CUENTA, NOVEDADES)': `
+      'DOCUMENTOS ANEXOS (PRIMERA Y/O ÚLTIMA CUENTA, NOVEDADES)': `
         <h4>DOCUMENTOS ANEXOS (PRIMERA / ÚLTIMA / NOVEDADES)</h4>
         <div class="guia-box">
-          <p><b>Primera cuenta:</b> Acta de Inicio, Clausulados, CDP, RP, RUT PN, Certificado ARL (no para jurídicas).</p>
-          <p><b>Casos puntuales:</b> OTROSI, Otro Requerido.</p>
+          <p>Adjunta estos archivos según el caso.:</p>
+          <p><b>Primera cuenta:</b> Acta de Inicio, Clausulados, CDP, RP, RUT PN, Certificado ARL (no para personas jurídicas).</p>
+          <p><b>Casos puntuales:</b> OTROSI (Modificaciones al contrato), Otro Requerido (según solicitud).</p>
           <p><b>Primera cuenta de adición:</b> CDP Adición, RP Adición.</p>
           <p><b>Última cuenta:</b> Acta de Liquidación.</p>
         </div>
