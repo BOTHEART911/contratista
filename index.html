@@ -979,6 +979,25 @@
 .banner-modal-body ol{
   padding-left: 20px;
 }
+      /* ====== GUÍA FLOTANTE (INICIO) - fija al lado del banner como en la imagen ====== */
+  #guiaInicioFloat.guia-float{
+    display:none;
+    left: calc(50% + 320px);
+    top: 22%;
+    transform: translateY(0);
+    z-index: 10006;
+  }
+  @media (min-width: 1024px){
+    #guiaInicioFloat.guia-float{ left: calc(50% + 360px); }
+  }
+  @media (max-width: 700px){
+    #guiaInicioFloat.guia-float{
+      left:auto;
+      right:10px;
+      top: 22%;
+    }
+  }
+    
 /* ================== GUÍA FLOTANTE (INGRESAR / CORREGIR CUENTA) ================== */
 .guia-float{
   position: fixed;
@@ -1216,6 +1235,40 @@
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
       </div>
+
+      <div id="guiaInicioFloat" class="guia-float" aria-hidden="true">
+  <img
+    id="guiaInicioFloatImg"
+    src="https://res.cloudinary.com/dqqeavica/image/upload/v1772411982/guia_ksuzul.gif"
+    alt="Guía Inicio"
+  />
+</div>
+
+<div id="guiaInicioModal" class="guia-modal" aria-hidden="true">
+  <div class="guia-modal-card" role="dialog" aria-modal="true" aria-label="Guía de inicio">
+    <div class="guia-modal-head">
+      <h3 class="guia-modal-title">DIGITAL FRIEND</h3>
+      <button type="button" id="guiaInicioModalClose" class="guia-modal-close">Cerrar</button>
+    </div>
+    <div class="guia-modal-body">
+      <h4>Hola, soy Digital Friend.</h4>
+      <div class="guia-box">
+        <p>
+          Quiero informarte que esta Aplicación te ofrece toda la guía de uso a través de tutoriales que encontrarás haciendo clic en
+          <b>menú</b>, luego, en botón <b>guía de uso</b>, y por último en <b>tutoriales</b>.
+        </p>
+        <p>
+          Si revisas con detalle cada video, no tendrás contratiempos en tu proceso de cuentas.
+        </p>
+        <p>
+          Yo te estaré acompañando al ingresar o corregir una cuenta.
+          Ahí puedes hacer clic sobre mi y te ayudaré a comprender cada campo a ingresar.
+        </p>
+        <p><b>Éxitos.</b></p>
+      </div>
+    </div>
+  </div>
+</div>
     </section>
 
     <!-- OVERLAY MENÚ -->
@@ -2618,6 +2671,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
     'LOS SIGUIENTES DOCUMENTOS SON OPCIONALES': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772594866/doc_opcionales_usv2ay.mp3',
     'DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE, JURÍDICAS, NO APORTES A PENSIÓN':'https://res.cloudinary.com/dqqeavica/video/upload/v1772594659/doc_regimen_dgnqzm.mp3',
     'DOCUMENTOS ANEXOS (PRIMERA Y ÚLTIMA CUENTA, NOVEDADES)': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772595248/primera_tesfpf.mp3',
+    'GUÍA': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772627036/friend_e1qluo.mp3'
   };
 
   // 2) Un solo reproductor reutilizable (evita solapes)
@@ -2820,7 +2874,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
     const html = blocks[t] || `
       <h4>GUÍA</h4>
       <div class="guia-box">
-        <p>Úbicate al lado de uno de los títulos y vuleve a tocarme, <b>soy Digital Friend</b>.</p>
+        <p>Ubícate al lado de uno de los títulos y vuelve a tocarme, <b>soy Digital Friend</b>.</p>
       </div>
     `;
 
@@ -2895,6 +2949,96 @@ if (window.Swal && typeof Swal.fire === 'function'){
     }
   }, { passive:true });
 
+})();
+
+    /* ================== Guía Flotante (inicio) ================== */
+
+  (function initGuiaInicio_(){
+  const FLOAT_ID = 'guiaInicioFloat';
+  const MODAL_ID = 'guiaInicioModal';
+  const AUDIO_URL = 'https://res.cloudinary.com/dqqeavica/video/upload/v1772627222/bienvenida_sdnyae.mp3';
+
+  let __audio = null;
+
+  function el_(id){ return document.getElementById(id); }
+  function isInicioActive_(){
+    return !!document.getElementById('view-inicio')?.classList.contains('active');
+  }
+
+  function stopAudio_(){
+    try{
+      if(__audio){
+        __audio.pause();
+        __audio.currentTime = 0;
+      }
+    }catch(_){}
+  }
+
+  async function playAudio_(){
+    try{
+      stopAudio_();
+      if(!__audio){
+        __audio = new Audio();
+        __audio.preload = 'auto';
+      }
+      __audio.src = AUDIO_URL;
+      await __audio.play();
+    }catch(_){}
+  }
+
+  function showFloat_(){
+    const f = el_(FLOAT_ID);
+    if(!f) return;
+    const on = isInicioActive_();
+    f.style.display = on ? 'block' : 'none';
+    f.setAttribute('aria-hidden', on ? 'false' : 'true');
+  }
+
+  function openModal_(){
+    const modal = el_(MODAL_ID);
+    if(!modal) return;
+    modal.setAttribute('aria-hidden','false');
+    playAudio_();
+  }
+
+  function closeModal_(){
+    const modal = el_(MODAL_ID);
+    if(!modal) return;
+    modal.setAttribute('aria-hidden','true');
+    stopAudio_();
+  }
+
+  // Click en el ícono
+  el_('guiaInicioFloatImg')?.addEventListener('click', ()=>{
+    try{ playSoundOnce(SOUNDS.back); }catch(_){}
+    openModal_();
+  });
+
+  // Cerrar
+  el_('guiaInicioModalClose')?.addEventListener('click', ()=>{
+    try{ playSoundOnce(SOUNDS.back); }catch(_){}
+    closeModal_();
+  });
+
+  // Cerrar por backdrop
+  el_(MODAL_ID)?.addEventListener('click', (e)=>{
+    if(e.target && e.target.id === MODAL_ID){
+      try{ playSoundOnce(SOUNDS.back); }catch(_){}
+      closeModal_();
+    }
+  });
+
+  // Hook showView para refrescar visibilidad y cortar audio al cambiar de vista
+  if(typeof window.showView === 'function'){
+    const __orig = window.showView;
+    window.showView = function(id){
+      __orig(id);
+      closeModal_();
+      showFloat_();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{ showFloat_(); });
 })();
 
   /* ================== IMÁGENES (preview y compresión) ================== */
