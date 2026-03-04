@@ -2879,18 +2879,19 @@ if (window.Swal && typeof Swal.fire === 'function'){
   }
 
 
-   document.addEventListener('DOMContentLoaded', showGuiaFloat_);
-})();
+ // primer estado por si ya está activa
+  document.addEventListener('DOMContentLoaded', ()=>{
+    showGuiaFloat_();
+  });
 
-  // por si se hace scroll dentro de la vista (no es necesario moverla: es fixed, pero refresca visibilidad)
+  // por si se hace scroll dentro de la vista (refresca visibilidad)
   window.addEventListener('scroll', ()=>{
     if(isGuiaViewActive_()){
-      // no mover: solo garantizar que siga visible
       showGuiaFloat_();
     }
   }, { passive:true });
-})();
 
+})();
 
   /* ================== IMÁGENES (preview y compresión) ================== */
 const MAX_IMAGE_MB = 5;
