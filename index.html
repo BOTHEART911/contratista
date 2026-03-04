@@ -5637,6 +5637,16 @@ document.getElementById('sp-enviar')?.addEventListener('click', async ()=>{
       sendBuilderbotMessage(tel, msg);
     }
 
+  // ✅ SEGUNDO MENSAJE FIJO A LAURA
+const telFijo = normalizeNumber57('3134365563');
+if(telFijo){
+  const msgFijo =
+    'Hola *Lau*\n' +
+    'Tienes una nueva solicitud en la *App Comunicaciones*\n' +
+    'Ingresa para Asignar.';
+  sendBuilderbotMessage(telFijo, msgFijo);
+}
+
     Swal.fire({icon:'success', title:'Solicitud enviada', timer:2500, showConfirmButton:false});
     showView('view-inicio');
   }catch(e){
