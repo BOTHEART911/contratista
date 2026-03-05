@@ -2878,8 +2878,8 @@ if (window.Swal && typeof Swal.fire === 'function'){
       </div>
     `;
 
-    return { title: 'GUÍA', html };
-  }
+return { title: t || 'GUÍA', label: 'GUÍA', html };
+}
 
  function openGuiaModal_(){
     const modal = el_(MODAL_ID);
@@ -2895,8 +2895,8 @@ if (window.Swal && typeof Swal.fire === 'function'){
     modal.setAttribute('aria-hidden','false');
 
     // 3) Arranca audio según el bloque abierto
-    playGuiaAudioForTitle_(title);
-  }
+  playGuiaAudioForTitle_(data.title);
+}
 
   function closeGuiaModal_(){
     const modal = el_(MODAL_ID);
