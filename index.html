@@ -8835,44 +8835,28 @@ function icAbrirRadicado(){
     applyNextMonthRule = finDay >= 27;
   }
 
-  // ===== Helper local: hábil simple (L-V y NO festivo) =====
-  // (No depende de "hoy". Arranca desde la fecha que le pasemos.)
-  function icEsHabilSimple_(dt){
-    const dow = dt.getDay(); // 0 dom, 6 sab
-    if(dow === 0 || dow === 6) return false;
-
-    const dd = icPad2(dt.getDate());
-    const mm = icPad2(dt.getMonth()+1);
-    const yy = dt.getFullYear();
-    const key = `${dd}/${mm}/${yy}`;
-
-    // Usa tu mismo set de feriados (no lo cambiamos)
-    if(typeof IC_FERIADOS_2026 !== 'undefined' && IC_FERIADOS_2026.has(key)) return false;
-
-    return true;
-  }
-
   const opciones = [];
   let cursor = null;
 
   if(applyNextMonthRule){
-    // Arranca SIEMPRE desde el 01 del mes siguiente al fin del periodo
+    // Primer día del mes siguiente al fin del periodo
     const [fd, fm, fy] = finVal.split('/').map(x => parseInt(x, 10));
-    cursor = new Date(fy, (fm - 1) + 1, 1); // 01 del siguiente mes
+    const nextMonthStart = new Date(fy, (fm - 1) + 1, 1); // 1er día del siguiente mes
+    cursor = new Date(nextMonthStart);
 
-    // Tomar 3 primeros días hábiles (consecutivos desde ese 01)
+    // Primeros 3 días hábiles del siguiente mes (respetando icEsHabil: no sáb/dom/festivos)
     while(opciones.length < 3){
-      if(icEsHabilSimple_(cursor)){
+      if(icEsHabil(cursor)){
         opciones.push(new Date(cursor));
       }
       cursor.setDate(cursor.getDate() + 1);
     }
 
     if(sub){
-      sub.textContent = 'Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta en el ciclo de aprobación y plan de pagos';
+      sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
     }
   }else{
-    // Lógica original: hoy + 2 hábiles (según icEsHabil actual)
+    // Lógica original: hoy + 2 hábiles
     const hoy = new Date();
     cursor = new Date(hoy);
 
@@ -8884,7 +8868,7 @@ function icAbrirRadicado(){
     }
   }
 
-  // Map por día para setear MES/AÑO coherentes
+  // Map por día para setear MES/AÑO (y permitir saltos de mes si pasara por calendario)
   const byDay = new Map(); // key: "DD" -> { month: "MM", year:"YYYY", monthName:"..." }
   opciones.forEach(dt=>{
     const dd = icPad2(dt.getDate());
@@ -8931,6 +8915,7 @@ function icAbrirRadicado(){
   modal.style.display = 'flex';
   modal.setAttribute('aria-hidden','false');
 }
+  
 function icCancelarRadicado(){
   const m=document.getElementById('icRadicadoModal');
   if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
