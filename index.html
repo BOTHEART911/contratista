@@ -8806,26 +8806,69 @@ function icAbrirRadicado(){
   const aSel  = document.getElementById('icRadAnio');
   if(!modal || !dSel || !mSel || !aSel) return;
 
+  // ===== Subtítulo dinámico (solo para la regla fin>=27) =====
+  const box = modal.querySelector('.picker-box');
+  let sub = modal.querySelector('#icRadSub');
+  if(!sub && box){
+    sub = document.createElement('div');
+    sub.id = 'icRadSub';
+    sub.className = 'muted';
+    sub.style.margin = '6px 0 10px';
+    sub.style.fontWeight = '700';
+    box.insertBefore(sub, box.querySelector('.picker-grid') || null);
+  }
+  if(sub) sub.textContent = '';
+
   // Reset options
   dSel.innerHTML = '';
   mSel.innerHTML = '';
   aSel.innerHTML = '';
 
-  const hoy = new Date();
-  const opciones = [];
-  let count = 0;
-  let cursor = new Date(hoy);
+  // ===== Determinar si aplica regla "fin >= 27" =====
+  const finVal = String(document.getElementById('ic-fin')?.value || '').trim(); // dd/mm/aaaa
+  let applyNextMonthRule = false;
+  let finDay = 0;
 
-  // hoy + 2 hábiles (según icEsHabil)
-  while(count < 3){
-    if(icEsHabil(cursor)){
-      opciones.push(new Date(cursor));
-      count++;
-    }
-    cursor.setDate(cursor.getDate() + 1);
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(finVal)){
+    const parts = finVal.split('/');
+    finDay = parseInt(parts[0], 10) || 0;
+    applyNextMonthRule = finDay >= 27;
   }
 
-  // --- NUEVO: guardar opciones por día para actualizar mes/año dinámicamente ---
+  const opciones = [];
+  let cursor = null;
+
+  if(applyNextMonthRule){
+    // Primer día del mes siguiente al fin del periodo
+    const [fd, fm, fy] = finVal.split('/').map(x => parseInt(x, 10));
+    const nextMonthStart = new Date(fy, (fm - 1) + 1, 1); // 1er día del siguiente mes
+    cursor = new Date(nextMonthStart);
+
+    // Primeros 3 días hábiles del siguiente mes (respetando icEsHabil: no sáb/dom/festivos)
+    while(opciones.length < 3){
+      if(icEsHabil(cursor)){
+        opciones.push(new Date(cursor));
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    if(sub){
+      sub.textContent = 'Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta en el ciclo de aprobación y plan de pagos';
+    }
+  }else{
+    // Lógica original: hoy + 2 hábiles
+    const hoy = new Date();
+    cursor = new Date(hoy);
+
+    while(opciones.length < 3){
+      if(icEsHabil(cursor)){
+        opciones.push(new Date(cursor));
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  // Map por día para setear MES/AÑO (y permitir saltos de mes si pasara por calendario)
   const byDay = new Map(); // key: "DD" -> { month: "MM", year:"YYYY", monthName:"..." }
   opciones.forEach(dt=>{
     const dd = icPad2(dt.getDate());
@@ -8834,7 +8877,7 @@ function icAbrirRadicado(){
     byDay.set(dd, { month:mm, year:yy, monthName: icMesesNombres[dt.getMonth()] });
   });
 
-  // Días posibles (pueden ser de otro mes)
+  // Días posibles
   opciones.forEach(dt=>{
     const opt = document.createElement('option');
     opt.value = icPad2(dt.getDate());
@@ -8842,7 +8885,6 @@ function icAbrirRadicado(){
     dSel.appendChild(opt);
   });
 
-  // --- NUEVO: función que ajusta Mes/Año según el día seleccionado ---
   function syncMesAnioFromDia(){
     const dd = (dSel.value || '').trim();
     const info = byDay.get(dd);
@@ -8851,7 +8893,6 @@ function icAbrirRadicado(){
     __icRadYear  = info.year;
     __icRadMonth = info.month;
 
-    // Mes (1 opción, disabled) y Año (1 opción, disabled) pero coherentes
     mSel.innerHTML = '';
     aSel.innerHTML = '';
 
@@ -8866,11 +8907,8 @@ function icAbrirRadicado(){
     aSel.appendChild(optY);
   }
 
-  // Selecciona el primer día y sincroniza
   if(dSel.options.length) dSel.selectedIndex = 0;
   syncMesAnioFromDia();
-
-  // Escucha cambios de día para activar mes/año correctos (ej: 02/03/2026)
   dSel.onchange = syncMesAnioFromDia;
 
   // Mostrar modal
