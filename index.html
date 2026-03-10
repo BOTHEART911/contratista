@@ -2644,8 +2644,61 @@ function playSoundOnce(url){
   }catch(_){}
 }
 
+  /* ================== AUDIO UNLOCK (necesita 1 gesto, luego queda libre) ================== */
+let __audioUnlocked = false;
 
-/* ================== SWEETALERT: OVERRIDE ÚNICO (CUSTOM MP3 1 VEZ, REEMPLAZA SONIDO POR ICONO) ==================
+/**
+ * Debe ejecutarse en un gesto del usuario (click/touch/keydown).
+ * Crea un AudioContext (si aplica) y reproduce un audio silencioso muy corto.
+ */
+async function unlockAudioOnce_(){
+  if(__audioUnlocked) return true;
+
+  try{
+    // 1) Desbloquear AudioContext (especialmente iOS)
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(AC){
+      const ctx = new AC();
+      if(ctx.state === 'suspended'){
+        await ctx.resume().catch(()=>{});
+      }
+      // Lo cerramos para no dejar recursos colgados
+      try{ await ctx.close(); }catch(_){}
+    }
+
+    // 2) Desbloquear <audio> (play permitido tras gesto)
+    const a = new Audio();
+    a.muted = true;
+    a.playsInline = true;
+    a.src = 'data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA' ; // mp3 mini (dummy)
+    await a.play().catch(()=>{});
+
+    // Si play() no lanza error, se considera desbloqueado
+    __audioUnlocked = true;
+    return true;
+  }catch(_){
+    return false;
+  }
+}
+
+/**
+ * Instala listeners para desbloquear en el PRIMER gesto.
+ * Esto NO reproduce sonidos tuyos, solo habilita la reproducción futura.
+ */
+(function installAudioUnlockListeners_(){
+  const handler = async ()=>{
+    await unlockAudioOnce_();
+    // Remover listeners para no gastar
+    window.removeEventListener('pointerdown', handler, true);
+    window.removeEventListener('touchstart', handler, true);
+    window.removeEventListener('keydown', handler, true);
+  };
+  window.addEventListener('pointerdown', handler, true);
+  window.addEventListener('touchstart', handler, true);
+  window.addEventListener('keydown', handler, true);
+})();
+
+/* ================== SWEETALERT: OVERRIDE ÚNICO  ==================
    USO:
    - Swal.fire({ ..., customSoundUrl:'https://...', ... })  => suena SOLO ese mp3 (1 vez) y NO suena icon.
    - Swal.fire({ icon:'success', ... })                    => suenan tus mp3 por icon (1 vez).
@@ -9345,7 +9398,11 @@ const r = await Swal.fire({
   showCancelButton: true,
   confirmButtonText: 'REPORTAR',
   cancelButtonText: 'CANCELAR',
-  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3'
+
+  // >>> SONIDO ESPECÍFICO
+  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3',
+
+  didOpen: async ()=>{ try{ await unlockAudioOnce_(); }catch(_){} }
 });
 if(!r.isConfirmed){
   showView('view-inicio');
