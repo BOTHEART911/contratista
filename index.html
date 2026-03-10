@@ -2700,25 +2700,77 @@ if (window.Swal && typeof Swal.fire === 'function'){
   };
 }
 
- /* ================== SWEETALERT: SONIDO CUSTOM (sin duplicados) ================== */
-function playSwalSoundOncePerOpen(url){
-  try{
-    if(!url) return;
+ /* ================== SWEETALERT: override de sonidos (CUSTOM reemplaza icon) ================== */
+(function initSwalSoundOverride_(){
+  if (!window.Swal || typeof Swal.fire !== 'function') return;
 
-    // 1 sola reproducción por cada apertura de Swal (popup actual)
-    const popup = Swal.getPopup?.();
-    if(!popup) { playSoundOnce(url); return; }
+  const __fire = Swal.fire.bind(Swal);
 
-    if(popup.dataset.soundPlayed === '1') return;
-    popup.dataset.soundPlayed = '1';
+  // Reproduce 1 sola vez por popup (por apertura)
+  function playOnceForPopup_(url){
+    try{
+      if(!url) return;
 
-    playSoundOnce(url);
+      const popup = Swal.getPopup?.();
+      if(!popup){
+        playSoundOnce(url);
+        return;
+      }
 
-    // cuando se cierre ese popup, se limpia la marca
-    popup.addEventListener('animationend', ()=>{}, { once:true });
-  }catch(_){}
-}
- 
+      // clave por URL para que si cambias customSoundUrl dentro del mismo popup no se duplique
+      const key = 'soundPlayed_' + url;
+      if(popup.dataset[key] === '1') return;
+      popup.dataset[key] = '1';
+
+      playSoundOnce(url);
+    }catch(_){}
+  }
+
+  Swal.fire = function(options = {}, ...rest){
+    // Normaliza options si viene como string (Swal.fire('hola'))
+    if(typeof options === 'string'){
+      options = { title: options };
+    }
+
+    // Captura props ANTES de borrar
+    const customSoundUrl = options.customSoundUrl || '';
+    const icon = options.icon || options.type || '';
+    const soundTag = options.soundTag;
+
+    // Guarda didOpen original
+    const userDidOpen = options.didOpen;
+
+    // IMPORTANTE:
+    // - El sonido (sea custom o por icono) SOLO se ejecuta en didOpen.
+    // - Así garantizas 1 sola vez por popup.
+    options.didOpen = (popup)=>{
+      try{
+        if(customSoundUrl){
+          // ✅ Si hay MP3 custom: SOLO ese (NO icon sound)
+          playOnceForPopup_(customSoundUrl);
+        }else{
+          // ✅ Si NO hay custom: usa tu sistema normal
+          if(soundTag === 'resumen'){
+            playOnceForPopup_(SOUNDS.info);
+          }else if(icon && SOUNDS[icon]){
+            playOnceForPopup_(SOUNDS[icon]);
+          }
+        }
+      }catch(_){}
+
+      // Ejecuta didOpen original (loading etc.)
+      if(typeof userDidOpen === 'function'){
+        try{ userDidOpen(popup); }catch(_){}
+      }
+    };
+
+    // Limpia props custom para que SweetAlert no muestre warnings
+    if('soundTag' in options) delete options.soundTag;
+    if('customSoundUrl' in options) delete options.customSoundUrl;
+
+    return __fire(options, ...rest);
+  };
+})();
   
 /* ================== GUÍA FLOTANTE + MODAL (INGRESAR / CORREGIR CUENTA) ================== */
 (function initGuiaCuenta_(){
