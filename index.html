@@ -2655,29 +2655,47 @@ if (window.Swal && typeof Swal.fire === 'function'){
 
  //Reproduce un audio "extra" 1 sola vez, DESPUÉS del sonido normal del icon (info/success/etc)
  // y SOLO cuando el SweetAlert se abre (didOpen)
-function playSwalSoundOnceByKey_(key, url){
+function playSwalCustomSoundOnce(url, key){
   try{
-    const k = 'swalSoundOnce@' + String(key || '');
-    if(sessionStorage.getItem(k) === '1') return;
+    if(!url || !key) return;
+
+    const k = 'swalSoundOnce@' + key;
+    const already = sessionStorage.getItem(k) === '1';
+    if(already) return;
+
+    // marca como reproducido para este Swal
     sessionStorage.setItem(k, '1');
+
+    // reproduce
     playSoundOnce(url);
+
+    // al cerrar el Swal, permite que si se abre de nuevo, suene otra vez (1 vez por apertura)
+    if(window.Swal && typeof Swal.getPopup === 'function'){
+      const popup = Swal.getPopup();
+      if(popup){
+        popup.addEventListener('swalClose', ()=> {
+          try{ sessionStorage.removeItem(k); }catch(_){}
+        }, { once:true });
+      }
+    }
   }catch(_){}
 }
 
-// ...tu override existente de Swal.fire sigue aquí...
-if (window.Swal && typeof Swal.fire === 'function'){
-  const __fire = Swal.fire.bind(Swal);
-  Swal.fire = function(options = {}, ...rest){
+// Hook global: cuando Swal.close() ocurre, dispara "swalClose" en el popup actual
+(function hookSwalCloseEvent_(){
+  if(!window.Swal) return;
+
+  const __close = Swal.close.bind(Swal);
+  Swal.close = function(...args){
     try{
-      const icon = options.icon || options.type;
-      const soundTag = options.soundTag;
-      if (soundTag === 'resumen'){ playSoundOnce(SOUNDS.info); }
-      else if (icon && SOUNDS[icon]){ playSoundOnce(SOUNDS[icon]); }
-      if ('soundTag' in options){ delete options.soundTag; }
-    }catch(e){ }
-    return __fire(options, ...rest);
+      const popup = Swal.getPopup?.();
+      if(popup){
+        popup.dispatchEvent(new Event('swalClose'));
+      }
+    }catch(_){}
+    return __close(...args);
   };
-}
+})();
   
 /* ================== GUÍA FLOTANTE + MODAL (INGRESAR / CORREGIR CUENTA) ================== */
 (function initGuiaCuenta_(){
@@ -7488,9 +7506,10 @@ const waitSwal = Swal.fire({
   allowEscapeKey: false,
   didOpen: () => {
     Swal.showLoading();
-    playSwalSoundOnceByKey_(
-      'wait_docs_' + (isCorrection ? 'correccion' : 'ingreso'),
-      'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3'
+    // 🔊 sonido custom SOLO 1 vez al abrir esta alerta
+    playSwalCustomSoundOnce(
+      'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3',
+      'ic_wait_creando_regenerando'
     );
   }
 });
@@ -9167,20 +9186,21 @@ function esHorarioHabilAhora(){
       return;
     }
 
-    if(estado === 'APROBADA'){
+   if(estado === 'APROBADA'){
   const r = await Swal.fire({
     icon:'success',
     title:'DESCARGA TUS DOCUMENTOS',
     html: `
-      Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
-      Ya solo falta el cargue en el SECOP II<br><br>
-      📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
-    `,
+        Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
+        Ya solo falta el cargue en el SECOP II<br><br>
+        📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
+      `,
     confirmButtonText:'OK',
     didOpen: () => {
-      playSwalSoundOnceByKey_(
-        'cuenta_drive_aprobada',
-        'https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3'
+      // 🔊 reemplaza el sonido default de "success" SOLO aquí
+      playSwalCustomSoundOnce(
+        'https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3',
+        'cuenta_drive_aprobada'
       );
     }
   });
@@ -9212,20 +9232,21 @@ function esHorarioHabilAhora(){
       return;
     }
 
-   if(estado === 'INGRESADA'){
+  if(estado === 'INGRESADA'){
   const r = await Swal.fire({
     icon:'info',
     title:'REVISA TUS DOCUMENTOS',
     html: `
-      Verifica que los Datos estén correctos y completos.<br><br>
-      📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
-      Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
-    `,
+          Verifica que los Datos estén correctos y completos.<br><br>
+          📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
+          Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
+        `,
     confirmButtonText:'IR A MI CARPETA DRIVE',
     didOpen: () => {
-      playSwalSoundOnceByKey_(
-        'cuenta_drive_ingresada',
-        'https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3'
+      // 🔊 reemplaza el sonido default de "info" SOLO aquí
+      playSwalCustomSoundOnce(
+        'https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3',
+        'cuenta_drive_ingresada'
       );
     }
   });
@@ -9293,9 +9314,10 @@ const r = await Swal.fire({
   confirmButtonText: 'REPORTAR',
   cancelButtonText: 'CANCELAR',
   didOpen: () => {
-    playSwalSoundOnceByKey_(
-      'antes_reportar_cuenta',
-      'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3'
+    // 🔊 reemplaza el sonido default SOLO aquí
+    playSwalCustomSoundOnce(
+      'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3',
+      'antes_reportar_cuenta'
     );
   }
 });
