@@ -2645,23 +2645,21 @@ function playSoundOnce(url){
 }
 
 
-/* ================== SWEETALERT: OVERRIDE ÚNICO (CUSTOM MP3 1 VEZ, SIN SONIDO POR ICONO) ==================
+/* ================== SWEETALERT: OVERRIDE ÚNICO (CUSTOM MP3 1 VEZ, REEMPLAZA SONIDO POR ICONO) ==================
    USO:
-   - Swal.fire({ ..., customSoundUrl: 'https://...', ... })
-     => reproduce SOLO ese mp3 (una vez por esa alerta) y NO reproduce el sonido por icon.
-   - Swal.fire({ icon:'success' ... })
-     => reproduce tu sonido por icon como siempre (si no pasas customSoundUrl).
+   - Swal.fire({ ..., customSoundUrl:'https://...', ... })  => suena SOLO ese mp3 (1 vez) y NO suena icon.
+   - Swal.fire({ icon:'success', ... })                    => suenan tus mp3 por icon (1 vez).
 */
-(function initSwalAudioOverrideOnce_(){
+(function installSwalAudioOverride_(){
   if(!window.Swal || typeof Swal.fire !== 'function') return;
 
-  // Evita doble-instalación
-  if(Swal.__audioOverrideInstalled === true) return;
+  // Evita doble instalación
+  if(Swal.__audioOverrideInstalled) return;
   Swal.__audioOverrideInstalled = true;
 
   const __fire = Swal.fire.bind(Swal);
 
-  // Un solo reproductor global (evita solapes)
+  // Player único global
   let __swalAudio = null;
 
   function stopAudio_(){
@@ -2673,57 +2671,61 @@ function playSoundOnce(url){
     }catch(_){}
   }
 
-  function playAudioOnceForPopup_(popup, url){
+  function playOnce_(popup, url){
     try{
       if(!url) return;
 
-      // 1 sola vez por popup (aunque Swal re-renderice)
+      // 1 sola vez por popup (y por url)
       if(popup && popup.dataset){
-        if(popup.dataset.customSoundPlayed === '1') return;
-        popup.dataset.customSoundPlayed = '1';
+        const key = 'played_' + url;
+        if(popup.dataset[key] === '1') return;
+        popup.dataset[key] = '1';
       }
 
+      // corta cualquier sonido anterior
       stopAudio_();
 
       if(!__swalAudio){
         __swalAudio = new Audio();
         __swalAudio.preload = 'auto';
       }
+
       __swalAudio.src = url;
 
-      // Intentar reproducir (si el navegador bloquea, no rompe)
-      __swalAudio.play().catch(()=>{});
+      // iOS/Chrome: a veces necesita micro-delay para que el popup ya exista
+      setTimeout(()=>{
+        try{ __swalAudio.play().catch(()=>{}); }catch(_){}
+      }, 0);
+
     }catch(_){}
   }
 
   Swal.fire = function(options = {}, ...rest){
     if(typeof options === 'string') options = { title: options };
 
+    // IMPORTANTÍSIMO: capturar estos valores ANTES de tocar options
     const icon = options.icon || options.type || '';
     const soundTag = options.soundTag;
     const customSoundUrl = String(options.customSoundUrl || '').trim();
 
-    const userDidOpen   = options.didOpen;
+    const userDidOpen = options.didOpen;
     const userWillClose = options.willClose;
 
     options.didOpen = (popup)=>{
       try{
-        // ✅ Si hay customSoundUrl: SOLO mp3 custom (y NO sonido por icon)
+        // CUSTOM MP3 tiene prioridad y reemplaza icon sound
         if(customSoundUrl){
-          playAudioOnceForPopup_(popup, customSoundUrl);
+          playOnce_(popup, customSoundUrl);
         }else{
-          // ✅ Si NO hay custom: tu lógica normal por icon/soundTag
           if(soundTag === 'resumen'){
-            if(window.SOUNDS && SOUNDS.info){
-              playAudioOnceForPopup_(popup, SOUNDS.info);
-            }
+            if(window.SOUNDS && SOUNDS.info) playOnce_(popup, SOUNDS.info);
           }else if(icon && window.SOUNDS && SOUNDS[icon]){
-            playAudioOnceForPopup_(popup, SOUNDS[icon]);
+            playOnce_(popup, SOUNDS[icon]);
           }
         }
       }catch(_){}
 
-      // Respeta didOpen original
+      // Respeta didOpen original (loading, etc.)
       if(typeof userDidOpen === 'function'){
         try{ userDidOpen(popup); }catch(_){}
       }
@@ -2736,7 +2738,8 @@ function playSoundOnce(url){
       }
     };
 
-    // Limpia props extras para que SweetAlert no se queje
+    // Limpia props extra para que SweetAlert no “vea” campos desconocidos
+    // (pero YA capturamos customSoundUrl arriba)
     if('soundTag' in options) delete options.soundTag;
     if('customSoundUrl' in options) delete options.customSoundUrl;
 
@@ -7554,7 +7557,6 @@ const waitSwal = Swal.fire({
   customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3',
   didOpen: () => { Swal.showLoading(); }
 });
-
 
    try{
     const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
