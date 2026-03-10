@@ -2659,23 +2659,28 @@ if (window.Swal && typeof Swal.fire === 'function'){
 function swalExtraSoundOnceAfterIcon_(options, extraUrl){
   const prevDidOpen = options.didOpen;
 
-  options.didOpen = function(popup){
-    // 1) deja que Swal haga lo suyo primero
-    try{ if(typeof prevDidOpen === 'function') prevDidOpen(popup); }catch(_){}
+  options.didOpen = function(){
+    // 1) Ejecuta didOpen original (ej: Swal.showLoading())
+    try{ if(typeof prevDidOpen === 'function') prevDidOpen.apply(this, arguments); }catch(_){}
 
-    // 2) reproduce el extra 1 sola vez por alerta
+    // 2) Popup real (100% seguro)
     try{
-      if(popup && popup.dataset && popup.dataset.extraSoundPlayed === '1') return;
-      if(popup && popup.dataset) popup.dataset.extraSoundPlayed = '1';
+      if(!extraUrl) return;
 
-      // espera un pelo para que el sonido del icono (info/success) salga primero
-      setTimeout(()=>{ playSoundOnce(extraUrl); }, 220);
+      const popup = (window.Swal && typeof Swal.getPopup === 'function') ? Swal.getPopup() : null;
+      if(!popup) return;
+
+      if(popup.dataset.extraSoundPlayed === '1') return;
+      popup.dataset.extraSoundPlayed = '1';
+
+      // 3) Delay para que suene primero el sonido del icon (info/success/etc)
+      setTimeout(()=>{ playSoundOnce(extraUrl); }, 350);
     }catch(_){}
   };
 
   return options;
 }
-
+  
 /* ================== GUÍA FLOTANTE + MODAL (INGRESAR / CORREGIR CUENTA) ================== */
 (function initGuiaCuenta_(){
   const FLOAT_ID = 'guiaFloat';
