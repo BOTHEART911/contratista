@@ -2656,62 +2656,23 @@ function playSwalCustomSoundOnce_(url){
   }catch(_){}
 }
 
-/* ✅ Override GLOBAL de Swal.fire para controlar sonidos */
-if (window.Swal && typeof Swal.fire === 'function'){
-  const __fire = Swal.fire.bind(Swal);
-
-  Swal.fire = function(options = {}, ...rest){
-    try{
-      const icon = options.icon || options.type;
-      const soundTag = options.soundTag;
-
-      // ✅ Si esta alerta trae customSoundUrl, BLOQUEA sonido por icono.
-      const customSoundUrl = options.customSoundUrl;
-
-      // En SweetAlert: didOpen se ejecuta cuando ya existe el popup.
-      const userDidOpen = options.didOpen;
-
-      options.didOpen = (popup)=>{
-        // 1) Dispara MP3 custom 1 sola vez (si existe)
-        if(customSoundUrl){
-          playSwalCustomSoundOnce_(customSoundUrl);
-        }else{
-          // 2) Si NO hay custom, aplica tu lógica normal por icono/soundTag
-          if (soundTag === 'resumen'){
-            playSoundOnce(SOUNDS.info);
-          }else if (icon && SOUNDS[icon]){
-            playSoundOnce(SOUNDS[icon]);
-          }
-        }
-
-        // Respeta el didOpen original del usuario (loading, etc.)
-        if(typeof userDidOpen === 'function'){
-          try{ userDidOpen(popup); }catch(_){}
-        }
-      };
-
-      // Limpia props custom para que Swal no se queje
-      if ('soundTag' in options) delete options.soundTag;
-      if ('customSoundUrl' in options) delete options.customSoundUrl;
-
-    }catch(_){}
-
-    return __fire(options, ...rest);
-  };
-}
-
-/* ================== SWEETALERT: OVERRIDE ÚNICO + CORTE TOTAL DE SONIDO POR ICONO ================== */
-/* Qué hace:
-   1) Si pasas customSoundUrl => reproduce SOLO ese MP3 (1 vez) y NO suena icono.
-   2) Si NO pasas customSoundUrl => suena tu sistema normal por icono.
-   3) Corta cualquier audio anterior al abrir/cerrar alert.
+/* ================== SWEETALERT: OVERRIDE ÚNICO (CUSTOM MP3 1 VEZ, SIN SONIDO POR ICONO) ==================
+   USO:
+   - Swal.fire({ ..., customSoundUrl: 'https://...', ... })
+     => reproduce SOLO ese mp3 (una vez por esa alerta) y NO reproduce el sonido por icon.
+   - Swal.fire({ icon:'success' ... })
+     => reproduce tu sonido por icon como siempre (si no pasas customSoundUrl).
 */
 (function initSwalAudioOverrideOnce_(){
   if(!window.Swal || typeof Swal.fire !== 'function') return;
 
+  // Evita doble-instalación
+  if(Swal.__audioOverrideInstalled === true) return;
+  Swal.__audioOverrideInstalled = true;
+
   const __fire = Swal.fire.bind(Swal);
 
-  // Reproductor único (evita solapes)
+  // Un solo reproductor global (evita solapes)
   let __swalAudio = null;
 
   function stopAudio_(){
@@ -2723,14 +2684,15 @@ if (window.Swal && typeof Swal.fire === 'function'){
     }catch(_){}
   }
 
-  function playOnceInPopup_(popup, url){
+  function playAudioOnceForPopup_(popup, url){
     try{
       if(!url) return;
 
-      // 1 sola vez por popup + url
-      const key = 'customSoundOnce_' + url;
-      if(popup?.dataset?.[key] === '1') return;
-      if(popup?.dataset) popup.dataset[key] = '1';
+      // 1 sola vez por popup (aunque Swal re-renderice)
+      if(popup && popup.dataset){
+        if(popup.dataset.customSoundPlayed === '1') return;
+        popup.dataset.customSoundPlayed = '1';
+      }
 
       stopAudio_();
 
@@ -2740,7 +2702,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
       }
       __swalAudio.src = url;
 
-      // Intentar reproducir
+      // Intentar reproducir (si el navegador bloquea, no rompe)
       __swalAudio.play().catch(()=>{});
     }catch(_){}
   }
@@ -2752,25 +2714,27 @@ if (window.Swal && typeof Swal.fire === 'function'){
     const soundTag = options.soundTag;
     const customSoundUrl = String(options.customSoundUrl || '').trim();
 
-    const userDidOpen  = options.didOpen;
+    const userDidOpen   = options.didOpen;
     const userWillClose = options.willClose;
 
     options.didOpen = (popup)=>{
       try{
-        // ✅ CASO ESPECIAL: customSoundUrl => SOLO MP3 (NO icon sound)
+        // ✅ Si hay customSoundUrl: SOLO mp3 custom (y NO sonido por icon)
         if(customSoundUrl){
-          playOnceInPopup_(popup, customSoundUrl);
+          playAudioOnceForPopup_(popup, customSoundUrl);
         }else{
-          // ✅ Caso normal: icon/soundTag
+          // ✅ Si NO hay custom: tu lógica normal por icon/soundTag
           if(soundTag === 'resumen'){
-            if(window.SOUNDS && SOUNDS.info) playOnceInPopup_(popup, SOUNDS.info);
+            if(window.SOUNDS && SOUNDS.info){
+              playAudioOnceForPopup_(popup, SOUNDS.info);
+            }
           }else if(icon && window.SOUNDS && SOUNDS[icon]){
-            playOnceInPopup_(popup, SOUNDS[icon]);
+            playAudioOnceForPopup_(popup, SOUNDS[icon]);
           }
         }
       }catch(_){}
 
-      // respeta didOpen original
+      // Respeta didOpen original
       if(typeof userDidOpen === 'function'){
         try{ userDidOpen(popup); }catch(_){}
       }
@@ -2783,7 +2747,7 @@ if (window.Swal && typeof Swal.fire === 'function'){
       }
     };
 
-    // Limpia props extra para que SweetAlert no “vea” campos desconocidos
+    // Limpia props extras para que SweetAlert no se queje
     if('soundTag' in options) delete options.soundTag;
     if('customSoundUrl' in options) delete options.customSoundUrl;
 
@@ -7601,6 +7565,7 @@ const waitSwal = Swal.fire({
   customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3',
   didOpen: () => { Swal.showLoading(); }
 });
+
 
    try{
     const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
