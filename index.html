@@ -2635,54 +2635,73 @@ const SOUNDS = {
   menu: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Namedrop_Popup_ale2zy.mp3',
   notify: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759767435/Notificacion_d1woxv.mp3'
 };
+
 function playSoundOnce(url){
-  try{ const a=new Audio(url); a.preload='auto'; a.play().catch(()=>{}); }catch(e){}
+  try{
+    const a = new Audio(url);
+    a.preload = 'auto';
+    a.play().catch(()=>{});
+  }catch(_){}
 }
+
+/* ✅ Reproduce un MP3 1 sola vez por apertura del popup actual */
+function playSwalCustomSoundOnce_(url){
+  try{
+    if(!url) return;
+    const popup = Swal.getPopup?.();
+    if(!popup){ playSoundOnce(url); return; }
+    if(popup.dataset.customSoundPlayed === '1') return;
+    popup.dataset.customSoundPlayed = '1';
+    playSoundOnce(url);
+  }catch(_){}
+}
+
+/* ✅ Override GLOBAL de Swal.fire para controlar sonidos */
 if (window.Swal && typeof Swal.fire === 'function'){
   const __fire = Swal.fire.bind(Swal);
+
   Swal.fire = function(options = {}, ...rest){
     try{
-      const customSoundUrl = options.customSoundUrl; // ✅ NUEVO
       const icon = options.icon || options.type;
       const soundTag = options.soundTag;
 
-      // ✅ Si hay customSoundUrl, NO dispares el sonido por icono
-      if (customSoundUrl){
-        // nada aquí (se dispara en didOpen, 1 sola vez)
-      } else if (soundTag === 'resumen'){
-        playSoundOnce(SOUNDS.info);
-      } else if (icon && SOUNDS[icon]){
-        playSoundOnce(SOUNDS[icon]);
-      }
+      // ✅ Si esta alerta trae customSoundUrl, BLOQUEA sonido por icono.
+      const customSoundUrl = options.customSoundUrl;
 
-      // limpia props para que SweetAlert no se queje
+      // En SweetAlert: didOpen se ejecuta cuando ya existe el popup.
+      const userDidOpen = options.didOpen;
+
+      options.didOpen = (popup)=>{
+        // 1) Dispara MP3 custom 1 sola vez (si existe)
+        if(customSoundUrl){
+          playSwalCustomSoundOnce_(customSoundUrl);
+        }else{
+          // 2) Si NO hay custom, aplica tu lógica normal por icono/soundTag
+          if (soundTag === 'resumen'){
+            playSoundOnce(SOUNDS.info);
+          }else if (icon && SOUNDS[icon]){
+            playSoundOnce(SOUNDS[icon]);
+          }
+        }
+
+        // Respeta el didOpen original del usuario (loading, etc.)
+        if(typeof userDidOpen === 'function'){
+          try{ userDidOpen(popup); }catch(_){}
+        }
+      };
+
+      // Limpia props custom para que Swal no se queje
       if ('soundTag' in options) delete options.soundTag;
-      if ('customSoundUrl' in options) delete options.customSoundUrl; // ✅ NUEVO
-    }catch(e){ /* noop */ }
+      if ('customSoundUrl' in options) delete options.customSoundUrl;
+
+    }catch(_){}
 
     return __fire(options, ...rest);
   };
 }
 
 
- /* ================== SWEETALERT: SONIDO CUSTOM (sin duplicados) ================== */
-function playSwalSoundOncePerOpen(url){
-  try{
-    if(!url) return;
-
-    // 1 sola reproducción por cada apertura de Swal (popup actual)
-    const popup = Swal.getPopup?.();
-    if(!popup) { playSoundOnce(url); return; }
-
-    if(popup.dataset.soundPlayed === '1') return;
-    popup.dataset.soundPlayed = '1';
-
-    playSoundOnce(url);
-
-    // cuando se cierre ese popup, se limpia la marca
-    popup.addEventListener('animationend', ()=>{}, { once:true });
-  }catch(_){}
-}
+ 
   
 /* ================== GUÍA FLOTANTE + MODAL (INGRESAR / CORREGIR CUENTA) ================== */
 (function initGuiaCuenta_(){
@@ -7487,15 +7506,12 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
   // Texto distinto según sea ingreso o corrección
 const isCorrection = (IC_MODE === 'correccion');
 const waitSwal = Swal.fire({
+  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3',
   title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
   html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
   allowOutsideClick: false,
   allowEscapeKey: false,
-  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3',
-  didOpen: () => {
-    Swal.showLoading();
-    playSwalSoundOncePerOpen('https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3');
-  }
+  didOpen: () => { Swal.showLoading(); }
 });
 
    try{
@@ -9171,15 +9187,16 @@ function esHorarioHabilAhora(){
     }
 
    if(estado === 'APROBADA'){
- const r = await Swal.fire({
+const r = await Swal.fire({
   icon:'success',
-  title:'DESCARGA TUS DOCUMENTOS',
-  html: `...`,
-  confirmButtonText:'OK',
   customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3',
-  didOpen: () => {
-    playSwalSoundOncePerOpen('https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3');
-  }
+  title:'DESCARGA TUS DOCUMENTOS',
+  html: `
+    Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
+    Ya solo falta el cargue en el SECOP II<br><br>
+    📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
+  `,
+  confirmButtonText:'OK'
 });
   if(r.isConfirmed) openFolder();
   return;
@@ -9212,13 +9229,14 @@ function esHorarioHabilAhora(){
   if(estado === 'INGRESADA'){
  const r = await Swal.fire({
   icon:'info',
-  title:'REVISA TUS DOCUMENTOS',
-  html: `...`,
-  confirmButtonText:'IR A MI CARPETA DRIVE',
   customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3',
-  didOpen: () => {
-    playSwalSoundOncePerOpen('https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3');
-  }
+  title:'REVISA TUS DOCUMENTOS',
+  html: `
+    Verifica que los Datos estén correctos y completos.<br><br>
+    📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
+    Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
+  `,
+  confirmButtonText:'IR A MI CARPETA DRIVE'
 });
   if(r.isConfirmed) openFolder();
   return;
@@ -9270,27 +9288,20 @@ function esHorarioHabilAhora(){
     const nombre    = res.nombre || '';
     const contrato  = res.contrato || '';
     const msg =
-      '*📁📁📁 REPORTE DE CUENTA 📁📁📁📁*\n' +
+      '*📁📁📁 REPORTE DE CUENTA 📁📁📁*\n' +
       'Estimado(a) *'+supervisor+'*' + '\n\n' +
       '¡El contratista *'+nombre+'* ha reportado la *Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
       'Ingresa a la App para visualizar\n' +
-      '> *================================*';
+      '> *========================*';
 
 const r = await Swal.fire({
   icon:'success',
+  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3',
   title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
   html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
   showCancelButton: true,
   confirmButtonText: 'REPORTAR',
-  cancelButtonText: 'CANCELAR',
-
-  // ✅ NUEVO: esto evita que suene "success" del sistema
-  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3',
-
-  // ✅ NUEVO: aquí sí se reproduce tu mp3 (una sola vez por apertura)
-  didOpen: () => {
-    playSwalSoundOncePerOpen('https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3');
-  }
+  cancelButtonText: 'CANCELAR'
 });
 if(!r.isConfirmed){
   showView('view-inicio');
@@ -9387,7 +9398,7 @@ if(!r.isConfirmed){
   '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
   '> Egreso: *'+egreso+'*' + '\n\n' +
   'Ingresa a la App para visualizar\n' +
-  '> *================================*';
+  '> *========================*';
 
 if(grupo) sendBuilderbotMessage(grupo, msg);
 
