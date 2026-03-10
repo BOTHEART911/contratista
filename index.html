@@ -2655,30 +2655,28 @@ if (window.Swal && typeof Swal.fire === 'function'){
 
  //Reproduce un audio "extra" 1 sola vez, DESPUÉS del sonido normal del icon (info/success/etc)
  // y SOLO cuando el SweetAlert se abre (didOpen)
-  
-function swalExtraSoundOnceAfterIcon_(options, extraUrl){
-  const prevDidOpen = options.didOpen;
+function playSwalSoundOnceByKey_(key, url){
+  try{
+    const k = 'swalSoundOnce@' + String(key || '');
+    if(sessionStorage.getItem(k) === '1') return;
+    sessionStorage.setItem(k, '1');
+    playSoundOnce(url);
+  }catch(_){}
+}
 
-  options.didOpen = function(){
-    // 1) Ejecuta didOpen original (ej: Swal.showLoading())
-    try{ if(typeof prevDidOpen === 'function') prevDidOpen.apply(this, arguments); }catch(_){}
-
-    // 2) Popup real (100% seguro)
+// ...tu override existente de Swal.fire sigue aquí...
+if (window.Swal && typeof Swal.fire === 'function'){
+  const __fire = Swal.fire.bind(Swal);
+  Swal.fire = function(options = {}, ...rest){
     try{
-      if(!extraUrl) return;
-
-      const popup = (window.Swal && typeof Swal.getPopup === 'function') ? Swal.getPopup() : null;
-      if(!popup) return;
-
-      if(popup.dataset.extraSoundPlayed === '1') return;
-      popup.dataset.extraSoundPlayed = '1';
-
-      // 3) Delay para que suene primero el sonido del icon (info/success/etc)
-      setTimeout(()=>{ playSoundOnce(extraUrl); }, 350);
-    }catch(_){}
+      const icon = options.icon || options.type;
+      const soundTag = options.soundTag;
+      if (soundTag === 'resumen'){ playSoundOnce(SOUNDS.info); }
+      else if (icon && SOUNDS[icon]){ playSoundOnce(SOUNDS[icon]); }
+      if ('soundTag' in options){ delete options.soundTag; }
+    }catch(e){ }
+    return __fire(options, ...rest);
   };
-
-  return options;
 }
   
 /* ================== GUÍA FLOTANTE + MODAL (INGRESAR / CORREGIR CUENTA) ================== */
@@ -3069,31 +3067,6 @@ return { title: t || 'GUÍA', label: 'GUÍA', html };
 
   document.addEventListener('DOMContentLoaded', ()=>{ showFloat_(); });
 })();
-
-  /* ================== SWEETALERT: SONIDO EXTRA (1 VEZ) ==================
-   - No cambia tu wrapper actual.
-   - Solo agrega una función helper para "inyectar" un sonido extra que se reproduce 1 sola vez al abrir la alerta.
-*/
-function swalExtraSoundOnceAfterIcon_(options, extraUrl){
-  const prevDidOpen = options.didOpen;
-
-  options.didOpen = function(popup){
-    // Mantiene tu didOpen original (ej: Swal.showLoading())
-    try{ if(typeof prevDidOpen === 'function') prevDidOpen(popup); }catch(_){}
-
-    // Reproduce el extra 1 sola vez por popup
-    try{
-      if(!extraUrl) return;
-      if(popup && popup.dataset && popup.dataset.extraSoundPlayed === '1') return;
-      if(popup && popup.dataset) popup.dataset.extraSoundPlayed = '1';
-
-      // Pequeño delay para que suene primero el icono (info/success/etc)
-      setTimeout(()=>{ playSoundOnce(extraUrl); }, 220);
-    }catch(_){}
-  };
-
-  return options;
-}
 
   /* ================== IMÁGENES (preview y compresión) ================== */
 const MAX_IMAGE_MB = 5;
@@ -7508,15 +7481,19 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
 
   // Texto distinto según sea ingreso o corrección
 const isCorrection = (IC_MODE === 'correccion');
-const waitSwal = Swal.fire(
-  swalExtraSoundOnceAfterIcon_({
-    title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
-    html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: () => { Swal.showLoading(); }
-  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3')
-);
+const waitSwal = Swal.fire({
+  title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
+  html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
+  allowOutsideClick: false,
+  allowEscapeKey: false,
+  didOpen: () => {
+    Swal.showLoading();
+    playSwalSoundOnceByKey_(
+      'wait_docs_' + (isCorrection ? 'correccion' : 'ingreso'),
+      'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3'
+    );
+  }
+});
 
    try{
     const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
@@ -9191,21 +9168,25 @@ function esHorarioHabilAhora(){
     }
 
     if(estado === 'APROBADA'){
-   const r = await Swal.fire(
-  swalExtraSoundOnceAfterIcon_({
+  const r = await Swal.fire({
     icon:'success',
     title:'DESCARGA TUS DOCUMENTOS',
     html: `
-        Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
-        Ya solo falta el cargue en el SECOP II<br><br>
-        📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
-      `,
-    confirmButtonText:'OK'
-  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3')
-);
-      if(r.isConfirmed) openFolder();
-      return;
+      Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
+      Ya solo falta el cargue en el SECOP II<br><br>
+      📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
+    `,
+    confirmButtonText:'OK',
+    didOpen: () => {
+      playSwalSoundOnceByKey_(
+        'cuenta_drive_aprobada',
+        'https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3'
+      );
     }
+  });
+  if(r.isConfirmed) openFolder();
+  return;
+}
 
     if(estado === 'INCOMPLETA'){
   await Swal.fire({
@@ -9231,22 +9212,26 @@ function esHorarioHabilAhora(){
       return;
     }
 
-    if(estado === 'INGRESADA'){
-      const r = await Swal.fire(
-  swalExtraSoundOnceAfterIcon_({
+   if(estado === 'INGRESADA'){
+  const r = await Swal.fire({
     icon:'info',
     title:'REVISA TUS DOCUMENTOS',
     html: `
-          Verifica que los Datos estén correctos y completos.<br><br>
-          📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
-          Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
-        `,
-    confirmButtonText:'IR A MI CARPETA DRIVE'
-  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3')
-);
-      if(r.isConfirmed) openFolder();
-      return;
+      Verifica que los Datos estén correctos y completos.<br><br>
+      📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
+      Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
+    `,
+    confirmButtonText:'IR A MI CARPETA DRIVE',
+    didOpen: () => {
+      playSwalSoundOnceByKey_(
+        'cuenta_drive_ingresada',
+        'https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3'
+      );
     }
+  });
+  if(r.isConfirmed) openFolder();
+  return;
+}
   }catch(e){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
@@ -9298,18 +9283,22 @@ function esHorarioHabilAhora(){
       'Estimado(a) *'+supervisor+'*' + '\n\n' +
       '¡El contratista *'+nombre+'* ha reportado la *Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
       'Ingresa a la App para visualizar\n' +
-      '*> ================================*';
+      '> *================================*';
 
-const r = await Swal.fire(
-  swalExtraSoundOnceAfterIcon_({
-    icon:'success',
-    title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
-    html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
-    showCancelButton: true,
-    confirmButtonText: 'REPORTAR',
-    cancelButtonText: 'CANCELAR'
-  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3')
-);
+const r = await Swal.fire({
+  icon:'success',
+  title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
+  html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
+  showCancelButton: true,
+  confirmButtonText: 'REPORTAR',
+  cancelButtonText: 'CANCELAR',
+  didOpen: () => {
+    playSwalSoundOnceByKey_(
+      'antes_reportar_cuenta',
+      'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3'
+    );
+  }
+});
 if(!r.isConfirmed){
   showView('view-inicio');
   return;
@@ -9405,7 +9394,7 @@ if(!r.isConfirmed){
   '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
   '> Egreso: *'+egreso+'*' + '\n\n' +
   'Ingresa a la App para visualizar\n' +
-  '*> ================================*';
+  '> *================================*';
 
 if(grupo) sendBuilderbotMessage(grupo, msg);
 
