@@ -3065,6 +3065,31 @@ return { title: t || 'GUÍA', label: 'GUÍA', html };
   document.addEventListener('DOMContentLoaded', ()=>{ showFloat_(); });
 })();
 
+  /* ================== SWEETALERT: SONIDO EXTRA (1 VEZ) ==================
+   - No cambia tu wrapper actual.
+   - Solo agrega una función helper para "inyectar" un sonido extra que se reproduce 1 sola vez al abrir la alerta.
+*/
+function swalExtraSoundOnceAfterIcon_(options, extraUrl){
+  const prevDidOpen = options.didOpen;
+
+  options.didOpen = function(popup){
+    // Mantiene tu didOpen original (ej: Swal.showLoading())
+    try{ if(typeof prevDidOpen === 'function') prevDidOpen(popup); }catch(_){}
+
+    // Reproduce el extra 1 sola vez por popup
+    try{
+      if(!extraUrl) return;
+      if(popup && popup.dataset && popup.dataset.extraSoundPlayed === '1') return;
+      if(popup && popup.dataset) popup.dataset.extraSoundPlayed = '1';
+
+      // Pequeño delay para que suene primero el icono (info/success/etc)
+      setTimeout(()=>{ playSoundOnce(extraUrl); }, 220);
+    }catch(_){}
+  };
+
+  return options;
+}
+
   /* ================== IMÁGENES (preview y compresión) ================== */
 const MAX_IMAGE_MB = 5;
 const MAX_IMG_DIM  = 1600;   // px lado mayor para evidencias/firmas
