@@ -2644,17 +2644,6 @@ function playSoundOnce(url){
   }catch(_){}
 }
 
-/* ✅ Reproduce un MP3 1 sola vez por apertura del popup actual */
-function playSwalCustomSoundOnce_(url){
-  try{
-    if(!url) return;
-    const popup = Swal.getPopup?.();
-    if(!popup){ playSoundOnce(url); return; }
-    if(popup.dataset.customSoundPlayed === '1') return;
-    popup.dataset.customSoundPlayed = '1';
-    playSoundOnce(url);
-  }catch(_){}
-}
 
 /* ================== SWEETALERT: OVERRIDE ÚNICO (CUSTOM MP3 1 VEZ, SIN SONIDO POR ICONO) ==================
    USO:
