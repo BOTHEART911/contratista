@@ -2652,6 +2652,30 @@ if (window.Swal && typeof Swal.fire === 'function'){
   };
 }
 
+
+ //Reproduce un audio "extra" 1 sola vez, DESPUÉS del sonido normal del icon (info/success/etc)
+ // y SOLO cuando el SweetAlert se abre (didOpen)
+  
+function swalExtraSoundOnceAfterIcon_(options, extraUrl){
+  const prevDidOpen = options.didOpen;
+
+  options.didOpen = function(popup){
+    // 1) deja que Swal haga lo suyo primero
+    try{ if(typeof prevDidOpen === 'function') prevDidOpen(popup); }catch(_){}
+
+    // 2) reproduce el extra 1 sola vez por alerta
+    try{
+      if(popup && popup.dataset && popup.dataset.extraSoundPlayed === '1') return;
+      if(popup && popup.dataset) popup.dataset.extraSoundPlayed = '1';
+
+      // espera un pelo para que el sonido del icono (info/success) salga primero
+      setTimeout(()=>{ playSoundOnce(extraUrl); }, 220);
+    }catch(_){}
+  };
+
+  return options;
+}
+
 /* ================== GUÍA FLOTANTE + MODAL (INGRESAR / CORREGIR CUENTA) ================== */
 (function initGuiaCuenta_(){
   const FLOAT_ID = 'guiaFloat';
@@ -6184,7 +6208,7 @@ try{
 const BANKS = [
 "BANCOLOMBIA","DAVIVIENDA","BANCO DE BOGOTÁ","BANCO CAJA SOCIAL","BANCO POPULAR","BANCO BBVA COLOMBIA S.A.","BANCO AV VILLAS","BANCO DE OCCIDENTE","BANCO AGRARIO DE COLOMBIA","BANCAMIA S.A.","BANCO SANTANDER COLOMBIA","BANCO FALABELLA","BANCO MUNDO MUJER S.A.","NEQUI","DAVIPLATA","DALE","NU","BANCOOMEVA S.A.","BANCO PICHINCHA S.A.","BANCO ITAU","CITIBANK COLOMBIA","BANCO COOPERATIVO COOPCENTRAL","DING","GLOBAL66","IRIS","JFK COOPERATIVA FINANCIERA","FINANCIERA JURISCOOP SA COMPAÑIA DE FINANCIAMIENTO","ALIANZA FIDUCIARIA","BAN100","BANCO SERFINANZA","BOLD CF","COINK SA","COTRAFA","CREZCAMOS","COLTEFINANCIERA","CONFIAR COOPERATIVA FINANCIERA","CFA COOPERATIVA FINANCIERA","BANCO UNION","SCOTIABANK COLPATRIA","BANCO GNB SUDAMERIS","BANCO J.P. MORGAN COLOMBIA S.A.","BANCO FINANDINA S.A. BIC"
 ];
-const EPS = ["SALUD TOTAL","SANITAS","FAMISANAR","NUEVA EPS","COMPENSAR","SANIDAD FUERZAS MILITARES","CONVIDA","COOSALUD","ALIANSALUD","ADRES MIN002"];
+const EPS = ["SALUD TOTAL","SANITAS","FAMISANAR","NUEVA EPS","COMPENSAR", "SURA", "SANIDAD FUERZAS MILITARES","CONVIDA","COOSALUD","ALIANSALUD","ADRES MIN002"];
 const AFP = ["PROTECCION","PORVENIR","COLFONDOS","OLD MUTUAL","COLPENSIONES","N/A"];
 const ARL = ["SURA","POSITIVA","AXA COLPATRIA","COLMENA","BOLIVAR","LIBERTY","LA EQUIDAD"];
 
@@ -7454,13 +7478,15 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
 
   // Texto distinto según sea ingreso o corrección
 const isCorrection = (IC_MODE === 'correccion');
-const waitSwal = Swal.fire({
-  title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
-  html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
-  allowOutsideClick: false,
-  allowEscapeKey: false,
-  didOpen: () => { Swal.showLoading(); }
-});
+const waitSwal = Swal.fire(
+  swalExtraSoundOnceAfterIcon_({
+    title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
+    html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => { Swal.showLoading(); }
+  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3')
+);
 
    try{
     const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
@@ -9135,16 +9161,18 @@ function esHorarioHabilAhora(){
     }
 
     if(estado === 'APROBADA'){
-      const r = await Swal.fire({
-        icon:'success',
-        title:'DESCARGA TUS DOCUMENTOS',
-        html: `
-            Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
-            Ya solo falta el cargue en el SECOP II<br><br>
-            📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
-          `,
-        confirmButtonText:'OK'
-      });
+   const r = await Swal.fire(
+  swalExtraSoundOnceAfterIcon_({
+    icon:'success',
+    title:'DESCARGA TUS DOCUMENTOS',
+    html: `
+        Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
+        Ya solo falta el cargue en el SECOP II<br><br>
+        📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
+      `,
+    confirmButtonText:'OK'
+  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3')
+);
       if(r.isConfirmed) openFolder();
       return;
     }
@@ -9174,16 +9202,18 @@ function esHorarioHabilAhora(){
     }
 
     if(estado === 'INGRESADA'){
-      const r = await Swal.fire({
-        icon:'info',
-        title:'REVISA TUS DOCUMENTOS',
-        html: `
-              Verifica que los Datos estén correctos y completos.<br><br>
-              📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
-              Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
-            `,
-        confirmButtonText:'IR A MI CARPETA DRIVE'
-      });
+      const r = await Swal.fire(
+  swalExtraSoundOnceAfterIcon_({
+    icon:'info',
+    title:'REVISA TUS DOCUMENTOS',
+    html: `
+          Verifica que los Datos estén correctos y completos.<br><br>
+          📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
+          Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
+        `,
+    confirmButtonText:'IR A MI CARPETA DRIVE'
+  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3')
+);
       if(r.isConfirmed) openFolder();
       return;
     }
@@ -9240,14 +9270,16 @@ function esHorarioHabilAhora(){
       'Ingresa a la App para visualizar\n' +
       '*> ================================*';
 
-const r = await Swal.fire({
-  icon:'success',
-  title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
-  html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
-  showCancelButton: true,
-  confirmButtonText: 'REPORTAR',
-  cancelButtonText: 'CANCELAR'
-});
+const r = await Swal.fire(
+  swalExtraSoundOnceAfterIcon_({
+    icon:'success',
+    title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
+    html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
+    showCancelButton: true,
+    confirmButtonText: 'REPORTAR',
+    cancelButtonText: 'CANCELAR'
+  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3')
+);
 if(!r.isConfirmed){
   showView('view-inicio');
   return;
