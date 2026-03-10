@@ -2637,12 +2637,10 @@ const SOUNDS = {
 };
 
 function playSoundOnce(url){
-  try{
-    const a = new Audio(url);
-    a.preload = 'auto';
-    a.play().catch(()=>{});
-  }catch(_){}
+  // Reusa el player global (evita bloqueos y solapes)
+  playGlobalAudio_(url);
 }
+
 
 
 /* ================== SWEETALERT: OVERRIDE ÚNICO (CUSTOM MP3 1 VEZ, REEMPLAZA SONIDO POR ICONO) ==================
@@ -2671,35 +2669,28 @@ function playSoundOnce(url){
     }catch(_){}
   }
 
-  function playOnce_(popup, url){
-    try{
-      if(!url) return;
+ function playOnce_(popup, url){
+  try{
+    if(!url) return;
 
-      // 1 sola vez por popup (y por url)
-      if(popup && popup.dataset){
-        const key = 'played_' + url;
-        if(popup.dataset[key] === '1') return;
-        popup.dataset[key] = '1';
-      }
+    if(popup && popup.dataset){
+      const key = 'played_' + url;
+      if(popup.dataset[key] === '1') return;
+      popup.dataset[key] = '1';
+    }
 
-      // corta cualquier sonido anterior
-      stopAudio_();
+    stopAudio_();
 
-      if(!__swalAudio){
-        __swalAudio = new Audio();
-        __swalAudio.preload = 'auto';
-      }
+    if(!__swalAudio){
+      __swalAudio = new Audio();
+      __swalAudio.preload = 'auto';
+    }
 
-      __swalAudio.src = url;
-
-      // iOS/Chrome: a veces necesita micro-delay para que el popup ya exista
-      setTimeout(()=>{
-        try{ __swalAudio.play().catch(()=>{}); }catch(_){}
-      }, 0);
-
-    }catch(_){}
-  }
-
+    __swalAudio.src = url;
+    __swalAudio.play().catch(()=>{});
+  }catch(_){}
+}
+  
   Swal.fire = function(options = {}, ...rest){
     if(typeof options === 'string') options = { title: options };
 
@@ -2711,25 +2702,26 @@ function playSoundOnce(url){
     const userDidOpen = options.didOpen;
     const userWillClose = options.willClose;
 
-    options.didOpen = (popup)=>{
-      try{
-        // CUSTOM MP3 tiene prioridad y reemplaza icon sound
-        if(customSoundUrl){
-          playOnce_(popup, customSoundUrl);
-        }else{
-          if(soundTag === 'resumen'){
-            if(window.SOUNDS && SOUNDS.info) playOnce_(popup, SOUNDS.info);
-          }else if(icon && window.SOUNDS && SOUNDS[icon]){
-            playOnce_(popup, SOUNDS[icon]);
-          }
-        }
-      }catch(_){}
+   options.didOpen = async (popup)=>{
+  try{
+    // Intenta desbloquear (si ya hubo gesto en la app, esto ya es true)
+    await unlockAudioOnce_();
 
-      // Respeta didOpen original (loading, etc.)
-      if(typeof userDidOpen === 'function'){
-        try{ userDidOpen(popup); }catch(_){}
+    if(customSoundUrl){
+      playOnce_(popup, customSoundUrl);
+    }else{
+      if(soundTag === 'resumen'){
+        if(window.SOUNDS && SOUNDS.info) playOnce_(popup, SOUNDS.info);
+      }else if(icon && window.SOUNDS && SOUNDS[icon]){
+        playOnce_(popup, SOUNDS[icon]);
       }
-    };
+    }
+  }catch(_){}
+
+  if(typeof userDidOpen === 'function'){
+    try{ userDidOpen(popup); }catch(_){}
+  }
+};
 
     options.willClose = (popup)=>{
       try{ stopAudio_(); }catch(_){}
