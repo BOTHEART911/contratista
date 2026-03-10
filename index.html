@@ -2700,7 +2700,24 @@ if (window.Swal && typeof Swal.fire === 'function'){
   };
 }
 
+ /* ================== SWEETALERT: SONIDO CUSTOM (sin duplicados) ================== */
+function playSwalSoundOncePerOpen(url){
+  try{
+    if(!url) return;
 
+    // 1 sola reproducción por cada apertura de Swal (popup actual)
+    const popup = Swal.getPopup?.();
+    if(!popup) { playSoundOnce(url); return; }
+
+    if(popup.dataset.soundPlayed === '1') return;
+    popup.dataset.soundPlayed = '1';
+
+    playSoundOnce(url);
+
+    // cuando se cierre ese popup, se limpia la marca
+    popup.addEventListener('animationend', ()=>{}, { once:true });
+  }catch(_){}
+}
  
   
 /* ================== GUÍA FLOTANTE + MODAL (INGRESAR / CORREGIR CUENTA) ================== */
