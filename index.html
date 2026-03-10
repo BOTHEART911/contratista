@@ -4077,8 +4077,54 @@ document.getElementById('go-comunicados')?.addEventListener('click', ()=>{
 });
 
 document.getElementById('btn-logout').addEventListener('click', ()=>{
+
+  // 1) Cierra cualquier SweetAlert que haya quedado abierto del usuario anterior
+  try{ Swal.close(); }catch(_){}
+
+  // 2) Limpia estados de "una vez por sesión"
+  try{ sessionStorage.removeItem(NOTICIAS_SOUND_KEY); }catch(_){}
+  try{ CONTRATISTA_EMAIL_CACHE = ''; }catch(_){}
+
+  // 3) Detiene carruseles y limpia cache visual de noticias (para que no queden datos del anterior)
+  try{ stopHomeBanners_(); }catch(_){}
+  try{
+    NOTICIAS_CACHE = [];
+    const comList = document.getElementById('com-list');
+    if(comList) comList.innerHTML = '';
+    refreshNoticiasBadge();
+  }catch(_){}
+
+  // 4) Cierra overlays/modales propios
+  try{ overlay?.classList.remove('open'); }catch(_){}
+  try{ document.getElementById('bannerModal')?.setAttribute('aria-hidden','true'); }catch(_){}
+  try{ document.getElementById('guiaModal')?.setAttribute('aria-hidden','true'); }catch(_){}
+  try{ document.getElementById('guiaInicioModal')?.setAttribute('aria-hidden','true'); }catch(_){}
+
+  // 5) Resetea loaders por si quedaron "enganchados"
+  try{
+    hideConnectingLoginLoader_();
+    suppressLoader = false;
+    loadingCount = 0;
+    if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
+    if(loader){
+      loader.style.display = '';
+      loader.classList.add('hidden');
+    }
+  }catch(_){}
+
+  // 6) Resetea por completo TODOS los formularios y estado de ingresar/corregir
+  try{ resetIngresarCuentaView(); }catch(_){}
+  try{ resetVistas(); }catch(_){}
+
+  // 7) Limpia usuario actual y vuelve al login
   playSoundOnce(SOUNDS.logout);
   currentUser = null;
+
+  // Limpia caches de registro/personales (firma/cumple) para evitar arrastre visual
+  try{ regFirmaDataUrl=''; revokeObjUrl(regPreviewUrl); regPreviewUrl=''; }catch(_){}
+  try{ pFirmaDataUrl=''; revokeObjUrl(pPreviewUrl); pPreviewUrl=''; }catch(_){}
+  try{ __cumpleISO=''; __cumpleISO_personales=''; }catch(_){}
+
   loginDoc.value = '';
   showView('view-login');
 });
@@ -7196,6 +7242,27 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
       return;
     }
   }
+
+  // ✅ VALIDACIÓN: El campo "Número de Factura Electrónica" puede ir vacío,
+  // pero si se diligencia NO puede contener "NO" / "no" ni frases que empiecen por "NO".
+  {
+    const facEl = document.getElementById('ic-facturaNum');
+    const raw = String(facEl?.value || '').trim();
+
+    // Detecta: "NO", "no", "No ..." o frase que empiece por NO (ignorando espacios)
+    // Ejemplos bloqueados: "NO", "no", "No aplica", "  no tengo"
+    const startsWithNo = /^\s*no(\s|$)/i.test(raw);
+
+    if (raw && startsWithNo) {
+      await Swal.fire({
+        icon: 'info',
+        title: 'DEBES LEER BIEN EN TODO MOMENTO',
+        text: 'Si no manejas factura digital, deja el campo vacio como dice la instrucción',
+      });
+      facEl?.focus();
+      return;
+    }
+  }
   
   // Validaciones mínimas
   const required = {
@@ -9167,11 +9234,11 @@ function esHorarioHabilAhora(){
     const nombre    = res.nombre || '';
     const contrato  = res.contrato || '';
     const msg =
-      '*//===== REPORTE DE CUENTA 📁 =====//*\n' +
+      '*📁📁📁 REPORTE DE CUENTA 📁📁📁📁*\n' +
       'Estimado(a) *'+supervisor+'*' + '\n\n' +
       '¡El contratista *'+nombre+'* ha reportado la *Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
       'Ingresa a la App para visualizar\n' +
-      '*//================================//*';
+      '*📁📁📁📁📁📁📁📁📁📁📁📁📁📁📁*';
 
 const r = await Swal.fire({
   icon:'success',
@@ -9271,12 +9338,12 @@ if(!r.isConfirmed){
     }
 
     const msg =
-  '*//==== PLAN DE PAGOS 🖥 ====//*\n' +
+  '*🖥🖥🖥 PLAN DE PAGOS 🖥🖥🖥*\n' +
   'Estimado(a) *'+supervisor+'*' + '\n\n' +
   '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
   '> Egreso: *'+egreso+'*' + '\n\n' +
   'Ingresa a la App para visualizar\n' +
-  '*//================================//*';
+  '*🖥🖥🖥🖥🖥🖥🖥🖥🖥🖥🖥🖥🖥🖥*';
 
 if(grupo) sendBuilderbotMessage(grupo, msg);
 
