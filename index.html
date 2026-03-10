@@ -2700,16 +2700,21 @@ if (window.Swal && typeof Swal.fire === 'function'){
   };
 }
 
-/* ================== SWEETALERT: ÚNICO override de sonidos (CUSTOM reemplaza icon) ================== */
-(function initSingleSwalSoundOverride_(){
+/* ================== SWEETALERT: OVERRIDE ÚNICO + CORTE TOTAL DE SONIDO POR ICONO ================== */
+/* Qué hace:
+   1) Si pasas customSoundUrl => reproduce SOLO ese MP3 (1 vez) y NO suena icono.
+   2) Si NO pasas customSoundUrl => suena tu sistema normal por icono.
+   3) Corta cualquier audio anterior al abrir/cerrar alert.
+*/
+(function initSwalAudioOverrideOnce_(){
   if(!window.Swal || typeof Swal.fire !== 'function') return;
 
   const __fire = Swal.fire.bind(Swal);
 
-  // Reproductor único global para evitar solapes y permitir cortar
+  // Reproductor único (evita solapes)
   let __swalAudio = null;
 
-  function stopSwalAudio_(){
+  function stopAudio_(){
     try{
       if(__swalAudio){
         __swalAudio.pause();
@@ -2718,71 +2723,67 @@ if (window.Swal && typeof Swal.fire === 'function'){
     }catch(_){}
   }
 
-  function playSwalSoundOncePerPopup_(popup, url){
+  function playOnceInPopup_(popup, url){
     try{
       if(!url) return;
 
       // 1 sola vez por popup + url
-      const key = 'swalSoundOnce_' + url;
-      if(popup && popup.dataset && popup.dataset[key] === '1') return;
-      if(popup && popup.dataset) popup.dataset[key] = '1';
+      const key = 'customSoundOnce_' + url;
+      if(popup?.dataset?.[key] === '1') return;
+      if(popup?.dataset) popup.dataset[key] = '1';
 
-      stopSwalAudio_();
+      stopAudio_();
 
       if(!__swalAudio){
         __swalAudio = new Audio();
         __swalAudio.preload = 'auto';
       }
-
       __swalAudio.src = url;
+
+      // Intentar reproducir
       __swalAudio.play().catch(()=>{});
     }catch(_){}
   }
 
   Swal.fire = function(options = {}, ...rest){
-    // Normaliza
     if(typeof options === 'string') options = { title: options };
 
     const icon = options.icon || options.type || '';
     const soundTag = options.soundTag;
     const customSoundUrl = String(options.customSoundUrl || '').trim();
 
-    // guarda el didOpen original
-    const userDidOpen = options.didOpen;
+    const userDidOpen  = options.didOpen;
+    const userWillClose = options.willClose;
 
     options.didOpen = (popup)=>{
       try{
-        // IMPORTANTE:
-        // Si hay customSoundUrl, SOLO suena ese. (NO sonido por icon)
+        // ✅ CASO ESPECIAL: customSoundUrl => SOLO MP3 (NO icon sound)
         if(customSoundUrl){
-          playSwalSoundOncePerPopup_(popup, customSoundUrl);
+          playOnceInPopup_(popup, customSoundUrl);
         }else{
-          // Si NO hay custom: tu lógica normal
+          // ✅ Caso normal: icon/soundTag
           if(soundTag === 'resumen'){
-            if(window.SOUNDS && SOUNDS.info) playSwalSoundOncePerPopup_(popup, SOUNDS.info);
+            if(window.SOUNDS && SOUNDS.info) playOnceInPopup_(popup, SOUNDS.info);
           }else if(icon && window.SOUNDS && SOUNDS[icon]){
-            playSwalSoundOncePerPopup_(popup, SOUNDS[icon]);
+            playOnceInPopup_(popup, SOUNDS[icon]);
           }
         }
       }catch(_){}
 
-      // Ejecuta didOpen original (Swal.showLoading(), etc.)
+      // respeta didOpen original
       if(typeof userDidOpen === 'function'){
         try{ userDidOpen(popup); }catch(_){}
       }
     };
 
-    // Opcional (recomendado): al cerrar la alerta, corta audio
-    const userWillClose = options.willClose;
     options.willClose = (popup)=>{
-      try{ stopSwalAudio_(); }catch(_){}
+      try{ stopAudio_(); }catch(_){}
       if(typeof userWillClose === 'function'){
         try{ userWillClose(popup); }catch(_){}
       }
     };
 
-    // NO borres customSoundUrl antes de __fire; lo quitamos solo para que swal no lo “acuse”
-    // pero ya lo capturamos arriba.
+    // Limpia props extra para que SweetAlert no “vea” campos desconocidos
     if('soundTag' in options) delete options.soundTag;
     if('customSoundUrl' in options) delete options.customSoundUrl;
 
