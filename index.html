@@ -2700,71 +2700,76 @@ if (window.Swal && typeof Swal.fire === 'function'){
   };
 }
 
- /* ================== SWEETALERT: override de sonidos (CUSTOM reemplaza icon) ================== */
+/* ================== SWEETALERT: override de sonidos (CUSTOM reemplaza icon) ================== */
 (function initSwalSoundOverride_(){
   if (!window.Swal || typeof Swal.fire !== 'function') return;
 
   const __fire = Swal.fire.bind(Swal);
 
-  // Reproduce 1 sola vez por popup (por apertura)
+  function playSoundOnce_(url){
+    try{
+      const a = new Audio(url);
+      a.preload = 'auto';
+      a.play().catch(()=>{});
+    }catch(_){}
+  }
+
+  // ✅ Reproduce 1 sola vez por popup (por apertura).
+  // Clave por URL dentro del mismo popup para evitar duplicados.
   function playOnceForPopup_(url){
     try{
       if(!url) return;
 
       const popup = Swal.getPopup?.();
       if(!popup){
-        playSoundOnce(url);
+        playSoundOnce_(url);
         return;
       }
 
-      // clave por URL para que si cambias customSoundUrl dentro del mismo popup no se duplique
-      const key = 'soundPlayed_' + url;
+      const key = 'soundOnce_' + url;
       if(popup.dataset[key] === '1') return;
       popup.dataset[key] = '1';
 
-      playSoundOnce(url);
+      playSoundOnce_(url);
     }catch(_){}
   }
 
   Swal.fire = function(options = {}, ...rest){
-    // Normaliza options si viene como string (Swal.fire('hola'))
     if(typeof options === 'string'){
       options = { title: options };
     }
 
-    // Captura props ANTES de borrar
-    const customSoundUrl = options.customSoundUrl || '';
+    // Captura props custom ANTES de borrar
+    const customSoundUrl = String(options.customSoundUrl || '').trim();
     const icon = options.icon || options.type || '';
     const soundTag = options.soundTag;
 
-    // Guarda didOpen original
     const userDidOpen = options.didOpen;
 
-    // IMPORTANTE:
-    // - El sonido (sea custom o por icono) SOLO se ejecuta en didOpen.
-    // - Así garantizas 1 sola vez por popup.
+    // ✅ SOLO aquí sonará (una vez por apertura)
     options.didOpen = (popup)=>{
       try{
         if(customSoundUrl){
-          // ✅ Si hay MP3 custom: SOLO ese (NO icon sound)
+          // ✅ Si hay MP3 custom: SOLO ese (bloquea sonido por icon)
           playOnceForPopup_(customSoundUrl);
         }else{
-          // ✅ Si NO hay custom: usa tu sistema normal
+          // ✅ Si NO hay custom: tu lógica normal por icono / tags
           if(soundTag === 'resumen'){
-            playOnceForPopup_(SOUNDS.info);
-          }else if(icon && SOUNDS[icon]){
+            // (usa el sonido info que ya tienes en SOUNDS.info)
+            if(window.SOUNDS && SOUNDS.info) playOnceForPopup_(SOUNDS.info);
+          }else if(icon && window.SOUNDS && SOUNDS[icon]){
             playOnceForPopup_(SOUNDS[icon]);
           }
         }
       }catch(_){}
 
-      // Ejecuta didOpen original (loading etc.)
+      // respeta didOpen original
       if(typeof userDidOpen === 'function'){
         try{ userDidOpen(popup); }catch(_){}
       }
     };
 
-    // Limpia props custom para que SweetAlert no muestre warnings
+    // Limpia props custom para que SweetAlert no advierta
     if('soundTag' in options) delete options.soundTag;
     if('customSoundUrl' in options) delete options.customSoundUrl;
 
