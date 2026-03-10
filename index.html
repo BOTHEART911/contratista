@@ -2700,76 +2700,89 @@ if (window.Swal && typeof Swal.fire === 'function'){
   };
 }
 
-/* ================== SWEETALERT: override de sonidos (CUSTOM reemplaza icon) ================== */
-(function initSwalSoundOverride_(){
-  if (!window.Swal || typeof Swal.fire !== 'function') return;
+/* ================== SWEETALERT: ÚNICO override de sonidos (CUSTOM reemplaza icon) ================== */
+(function initSingleSwalSoundOverride_(){
+  if(!window.Swal || typeof Swal.fire !== 'function') return;
 
   const __fire = Swal.fire.bind(Swal);
 
-  function playSoundOnce_(url){
+  // Reproductor único global para evitar solapes y permitir cortar
+  let __swalAudio = null;
+
+  function stopSwalAudio_(){
     try{
-      const a = new Audio(url);
-      a.preload = 'auto';
-      a.play().catch(()=>{});
+      if(__swalAudio){
+        __swalAudio.pause();
+        __swalAudio.currentTime = 0;
+      }
     }catch(_){}
   }
 
-  // ✅ Reproduce 1 sola vez por popup (por apertura).
-  // Clave por URL dentro del mismo popup para evitar duplicados.
-  function playOnceForPopup_(url){
+  function playSwalSoundOncePerPopup_(popup, url){
     try{
       if(!url) return;
 
-      const popup = Swal.getPopup?.();
-      if(!popup){
-        playSoundOnce_(url);
-        return;
+      // 1 sola vez por popup + url
+      const key = 'swalSoundOnce_' + url;
+      if(popup && popup.dataset && popup.dataset[key] === '1') return;
+      if(popup && popup.dataset) popup.dataset[key] = '1';
+
+      stopSwalAudio_();
+
+      if(!__swalAudio){
+        __swalAudio = new Audio();
+        __swalAudio.preload = 'auto';
       }
 
-      const key = 'soundOnce_' + url;
-      if(popup.dataset[key] === '1') return;
-      popup.dataset[key] = '1';
-
-      playSoundOnce_(url);
+      __swalAudio.src = url;
+      __swalAudio.play().catch(()=>{});
     }catch(_){}
   }
 
   Swal.fire = function(options = {}, ...rest){
-    if(typeof options === 'string'){
-      options = { title: options };
-    }
+    // Normaliza
+    if(typeof options === 'string') options = { title: options };
 
-    // Captura props custom ANTES de borrar
-    const customSoundUrl = String(options.customSoundUrl || '').trim();
     const icon = options.icon || options.type || '';
     const soundTag = options.soundTag;
+    const customSoundUrl = String(options.customSoundUrl || '').trim();
 
+    // guarda el didOpen original
     const userDidOpen = options.didOpen;
 
-    // ✅ SOLO aquí sonará (una vez por apertura)
     options.didOpen = (popup)=>{
       try{
+        // IMPORTANTE:
+        // Si hay customSoundUrl, SOLO suena ese. (NO sonido por icon)
         if(customSoundUrl){
-          // ✅ Si hay MP3 custom: SOLO ese (bloquea sonido por icon)
-          playOnceForPopup_(customSoundUrl);
+          playSwalSoundOncePerPopup_(popup, customSoundUrl);
         }else{
-          // ✅ Si NO hay custom: tu lógica normal por icono / tags
+          // Si NO hay custom: tu lógica normal
           if(soundTag === 'resumen'){
-            // (usa el sonido info que ya tienes en SOUNDS.info)
-            if(window.SOUNDS && SOUNDS.info) playOnceForPopup_(SOUNDS.info);
+            if(window.SOUNDS && SOUNDS.info) playSwalSoundOncePerPopup_(popup, SOUNDS.info);
           }else if(icon && window.SOUNDS && SOUNDS[icon]){
-            playOnceForPopup_(SOUNDS[icon]);
+            playSwalSoundOncePerPopup_(popup, SOUNDS[icon]);
           }
         }
       }catch(_){}
 
-      // respeta didOpen original
+      // Ejecuta didOpen original (Swal.showLoading(), etc.)
       if(typeof userDidOpen === 'function'){
         try{ userDidOpen(popup); }catch(_){}
       }
     };
 
-    // Limpia props custom para que SweetAlert no advierta
+    // Opcional (recomendado): al cerrar la alerta, corta audio
+    const userWillClose = options.willClose;
+    options.willClose = (popup)=>{
+      try{ stopSwalAudio_(); }catch(_){}
+      if(typeof userWillClose === 'function'){
+        try{ userWillClose(popup); }catch(_){}
+      }
+    };
+
+    // NO borres customSoundUrl antes de __fire; lo quitamos solo para que swal no lo “acuse”
+    // pero ya lo capturamos arriba.
     if('soundTag' in options) delete options.soundTag;
     if('customSoundUrl' in options) delete options.customSoundUrl;
 
@@ -7580,11 +7593,11 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
   // Texto distinto según sea ingreso o corrección
 const isCorrection = (IC_MODE === 'correccion');
 const waitSwal = Swal.fire({
-  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3',
   title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
   html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
   allowOutsideClick: false,
   allowEscapeKey: false,
+  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3',
   didOpen: () => { Swal.showLoading(); }
 });
 
@@ -9263,14 +9276,14 @@ function esHorarioHabilAhora(){
    if(estado === 'APROBADA'){
 const r = await Swal.fire({
   icon:'success',
-  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3',
   title:'DESCARGA TUS DOCUMENTOS',
   html: `
     Unificalos guiándote con la explicación en <b>GUIA DE USO</b> - opción TUTORIALES<br>
     Ya solo falta el cargue en el SECOP II<br><br>
     📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧
   `,
-  confirmButtonText:'OK'
+  confirmButtonText:'OK',
+  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171750/descargar_tasnro.mp3'
 });
   if(r.isConfirmed) openFolder();
   return;
@@ -9301,16 +9314,16 @@ const r = await Swal.fire({
     }
 
   if(estado === 'INGRESADA'){
- const r = await Swal.fire({
+const r = await Swal.fire({
   icon:'info',
-  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3',
   title:'REVISA TUS DOCUMENTOS',
   html: `
     Verifica que los Datos estén correctos y completos.<br><br>
     📧 Solo con el correo <b>${escapeHtml_(await getContratistaEmail_() || 'No registrado')}</b> tienes acceso a la carpeta. 📧<br><br>
     Para realizar correctamente este proceso, revisa en el botón <b>GUIA DE USO</b> - opción TUTORIALES
   `,
-  confirmButtonText:'IR A MI CARPETA DRIVE'
+   confirmButtonText:'IR A MI CARPETA DRIVE',
+  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171684/ver_wqglyu.mp3'
 });
   if(r.isConfirmed) openFolder();
   return;
@@ -9370,12 +9383,12 @@ const r = await Swal.fire({
 
 const r = await Swal.fire({
   icon:'success',
-  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3',
   title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
   html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
   showCancelButton: true,
   confirmButtonText: 'REPORTAR',
-  cancelButtonText: 'CANCELAR'
+  cancelButtonText: 'CANCELAR',
+  customSoundUrl: 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3'
 });
 if(!r.isConfirmed){
   showView('view-inicio');
