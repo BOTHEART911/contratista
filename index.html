@@ -8917,51 +8917,69 @@ function icAbrirRadicado(){
   mSel.innerHTML = '';
   aSel.innerHTML = '';
 
+  // Helpers
+  function parseDMY_(str){
+    const s = String(str||'').trim();
+    if(!/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return null;
+    const [dd,mm,yy] = s.split('/').map(n => parseInt(n,10));
+    if(!dd || !mm || !yy) return null;
+    const dt = new Date(yy, mm-1, dd);
+    if(isNaN(dt.getTime())) return null;
+    return dt;
+  }
+  function startOfDay_(d){
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+  function addHabilDaysFrom_(startDate, count){
+    const out = [];
+    const cursor = new Date(startDate);
+    while(out.length < count){
+      if(icEsHabil(cursor)){
+        out.push(new Date(cursor));
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return out;
+  }
+
+  const hoy0 = startOfDay_(new Date());
+
   // ===== Determinar si aplica regla "fin >= 27" =====
   const finVal = String(document.getElementById('ic-fin')?.value || '').trim(); // dd/mm/aaaa
+  const dFin = parseDMY_(finVal);
   let applyNextMonthRule = false;
-  let finDay = 0;
 
-  if(/^\d{2}\/\d{2}\/\d{4}$/.test(finVal)){
-    const parts = finVal.split('/');
-    finDay = parseInt(parts[0], 10) || 0;
+  if(dFin){
+    const finDay = dFin.getDate();
     applyNextMonthRule = finDay >= 27;
   }
 
-  const opciones = [];
-  let cursor = null;
+  let opciones = [];
 
-  if(applyNextMonthRule){
-    // Primer día del mes siguiente al fin del periodo
-    const [fd, fm, fy] = finVal.split('/').map(x => parseInt(x, 10));
-    const nextMonthStart = new Date(fy, (fm - 1) + 1, 1); // 1er día del siguiente mes
-    cursor = new Date(nextMonthStart);
+  if(applyNextMonthRule && dFin){
+    // Candidatas: primeros 3 días hábiles del mes siguiente al FIN
+    const nextMonthStart = new Date(dFin.getFullYear(), dFin.getMonth() + 1, 1);
+    const primeros3Next = addHabilDaysFrom_(nextMonthStart, 3);
 
-    // Primeros 3 días hábiles del siguiente mes (respetando icEsHabil: no sáb/dom/festivos)
-    while(opciones.length < 3){
-      if(icEsHabil(cursor)){
-        opciones.push(new Date(cursor));
+    // ✅ NUEVO: si esos días ya quedaron en el pasado (comparado con HOY), NO se usan.
+    // En ese caso usar HOY + 2 siguientes hábiles (10,11,12 marzo en tu ejemplo).
+    const allPast = primeros3Next.every(dt => startOfDay_(dt) < hoy0);
+
+    if(!allPast){
+      opciones = primeros3Next;
+      if(sub){
+        sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
       }
-      cursor.setDate(cursor.getDate() + 1);
-    }
-
-    if(sub){
-      sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
+    }else{
+      opciones = addHabilDaysFrom_(hoy0, 3); // hoy + 2 hábiles
+      if(sub) sub.textContent = ''; // no mostrar el mensaje cuando no aplica
     }
   }else{
-    // Lógica original: hoy + 2 hábiles
-    const hoy = new Date();
-    cursor = new Date(hoy);
-
-    while(opciones.length < 3){
-      if(icEsHabil(cursor)){
-        opciones.push(new Date(cursor));
-      }
-      cursor.setDate(cursor.getDate() + 1);
-    }
+    // Lógica normal: hoy + 2 hábiles
+    opciones = addHabilDaysFrom_(hoy0, 3);
   }
 
-  // Map por día para setear MES/AÑO (y permitir saltos de mes si pasara por calendario)
+  // Map por día para setear MES/AÑO (y permitir saltos de mes si pasara)
   const byDay = new Map(); // key: "DD" -> { month: "MM", year:"YYYY", monthName:"..." }
   opciones.forEach(dt=>{
     const dd = icPad2(dt.getDate());
@@ -9268,7 +9286,7 @@ function esHorarioHabilAhora(){
       'Estimado(a) *'+supervisor+'*' + '\n\n' +
       '¡El contratista *'+nombre+'* ha reportado la *Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
       'Ingresa a la App para visualizar\n' +
-      '*> ================================*';
+      '> *============================*';
 
 const r = await Swal.fire(
   swalExtraSoundOnceAfterIcon_({
@@ -9375,7 +9393,7 @@ if(!r.isConfirmed){
   '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
   '> Egreso: *'+egreso+'*' + '\n\n' +
   'Ingresa a la App para visualizar\n' +
-  '*> ================================*';
+  '> *============================*';
 
 if(grupo) sendBuilderbotMessage(grupo, msg);
 
