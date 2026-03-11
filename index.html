@@ -3629,6 +3629,35 @@ const HOME_BANNERS = [
       `
     }
   },
+    {
+    id: 'denegado',
+    title: '¿Por qué no tienes permiso para revisar tus documentos?',
+    img: 'https://res.cloudinary.com/dqqeavica/image/upload/v1773231775/denegado_icj134.png',
+    modal: {
+      heroImg: 'https://res.cloudinary.com/dqqeavica/image/upload/v1773232132/correo_ei7azu.png', 
+      html: `
+        <p style="margin-top:0;">
+          Lo primero que debes revisar es:
+        </p>
+        <div style="
+          background:#f8fafc;
+          border:2px solid #e5e7eb;
+          border-radius:14px;
+          padding:12px;
+          font-weight:800;
+          color:#111;
+        ">
+          Que estés usando el correo registrado en la aplicación, haz clic donde te señalo en la imagen y usa el correo registrado.
+        </div>
+        <p style="margin-bottom:0;">
+          Es importante que tengas presente que hay dos momentos donde tienes acceso a tu carpeta:
+          <b>Al CREAR o CORREGIR</b> la cuenta y antes de REPORTARLA, puedes tomar la opción <b>MI CUENTA DRIVE</b> para revisar.
+          <b>Al recibir el mensaje de aceptación de Plan de Pagos</b>, SOLO EN ESTE MOMENTO, puedes tomar la opción <b>MI CUENTA DRIVE</b> para descargar los documentos.
+          Cuando REPORTAS EL PLAN DE PAGOS, <b>Te retiras el acceso definitivo a tu carpeta</b>
+        </p>
+      `
+    }
+  },
   {
     id: 'no_colgarte',
     title: '¿Por qué no debes colgarte con tus cuentas de cobro?',
@@ -3774,7 +3803,7 @@ function homeBannerGoTo_(idx, animate=true){
 
   // pequeño “leave” para sensación de salida a la izquierda
   viewport.classList.add('leaving');
-  setTimeout(()=> viewport.classList.remove('leaving'), 450);
+  setTimeout(()=> viewport.classList.remove('leaving'), 350);
 
   track.style.transform = `translateX(-${__homeBannerIndex * 100}%)`;
 }
