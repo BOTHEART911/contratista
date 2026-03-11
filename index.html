@@ -2683,8 +2683,6 @@ function swalExtraSoundOnceAfterIcon_(options, extraUrl){
 
   function el_(id){ return document.getElementById(id); }
 
-  // 1) Mapa: TÍTULO DEL BLOQUE -> AUDIO
-  // IMPORTANTE: las llaves deben coincidir con data.title en MAYÚSCULAS
   const GUIA_AUDIO_BY_TITLE = {
     'RELACIÓN DE FECHAS': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772593271/fechas_nellk8.mp3',
     'RELACIÓN DE PAGO': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772593525/pagos_daw8tc.mp3',
@@ -2698,28 +2696,30 @@ function swalExtraSoundOnceAfterIcon_(options, extraUrl){
     'GUÍA': 'https://res.cloudinary.com/dqqeavica/video/upload/v1772627036/friend_e1qluo.mp3'
   };
 
-  // 2) Un solo reproductor reutilizable (evita solapes)
   let __guiaAudio = null;
 
   function stopGuiaAudio_(){
     try{
       if(__guiaAudio){
         __guiaAudio.pause();
-        __guiaAudio.currentTime = 0; // corta el audio
+        __guiaAudio.currentTime = 0;
       }
     }catch(_){}
   }
 
   async function playGuiaAudioForTitle_(title){
     try{
-      const key = String(title || '').trim().toUpperCase();
-      const url = GUIA_AUDIO_BY_TITLE[key];
+      // ✅ NUEVO: normaliza y si no hay título usable, cae a 'GUÍA'
+      let key = String(title || '').trim().toUpperCase();
+      if(!key) key = 'GUÍA';
+
+      // ✅ NUEVO: si no existe URL para ese título, usa la de GUÍA (en vez de silenciar)
+      const url = GUIA_AUDIO_BY_TITLE[key] || GUIA_AUDIO_BY_TITLE['GUÍA'];
       if(!url){
         stopGuiaAudio_();
         return;
       }
 
-      // corta cualquier audio anterior
       stopGuiaAudio_();
 
       if(!__guiaAudio){
@@ -2728,13 +2728,8 @@ function swalExtraSoundOnceAfterIcon_(options, extraUrl){
       }
 
       __guiaAudio.src = url;
-
-      // Esto “autoplay” al abrir modal (pero realmente está autorizado por el toque del usuario)
       await __guiaAudio.play();
-    }catch(_){
-      // Si algún navegador lo bloquea, no rompemos la app.
-      // (si quieres, aquí podrías mostrar un aviso “toca para activar audio”)
-    }
+    }catch(_){}
   }
 
   function isGuiaViewActive_(){
@@ -2747,9 +2742,8 @@ function swalExtraSoundOnceAfterIcon_(options, extraUrl){
     f.style.display = isGuiaViewActive_() ? 'block' : 'none';
     f.setAttribute('aria-hidden', isGuiaViewActive_() ? 'false' : 'true');
   }
-  
+
   function guiaContentBySection_(){
-    // Detecta en qué parte del formulario está el usuario, mirando el heading más cercano al centro de pantalla
     const view = document.getElementById('view-ingresar-cuenta');
     if(!view) return { title:'GUÍA', html:'' };
 
@@ -2771,6 +2765,80 @@ function swalExtraSoundOnceAfterIcon_(options, extraUrl){
     }
 
     const t = (best.textContent || '').trim().toUpperCase();
+
+    const blocks = {
+      /* ... tus bloques existentes sin cambios ... */
+    };
+
+    const html = blocks[t] || `
+      <h4>GUÍA</h4>
+      <div class="guia-box">
+        <p>Ubícate al lado de uno de los títulos y vuelve a tocarme, <b>soy Digital Friend</b>.</p>
+      </div>
+    `;
+
+    // ✅ NUEVO: en fallback SIEMPRE title='GUÍA' para audio
+    const title = blocks[t] ? (t || 'GUÍA') : 'GUÍA';
+    return { title, label: 'GUÍA', html };
+  }
+
+  function openGuiaModal_(){
+    const modal = el_(MODAL_ID);
+    const titleEl = el_('guiaModalTitle');
+    const body  = el_('guiaModalBody');
+    if(!modal || !titleEl || !body) return;
+
+    const data = guiaContentBySection_();
+    const title = data.title || 'GUÍA';
+
+    titleEl.textContent = title;
+    body.innerHTML = data.html || '';
+    modal.setAttribute('aria-hidden','false');
+
+    // ✅ ahora en fallback también suena
+    playGuiaAudioForTitle_(title);
+  }
+
+  function closeGuiaModal_(){
+    const modal = el_(MODAL_ID);
+    if(!modal) return;
+    modal.setAttribute('aria-hidden','true');
+    stopGuiaAudio_();
+  }
+
+  el_('guiaFloatImg')?.addEventListener('click', ()=>{
+    try{ playSoundOnce(SOUNDS.back); }catch(_){}
+    openGuiaModal_();
+  });
+
+  el_('guiaModalClose')?.addEventListener('click', ()=>{
+    try{ playSoundOnce(SOUNDS.back); }catch(_){}
+    closeGuiaModal_();
+  });
+
+  el_(MODAL_ID)?.addEventListener('click', (e)=>{
+    if(e.target && e.target.id === MODAL_ID){
+      try{ playSoundOnce(SOUNDS.back); }catch(_){}
+      closeGuiaModal_();
+    }
+  });
+
+  if(typeof window.showView === 'function'){
+    const __orig = window.showView;
+    window.showView = function(id){
+      __orig(id);
+      closeGuiaModal_();
+      showGuiaFloat_();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{ showGuiaFloat_(); });
+
+  window.addEventListener('scroll', ()=>{
+    if(isGuiaViewActive_()) showGuiaFloat_();
+  }, { passive:true });
+
+})();
 
     const blocks = {
       'RELACIÓN DE FECHAS': `
@@ -2895,17 +2963,19 @@ function swalExtraSoundOnceAfterIcon_(options, extraUrl){
       `
     };
 
-    const html = blocks[t] || `
+   const html = blocks[t] || `
       <h4>GUÍA</h4>
       <div class="guia-box">
         <p>Ubícate al lado de uno de los títulos y vuelve a tocarme, <b>soy Digital Friend</b>.</p>
       </div>
     `;
 
-return { title: t || 'GUÍA', label: 'GUÍA', html };
-}
+    // ✅ NUEVO: en fallback SIEMPRE title='GUÍA' para audio
+    const title = blocks[t] ? (t || 'GUÍA') : 'GUÍA';
+    return { title, label: 'GUÍA', html };
+  }
 
- function openGuiaModal_(){
+  function openGuiaModal_(){
     const modal = el_(MODAL_ID);
     const titleEl = el_('guiaModalTitle');
     const body  = el_('guiaModalBody');
@@ -2918,20 +2988,17 @@ return { title: t || 'GUÍA', label: 'GUÍA', html };
     body.innerHTML = data.html || '';
     modal.setAttribute('aria-hidden','false');
 
-    // 3) Arranca audio según el bloque abierto
-  playGuiaAudioForTitle_(data.title);
-}
+    // ✅ ahora en fallback también suena
+    playGuiaAudioForTitle_(title);
+  }
 
   function closeGuiaModal_(){
     const modal = el_(MODAL_ID);
     if(!modal) return;
     modal.setAttribute('aria-hidden','true');
-
-    // 4) Al cerrar: cortar audio
     stopGuiaAudio_();
   }
 
-  // Eventos
   el_('guiaFloatImg')?.addEventListener('click', ()=>{
     try{ playSoundOnce(SOUNDS.back); }catch(_){}
     openGuiaModal_();
@@ -2942,7 +3009,6 @@ return { title: t || 'GUÍA', label: 'GUÍA', html };
     closeGuiaModal_();
   });
 
-
   el_(MODAL_ID)?.addEventListener('click', (e)=>{
     if(e.target && e.target.id === MODAL_ID){
       try{ playSoundOnce(SOUNDS.back); }catch(_){}
@@ -2950,7 +3016,6 @@ return { title: t || 'GUÍA', label: 'GUÍA', html };
     }
   });
 
-// Si cambias de vista: cerrar modal y cortar audio
   if(typeof window.showView === 'function'){
     const __orig = window.showView;
     window.showView = function(id){
@@ -2960,21 +3025,14 @@ return { title: t || 'GUÍA', label: 'GUÍA', html };
     };
   }
 
+  document.addEventListener('DOMContentLoaded', ()=>{ showGuiaFloat_(); });
 
- // primer estado por si ya está activa
-  document.addEventListener('DOMContentLoaded', ()=>{
-    showGuiaFloat_();
-  });
-
-  // por si se hace scroll dentro de la vista (refresca visibilidad)
   window.addEventListener('scroll', ()=>{
-    if(isGuiaViewActive_()){
-      showGuiaFloat_();
-    }
+    if(isGuiaViewActive_()) showGuiaFloat_();
   }, { passive:true });
 
 })();
-
+  
     /* ================== Guía Flotante (inicio) ================== */
 
   (function initGuiaInicio_(){
