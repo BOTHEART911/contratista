@@ -8972,52 +8972,47 @@ function icAbrirRadicado(){
     return out;
   }
 
-  // === AJUSTE: después de las 4:00 pm NO ofrecer el día actual ===
-const now = new Date();
-let baseDate = now;
+ const hoy0 = startOfDay_(new Date());
 
-// Si son 16:00 (4:00 pm) o más, arrancamos desde el día siguiente
-if (now.getHours() >= 16) {
-  baseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+ // ✅ NUEVO: si son >= 4:00 PM, no se incluye el día actual
+const now = new Date();
+const after4pm = (now.getHours() > 16) || (now.getHours() === 16 && now.getMinutes() >= 0);
+const habilStart = after4pm ? new Date(hoy0.getFullYear(), hoy0.getMonth(), hoy0.getDate() + 1) : hoy0;
+
+// ===== Determinar si aplica regla "fin >= 27" =====
+const finVal = String(document.getElementById('ic-fin')?.value || '').trim(); // dd/mm/aaaa
+const dFin = parseDMY_(finVal);
+let applyNextMonthRule = false;
+
+if(dFin){
+  const finDay = dFin.getDate();
+  applyNextMonthRule = finDay >= 27;
 }
 
-// (antes era: const hoy0 = startOfDay_(new Date());)
-const hoy0 = startOfDay_(baseDate);
+let opciones = [];
 
-  // ===== Determinar si aplica regla "fin >= 27" =====
-  const finVal = String(document.getElementById('ic-fin')?.value || '').trim(); // dd/mm/aaaa
-  const dFin = parseDMY_(finVal);
-  let applyNextMonthRule = false;
+if(applyNextMonthRule && dFin){
+  // Candidatas: primeros 3 días hábiles del mes siguiente al FIN
+  const nextMonthStart = new Date(dFin.getFullYear(), dFin.getMonth() + 1, 1);
+  const primeros3Next = addHabilDaysFrom_(nextMonthStart, 3);
 
-  if(dFin){
-    const finDay = dFin.getDate();
-    applyNextMonthRule = finDay >= 27;
-  }
+  const allPast = primeros3Next.every(dt => startOfDay_(dt) < hoy0);
 
-  let opciones = [];
-
-  if(applyNextMonthRule && dFin){
-    // Candidatas: primeros 3 días hábiles del mes siguiente al FIN
-    const nextMonthStart = new Date(dFin.getFullYear(), dFin.getMonth() + 1, 1);
-    const primeros3Next = addHabilDaysFrom_(nextMonthStart, 3);
-
-    // ✅ NUEVO: si esos días ya quedaron en el pasado (comparado con HOY), NO se usan.
-    // En ese caso usar HOY + 2 siguientes hábiles (10,11,12 marzo en tu ejemplo).
-    const allPast = primeros3Next.every(dt => startOfDay_(dt) < hoy0);
-
-    if(!allPast){
-      opciones = primeros3Next;
-      if(sub){
-        sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
-      }
-    }else{
-      opciones = addHabilDaysFrom_(hoy0, 3); // hoy + 2 hábiles
-      if(sub) sub.textContent = ''; // no mostrar el mensaje cuando no aplica
+  if(!allPast){
+    opciones = primeros3Next;
+    if(sub){
+      sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
     }
   }else{
-    // Lógica normal: hoy + 2 hábiles
-    opciones = addHabilDaysFrom_(hoy0, 3);
+    // ✅ CAMBIO: aquí antes usabas addHabilDaysFrom_(hoy0, 3)
+    // ahora usas habilStart y 3 o 2 según la hora
+    opciones = addHabilDaysFrom_(habilStart, after4pm ? 2 : 3);
+    if(sub) sub.textContent = '';
   }
+}else{
+  // ✅ CAMBIO: aquí antes usabas addHabilDaysFrom_(hoy0, 3)
+  opciones = addHabilDaysFrom_(habilStart, after4pm ? 2 : 3);
+}
 
   // Map por día para setear MES/AÑO (y permitir saltos de mes si pasara)
   const byDay = new Map(); // key: "DD" -> { month: "MM", year:"YYYY", monthName:"..." }
