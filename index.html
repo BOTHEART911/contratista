@@ -8972,27 +8972,17 @@ function icAbrirRadicado(){
     return out;
   }
 
-   // ===== NUEVO AJUSTE: después de las 4:00 pm no permitir "hoy" =====
-  const now = new Date();
-  const cutoffReached = (now.getHours() >= 16); // 16:00 o más
-  const habilHoy = icEsHabil(hoy0);
+  // === AJUSTE: después de las 4:00 pm NO ofrecer el día actual ===
+const now = new Date();
+let baseDate = now;
 
-  // Si ya son >= 4pm y hoy es hábil, arrancamos desde mañana (para excluir hoy)
-  const baseFrom = (cutoffReached && habilHoy)
-    ? new Date(hoy0.getFullYear(), hoy0.getMonth(), hoy0.getDate() + 1)
-    : hoy0;
+// Si son 16:00 (4:00 pm) o más, arrancamos desde el día siguiente
+if (now.getHours() >= 16) {
+  baseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+}
 
-  // ...y más abajo, donde uses addHabilDaysFrom_(hoy0, N), cámbialo a baseFrom:
-
-  // EJEMPLO 1 (caso normal):
-  // opciones = addHabilDaysFrom_(hoy0, 3);
-  // => queda:
-  opciones = addHabilDaysFrom_(baseFrom, 3);
-
-  // EJEMPLO 2 (fallback cuando los 3 del mes siguiente ya pasaron):
-  // opciones = addHabilDaysFrom_(hoy0, 3);
-  // => queda:
-  opciones = addHabilDaysFrom_(baseFrom, 3);
+// (antes era: const hoy0 = startOfDay_(new Date());)
+const hoy0 = startOfDay_(baseDate);
 
   // ===== Determinar si aplica regla "fin >= 27" =====
   const finVal = String(document.getElementById('ic-fin')?.value || '').trim(); // dd/mm/aaaa
