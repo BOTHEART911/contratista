@@ -6114,12 +6114,15 @@ if(totInput) totInput.value = '';
   documento: currentUser.documento, 
   supervisor: currentUser.supervisor || '' 
 });
-  if (data.blocked && String(data.estado||'').toUpperCase() !== 'DEVUELTA'){
+  if (
+  data.blocked &&
+  !['INGRESADA','REVISADA POR SUPERVISOR'].includes(String(data.estado||'').toUpperCase())
+){
   await Swal.fire({
     icon:'info',
     title:'AÚN NO PUEDES CREAR BORRADOR',
-    text:'Tienes una cuenta pendiente por Terminar etapas del proceso',
-    timer:5000,
+    text:'Después de Aprobada por Contratación tu cuenta anterior,´podrás crear borradores',
+    timer:7000,
     showConfirmButton:false
   });
   showView('view-inicio');
