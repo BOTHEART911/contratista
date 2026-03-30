@@ -9001,9 +9001,22 @@ if(dFin){
 
 let opciones = [];
 
-if(applyNextMonthRule && dFin){
-  // Candidatas: primeros 3 días hábiles del mes siguiente al FIN
-  const nextMonthStart = new Date(dFin.getFullYear(), dFin.getMonth() + 1, 1);
+if(applyNextMonthRule){
+  // ✅ Base para “siguiente mes”:
+  // - Si FIN es válido y FIN>=27, usamos FIN.
+  // - Si la regla se activó por HOY>=27 (o FIN no es válido), usamos HOY.
+  let baseForNextMonth = hoy0;
+
+  if(dFin && dFin.getDate() >= 27){
+    baseForNextMonth = startOfDay_(dFin);
+  }
+
+  const nextMonthStart = new Date(
+    baseForNextMonth.getFullYear(),
+    baseForNextMonth.getMonth() + 1,
+    1
+  );
+
   const primeros3Next = addHabilDaysFrom_(nextMonthStart, 3);
 
   const allPast = primeros3Next.every(dt => startOfDay_(dt) < hoy0);
@@ -9014,13 +9027,10 @@ if(applyNextMonthRule && dFin){
       sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
     }
   }else{
-    // ✅ CAMBIO: aquí antes usabas addHabilDaysFrom_(hoy0, 3)
-    // ahora usas habilStart y 3 o 2 según la hora
     opciones = addHabilDaysFrom_(habilStart, after4pm ? 2 : 3);
     if(sub) sub.textContent = '';
   }
 }else{
-  // ✅ CAMBIO: aquí antes usabas addHabilDaysFrom_(hoy0, 3)
   opciones = addHabilDaysFrom_(habilStart, after4pm ? 2 : 3);
 }
 
