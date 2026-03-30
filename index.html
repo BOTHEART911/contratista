@@ -8985,11 +8985,18 @@ const habilStart = after4pm ? new Date(hoy0.getFullYear(), hoy0.getMonth(), hoy0
 // ===== Determinar si aplica regla "fin >= 27" =====
 const finVal = String(document.getElementById('ic-fin')?.value || '').trim(); // dd/mm/aaaa
 const dFin = parseDMY_(finVal);
+
+// ✅ NUEVO: también aplica si HOY es >= 27
+const todayDay = hoy0.getDate();
+
 let applyNextMonthRule = false;
 
 if(dFin){
   const finDay = dFin.getDate();
-  applyNextMonthRule = finDay >= 27;
+  applyNextMonthRule = (finDay >= 27) || (todayDay >= 27);
+}else{
+  // Si no hay fin válido, igual aplica por regla de "hoy >= 27"
+  applyNextMonthRule = (todayDay >= 27);
 }
 
 let opciones = [];
