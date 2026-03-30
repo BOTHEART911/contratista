@@ -7321,7 +7321,60 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     }
   }
   
-  // Validaciones mínimas
+  // ✅ Validación pedagógica: lista exactamente qué campos faltan (Ingreso y Corrección)
+  const REQUIRED_FIELDS = [
+    { id:'ic-inicio',       label:'Inicio de Periodo Relacionado' },
+    { id:'ic-fin',          label:'Fin de Periodo Relacionado' },
+    { id:'ic-radicado',     label:'Fecha de Radicación' },
+    { id:'ic-saldo',        label:'Saldo Actual' },
+    { id:'ic-cobro',        label:'Valor por Cobrar' },
+    { id:'ic-planilla',     label:'N° de Planilla' },
+    { id:'ic-mesPlanilla',  label:'Mes Relacionado en la Planilla' },
+    { id:'ic-base',         label:'Base de Cotización' },
+    { id:'ic-salud',        label:'Aportes a Salud' },
+    { id:'ic-fondo',        label:'Aportes a Pensión' },
+    { id:'ic-riesgos',      label:'Aportes a ARL' }
+  ];
+
+  const missing = [];
+  let firstMissingId = '';
+
+  for(const f of REQUIRED_FIELDS){
+    const el = document.getElementById(f.id);
+    const value = String(el?.value || '').trim();
+
+    // si el input está vacío, lo marcamos como faltante
+    if(!value){
+      missing.push(f.label);
+      if(!firstMissingId) firstMissingId = f.id;
+    }
+  }
+
+  if(missing.length){
+    await Swal.fire({
+      icon:'warning',
+      title:'Te faltan campos por diligenciar',
+      html: `
+        <div style="text-align:left; line-height:1.35;">
+          <b>Por favor completa los siguientes campos requeridos:</b>
+          <ul style="margin:10px 0 0; padding-left:18px;">
+            ${missing.map(x => `<li>${x}</li>`).join('')}
+          </ul>
+        </div>
+      `
+    });
+
+    // Enfoca el primer campo faltante para guiar al usuario
+    const first = document.getElementById(firstMissingId);
+    if(first){
+      try{ first.scrollIntoView({ behavior:'smooth', block:'center' }); }catch(_){}
+      try{ first.focus(); }catch(_){}
+    }
+
+    return;
+  }
+
+  // Mantengo tu objeto required por si lo usas después en cálculos
   const required = {
     inicio: document.getElementById('ic-inicio').value,
     fin: document.getElementById('ic-fin').value,
@@ -7335,9 +7388,6 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
     fondo: document.getElementById('ic-fondo').value,
     riesgos: document.getElementById('ic-riesgos').value
   };
-  if(Object.values(required).some(v=>!String(v||'').trim())){
-    Swal.fire({icon:'warning',title:'Faltan campos requeridos'}); return;
-  }
 
   
 
