@@ -1128,18 +1128,19 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
-      // Configuración obligatoria para subcarpetas en GitHub
-      path: "/contratista/",
       serviceWorkerPath: "sw.js",
       serviceWorkerParam: { scope: "/contratista/" },
-      // Esta línea es la que evita que OneSignal busque en la raíz del dominio
-      serviceWorkerRegistration: {
-        symbolicLink: false,
-        workerPath: "sw.js",
-        registrationOptions: { scope: "/contratista/" }
-      },
+      disableServiceWorkerDefaultRegistration: true,
       allowLocalhostAsSecureOrigin: true
     });
+
+    // Forzamos el registro del Service Worker en la ruta correcta
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/contratista/sw.js', { scope: '/contratista/' })
+        .then(function(reg) {
+          console.log("Service Worker registrado en subcarpeta correctamente.");
+        });
+    }
   });
 </script>
 </head>
