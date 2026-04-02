@@ -1124,15 +1124,16 @@
   </style>
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
-      serviceWorkerPath: "sw.js", // Usa tu archivo sw.js
-      serviceWorkerParam: { scope: "/contratista/" }, // Scope para GitHub Pages
-      allowLocalhostAsSecureOrigin: true
-    });
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+OneSignalDeferred.push(async function(OneSignal) {
+  await OneSignal.init({
+    appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
+    path: "/contratista/", // <--- ESTO ES LO QUE FALTA
+    serviceWorkerPath: "sw.js", 
+    serviceWorkerParam: { scope: "/contratista/" },
+    allowLocalhostAsSecureOrigin: true
   });
+});
 </script>
 </head>
 <body>
