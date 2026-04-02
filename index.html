@@ -1128,22 +1128,18 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
+      // Configuración obligatoria para subcarpetas en GitHub
       path: "/contratista/",
       serviceWorkerPath: "sw.js",
-      // Esta línea es la que detiene el intento de buscar en la raíz
       serviceWorkerParam: { scope: "/contratista/" },
-      allowLocalhostAsSecureOrigin: true,
-      // Desactiva el registro automático para que no busque el archivo que da 404
-      disableServiceWorkerDefaultRegistration: true 
+      // Esta línea es la que evita que OneSignal busque en la raíz del dominio
+      serviceWorkerRegistration: {
+        symbolicLink: false,
+        workerPath: "sw.js",
+        registrationOptions: { scope: "/contratista/" }
+      },
+      allowLocalhostAsSecureOrigin: true
     });
-
-    // Registramos tu sw.js manualmente para asegurar que OneSignal lo use
-    try {
-      await navigator.serviceWorker.register('/contratista/sw.js', { scope: '/contratista/' });
-      console.log("Service Worker de Contratista registrado correctamente.");
-    } catch (e) {
-      console.error("Fallo el registro manual:", e);
-    }
   });
 </script>
 </head>
