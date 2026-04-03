@@ -1128,8 +1128,7 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
-      label: "contratista", 
-      // ESTO ES LO MÁS IMPORTANTE:
+      label: "contratista",
       serviceWorkerPath: "sw.js", 
       serviceWorkerParam: { scope: "/contratista/" },
       allowLocalhostAsSecureOrigin: true
@@ -1250,9 +1249,11 @@
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
   <div id="onesignal-button-container" style="text-align: center; margin: 20px 0;">
   <p style="font-size: 0.9em; color: var(--primary); margin-bottom: 10px;">¿Deseas recibir alertas de tus contratos?</p>
-  <button onclick="suscribir()" style="background-color: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    🔔 Activar Notificaciones
-  </button>
+<button 
+  onclick="activarNotificaciones()" 
+  style="background-color: #06402B; color: white; padding: 15px; border: none; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 20px;">
+  🔔 ACTIVAR NOTIFICACIONES
+</button>
 </div>
       </div>
     
@@ -9533,13 +9534,12 @@ showView('view-inicio');
   }
 });
 
-function suscribir() {
+function activarNotificaciones() {
+  console.log("Intentando activar notificaciones...");
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
-    try {
-      await OneSignal.Notifications.requestPermission();
-    } catch (e) {
-      console.error("Error al pedir permiso:", e);
-    }
+    // Esta es la línea que abre la ventana emergente que ya te había funcionado
+    await OneSignal.registerForPushNotifications();
   });
 }
   
