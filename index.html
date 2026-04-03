@@ -1128,11 +1128,11 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
-      allowLocalhostAsSecureOrigin: true,
-
-      // IMPORTANTE para GitHub Pages subpath
+      label: "contratista", 
+      // ESTO ES LO MÁS IMPORTANTE:
+      serviceWorkerPath: "sw.js", 
       serviceWorkerParam: { scope: "/contratista/" },
-      serviceWorkerPath: "/contratista/sw.js"
+      allowLocalhostAsSecureOrigin: true
     });
   });
 </script>
