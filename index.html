@@ -1137,7 +1137,6 @@ OneSignalDeferred.push(async function(OneSignal) {
 
   window.__osReady = true;
 });
-  });
 </script>
 </head>
 <body>
@@ -4217,7 +4216,7 @@ document.getElementById('btn-logout').addEventListener('click', ()=>{
 const overlay = document.getElementById('overlay');
 document.getElementById('btn-open-menu').addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.menu);
-  // ✅ Suscripción silenciosa (solo si no está suscrito)
+
   subscribeOneSignalSilently();
   overlay.classList.add('open');
 });
@@ -9648,6 +9647,27 @@ async function osMaybeShowPromptOnInicio_(){
       }
     }
   }catch(_){}
+}
+
+  async function subscribeOneSignalSilently(){
+  try{
+    if(!window.__osReady || !window.OneSignal) return;
+
+    // 1) Si ya está suscrito, no hacer nada
+    const subscribed = await OneSignal.User.PushSubscription.optedIn;
+    if(subscribed) return;
+
+    // 2) Si el permiso del navegador está negado, no intentes resuscribir
+    // (esto evita loops)
+    const perm = Notification.permission; // 'default' | 'granted' | 'denied'
+    if(perm === 'denied') return;
+
+    // 3) Si está en default, el navegador probablemente mostrará prompt (no hay forma “silenciosa”)
+    // Si está granted, sí queda silencioso.
+    await OneSignal.User.PushSubscription.optIn();
+  }catch(e){
+    // opcional: console.warn(e);
+  }
 }
   
 /* ================== FIN ================== */
