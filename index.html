@@ -1134,36 +1134,6 @@
     });
   });
 </script>
-  <script>
-  async function subscribeOneSignalSilently() {
-    try {
-      if (!window.OneSignalDeferred) return;
-
-      OneSignalDeferred.push(async function(OneSignal) {
-        // 1) Si ya tiene permiso concedido, solo asegúrate de estar opt-in
-        const permission = await OneSignal.Notifications.permission; // "granted" | "denied" | "default"
-
-        // Si ya está suscrito/opted-in, NO re-suscribas
-        const optedIn = await OneSignal.User.PushSubscription.optedIn;
-        if (optedIn) return;
-
-        // 2) Si no ha dado permiso (default), pide permiso y suscribe
-        // (esto puede mostrar el prompt del navegador, inevitable)
-        if (permission === "default") {
-          await OneSignal.Notifications.requestPermission();
-        }
-
-        // 3) Si concedió, suscribe (opt-in). Si denegó, no hacemos nada.
-        const permissionAfter = await OneSignal.Notifications.permission;
-        if (permissionAfter === "granted") {
-          await OneSignal.User.PushSubscription.optIn();
-        }
-      });
-    } catch (_) {
-      // Silencioso: no mostramos nada
-    }
-  }
-</script>
 </head>
 <body>
   <!-- Loader -->
@@ -1277,9 +1247,17 @@
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
 
+        <div id="onesignal-container" style="text-align: center; padding: 15px; background: #f9f9f9; border-radius: 10px; margin: 10px;">
+  <p style="font-size: 14px; color: var(--primary); margin-bottom: 8px; font-weight: 500;">
+    🔔 ¿Quieres recibir alertas de tus contratos?
+  </p>
+  <button onclick="activarNotificaciones()" style="background-color: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    Activar Notificaciones
+  </button>
+</div>
+
       </div>
     
-
       <div id="guiaInicioFloat" class="guia-float" aria-hidden="true">
   <img
     id="guiaInicioFloatImg"
@@ -4231,8 +4209,6 @@ document.getElementById('btn-logout').addEventListener('click', ()=>{
 const overlay = document.getElementById('overlay');
 document.getElementById('btn-open-menu').addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.menu);
-   // ✅ Suscripción silenciosa (solo si no está suscrito)
-  subscribeOneSignalSilently();
   overlay.classList.add('open');
 });
 document.getElementById('btn-ovl-back').addEventListener('click', ()=>{
