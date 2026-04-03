@@ -9533,12 +9533,13 @@ showView('view-inicio');
   }
 });
 
-function activarNotificaciones() {
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
+function suscribir() {
   OneSignalDeferred.push(async function(OneSignal) {
-    console.log("Solicitando permiso de notificación...");
-    // Al usar Label, esto abre la ventana emergente correctamente
-    await OneSignal.Notifications.requestPermission();
+    try {
+      await OneSignal.Notifications.requestPermission();
+    } catch (e) {
+      console.error("Error al pedir permiso:", e);
+    }
   });
 }
   
