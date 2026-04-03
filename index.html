@@ -1124,19 +1124,45 @@
   </style>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-window.__osReady = false;
-
-window.OneSignalDeferred = window.OneSignalDeferred || [];
-OneSignalDeferred.push(async function(OneSignal) {
-  await OneSignal.init({
-    appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
-    serviceWorkerPath: "sw.js",
-    serviceWorkerParam: { scope: "/contratista/" },
-    allowLocalhostAsSecureOrigin: true
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
+      serviceWorkerPath: "sw.js", // Usa tu archivo sw.js
+      serviceWorkerParam: { scope: "/contratista/" }, // Scope para GitHub Pages
+      allowLocalhostAsSecureOrigin: true
+    });
   });
+</script>
+  <script>
+  async function subscribeOneSignalSilently() {
+    try {
+      if (!window.OneSignalDeferred) return;
 
-  window.__osReady = true;
-});
+      OneSignalDeferred.push(async function(OneSignal) {
+        // 1) Si ya tiene permiso concedido, solo asegúrate de estar opt-in
+        const permission = await OneSignal.Notifications.permission; // "granted" | "denied" | "default"
+
+        // Si ya está suscrito/opted-in, NO re-suscribas
+        const optedIn = await OneSignal.User.PushSubscription.optedIn;
+        if (optedIn) return;
+
+        // 2) Si no ha dado permiso (default), pide permiso y suscribe
+        // (esto puede mostrar el prompt del navegador, inevitable)
+        if (permission === "default") {
+          await OneSignal.Notifications.requestPermission();
+        }
+
+        // 3) Si concedió, suscribe (opt-in). Si denegó, no hacemos nada.
+        const permissionAfter = await OneSignal.Notifications.permission;
+        if (permissionAfter === "granted") {
+          await OneSignal.User.PushSubscription.optIn();
+        }
+      });
+    } catch (_) {
+      // Silencioso: no mostramos nada
+    }
+  }
 </script>
 </head>
 <body>
@@ -3497,19 +3523,9 @@ function resetVistas(){
   const wrap = document.getElementById('feed-list'); if(wrap) wrap.innerHTML='';
 }
 function showView(id){
-  for (const el of document.querySelectorAll('.view')) el.classList.remove('active');
+  for(const el of document.querySelectorAll('.view')) el.classList.remove('active');
   document.getElementById(id)?.classList.add('active');
-
-  // Si el overlay estaba abierto, lo cerramos
-  const wasOpen = overlay.classList.contains('open');
   overlay.classList.remove('open');
-
-  // ✅ Suscripción silenciosa a OneSignal al tocar "MENÚ"
-  // (solo cuando esta navegación proviene de abrir el menú, no en cualquier cambio de vista)
-  if (wasOpen && typeof subscribeOneSignalSilently === 'function') {
-    subscribeOneSignalSilently();
-  }
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
   resetVistas();
 }
@@ -4145,7 +4161,6 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     // Cerrar overlay al final (justo antes de mostrar INICIO)
     hideConnectingLoginLoader_();
     showView('view-inicio');
-    setTimeout(()=>{ osMaybeShowPromptOnInicio_(); }, 700);
 
   }catch(e){
     hideConnectingLoginLoader_();
@@ -4216,7 +4231,7 @@ document.getElementById('btn-logout').addEventListener('click', ()=>{
 const overlay = document.getElementById('overlay');
 document.getElementById('btn-open-menu').addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.menu);
-
+   // ✅ Suscripción silenciosa (solo si no está suscrito)
   subscribeOneSignalSilently();
   overlay.classList.add('open');
 });
@@ -9551,123 +9566,6 @@ function activarNotificaciones() {
       console.error("Error al solicitar permiso:", e);
     }
   });
-}
-
-  const OS_PROMPT_SESSION_KEY = 'onesignalPromptShown@session';
-
-async function osIsSubscribed_(){
-  try{
-    if(!window.__osReady) return false;
-
-    const isPushSupported = await OneSignal.isPushNotificationsSupported();
-    if(!isPushSupported) return false;
-
-    // OneSignal v16: "permission" y "subscription" pueden variar por navegador,
-    // pero esto funciona como regla práctica:
-    const perm = await OneSignal.Notifications.permission; // 'granted'|'denied'|'default'
-    if(perm !== 'granted') return false;
-
-    // Si ya hay permiso, verificamos si está realmente suscrito:
-    const optedIn = await OneSignal.User.PushSubscription.optedIn; // boolean
-    return !!optedIn;
-  }catch(_){
-    return false;
-  }
-}
-
-async function osSubscribeFromUserGesture_(){
-  // Debe ejecutarse desde un click / confirm del usuario
-  try{
-    if(!window.__osReady) return { ok:false, reason:'not_ready' };
-
-    const isPushSupported = await OneSignal.isPushNotificationsSupported();
-    if(!isPushSupported) return { ok:false, reason:'not_supported' };
-
-    // Si ya está suscrito, no hacemos nada:
-    const already = await osIsSubscribed_();
-    if(already) return { ok:true, already:true };
-
-    // Esto puede disparar el prompt del navegador (no es silencioso)
-    await OneSignal.Notifications.requestPermission();
-
-    // Luego de permiso, “opt-in”
-    await OneSignal.User.PushSubscription.optIn();
-
-    return { ok:true, already:false };
-  }catch(e){
-    return { ok:false, reason: String(e?.message || e) };
-  }
-}
-
-async function osMaybeShowPromptOnInicio_(){
-  try{
-    // Evita spamear el aviso
-    if(sessionStorage.getItem(OS_PROMPT_SESSION_KEY) === '1') return;
-
-    // Asegura que OneSignal esté listo (espera un poco si hace falta)
-    if(!window.__osReady){
-      // pequeño delay para dar tiempo al init
-      await new Promise(r => setTimeout(r, 800));
-    }
-    if(!window.__osReady) return;
-
-    const subscribed = await osIsSubscribed_();
-
-    if(!subscribed){
-      sessionStorage.setItem(OS_PROMPT_SESSION_KEY, '1');
-
-      const res = await Swal.fire({
-        icon: 'info',
-        title: 'Activa notificaciones',
-        html: 'Para recibir alertas importantes de tus contratos, permite las notificaciones.',
-        showCancelButton: true,
-        confirmButtonText: 'Activar',
-        cancelButtonText: 'Ahora no',
-        allowOutsideClick: true
-      });
-
-      if(res.isConfirmed){
-        const r = await osSubscribeFromUserGesture_();
-
-        if(r.ok){
-          await Swal.fire({
-            icon: 'success',
-            title: 'Listo',
-            text: r.already ? 'Ya estabas suscrito.' : 'Notificaciones activadas.',
-            timer: 2200,
-            showConfirmButton: false
-          });
-        }else{
-          await Swal.fire({
-            icon: 'warning',
-            title: 'No se pudo activar',
-            text: 'Si bloqueaste notificaciones, actívalas en ajustes del navegador/app.',
-          });
-        }
-      }
-    }
-  }catch(_){}
-}
-
-  async function subscribeOneSignalSilently(){
-  try{
-    if(!window.__osReady || !window.OneSignal) return;
-
-    // 1) Si ya está suscrito, no hacer nada
-    const subscribed = await OneSignal.User.PushSubscription.optedIn;
-    if(subscribed) return;
-
-    // 2) Si el permiso del navegador está negado, no intentes resuscribir
-    // (esto evita loops)
-    const perm = Notification.permission; // 'default' | 'granted' | 'denied'
-    if(perm === 'denied') return;
-
-    // 3) Si está en default, el navegador probablemente mostrará prompt (no hay forma “silenciosa”)
-    // Si está granted, sí queda silencioso.
-    await OneSignal.User.PushSubscription.optIn();
-  }catch(e){
-    // opcional: console.warn(e);
-  }
 }
   
 /* ================== FIN ================== */
