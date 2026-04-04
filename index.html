@@ -1121,71 +1121,6 @@
   animation: heartbeat 1.2s infinite;
   transform-origin: center;
 }
-    /* ================== MODAL VALIDACIÓN HUMANA (LOGIN) ================== */
-.human-modal{
-  position: fixed;
-  inset: 0;
-  z-index: 10010;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(0,0,0,.72);
-  backdrop-filter: blur(2px);
-}
-
-.human-modal[aria-hidden="false"]{
-  display: flex;
-}
-
-.human-card{
-  width: min(560px, 94vw);
-  background: rgba(255,255,255,.96);
-  border: 2px solid #e5e7eb;
-  border-radius: 18px;
-  box-shadow: 0 18px 44px rgba(0,0,0,.35);
-  overflow: hidden;
-}
-
-.human-head{
-  background: rgba(6,64,43,.94);
-  color: #fff;
-  padding: 14px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 1000;
-  letter-spacing: .3px;
-}
-
-.human-body{
-  padding: 14px;
-  text-align: center;
-}
-
-.human-body p{
-  margin: 0 0 12px;
-  font-weight: 800;
-  color: #111;
-}
-
-.human-btn{
-  width: 100%;
-  border-radius: 999px;
-  padding: 14px 16px;
-  border: 0;
-  background: #06402B;
-  color: #fff;
-  font-weight: 1000;
-  cursor: pointer;
-  box-shadow: 0 10px 22px rgba(0,0,0,.22);
-}
-
-.human-btn:disabled{
-  opacity: .75;
-  cursor: not-allowed;
-}
-    
   </style>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -1210,8 +1145,8 @@
         if (isOptedIn) {
           await Swal.fire({
             icon: 'success',
-            title: 'Validación exitosa',
-            text: 'Ya estás validado(a).'
+            title: 'Notificaciones activas',
+            text: 'Ya estás suscrito(a).'
           });
           return;
         }
@@ -1234,8 +1169,8 @@
         if (optedAfter) {
           await Swal.fire({
             icon: 'success',
-            title: 'Validación exitosa',
-            text: 'Validación completada.'
+            title: '¡Listo!',
+            text: 'Te suscribiste correctamente.'
           });
         } else if (!opened) {
           await Swal.fire({
@@ -1250,18 +1185,6 @@
       Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo activar notificaciones.' });
     }
   }
-
-    function openHumanModal(){
-  const m = document.getElementById('humanModal');
-  if(!m) return;
-  m.setAttribute('aria-hidden','false');
-}
-
-function closeHumanModal(){
-  const m = document.getElementById('humanModal');
-  if(!m) return;
-  m.setAttribute('aria-hidden','true');
-}
 </script>
 </head>
 <body>
@@ -1272,22 +1195,6 @@ function closeHumanModal(){
       <i></i><i></i><i></i><i></i><i></i><i></i>
     </div>
   </div>
-
-  <!-- MODAL VALIDACIÓN HUMANA (sobre login) -->
-<div id="humanModal" class="human-modal" aria-hidden="true">
-  <div class="human-card" role="dialog" aria-modal="true" aria-label="Validación humana">
-    <div class="human-head">VALIDACIÓN HUMANA</div>
-    <div class="human-body">
-      <p>Para continuar, toca el botón y confirma la validación.</p>
-      <button id="humanValidateBtn" class="human-btn" type="button">
-        Validación Humana
-      </button>
-      <div id="humanHint" class="muted" style="margin-top:10px; font-weight:800; display:none;">
-        Procesando…
-      </div>
-    </div>
-  </div>
-</div>
 
     <!-- Loader OVERLAY de inicio de sesión (no se reinicia por llamadas múltiples) -->
   <div id="boot-overlay" class="loader hidden" aria-hidden="true" style="z-index:10002;">
@@ -1370,6 +1277,15 @@ function closeHumanModal(){
     <span id="notif-count" class="notif-count">0</span>
     <span id="notif-label" class="notif-label">Ver Noticias</span>
   </div>
+</div>
+
+        <div id="onesignal-container" style="text-align: center; padding: 15px; background: #f9f9f9; border-radius: 10px; margin: 10px;">
+  <p style="font-size: 14px; color: var(--primary); margin-bottom: 8px; font-weight: 500;">
+    🔔 ¿Quieres recibir alertas de tus contratos?
+  </p>
+  <button onclick="activarNotificaciones()" style="background-color: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    Activar Notificaciones
+  </button>
 </div>
 
         <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
@@ -3225,28 +3141,6 @@ return { title: t || 'GUÍA', label: 'GUÍA', html };
   document.addEventListener('DOMContentLoaded', ()=>{ showFloat_(); });
 })();
 
-  document.addEventListener('DOMContentLoaded', ()=>{
-  const btn = document.getElementById('humanValidateBtn');
-  const hint = document.getElementById('humanHint');
-  if(!btn) return;
-
-  btn.addEventListener('click', async ()=>{
-    try{
-      btn.disabled = true;
-      if(hint) hint.style.display = 'block';
-
-      // Ejecuta tu flujo OneSignal
-      await activarNotificaciones({ forcePrompt: true });
-
-      // Cierra el modal (tu objetivo principal)
-      closeHumanModal();
-    }finally{
-      btn.disabled = false;
-      if(hint) hint.style.display = 'none';
-    }
-  });
-});
-
   /* ================== IMÁGENES (preview y compresión) ================== */
 const MAX_IMAGE_MB = 5;
 const MAX_IMG_DIM  = 1600;   // px lado mayor para evidencias/firmas
@@ -3665,13 +3559,6 @@ function showView(id){
   overlay.classList.remove('open');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   resetVistas();
-
-  // ✅ Modal estratégico: solo se fuerza en LOGIN
-  if(id === 'view-login'){
-    openHumanModal();
-  }else{
-    closeHumanModal();
-  }
 }
 
 /* ================== INPUT SANITIZERS ================== */
@@ -4713,8 +4600,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   label.setAttribute('aria-label','Abrir comunicados');
   label.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openList(); } });
 });
-
-  
 
   /* ================== TUTORIALES DE USO ================== */
 
