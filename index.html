@@ -1134,78 +1134,6 @@
     });
   });
 </script>
-  <script>
-  // ---- OneSignal helpers (v16) ----
-
-  // 1) Botón: lo dejas tal cual en tu HTML: onclick="activarNotificaciones()"
-  async function activarNotificaciones() {
-    try {
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        // Abre el prompt tipo "Later / Subscribe" (como tu imagen)
-        // IMPORTANTE: el nombre exacto puede variar según configuración, pero este es el patrón recomendado.
-        if (OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === "function") {
-          await OneSignal.Slidedown.promptPush();
-          return;
-        }
-
-        // Fallback (si no existiera Slidedown por alguna razón)
-        if (OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === "function") {
-          await OneSignal.Notifications.requestPermission();
-          return;
-        }
-
-        console.warn("OneSignal: no se encontró método para solicitar permisos.");
-      });
-    } catch (e) {
-      console.warn("activarNotificaciones error:", e);
-    }
-  }
-
-  // 2) Detectar si ya está suscrito y forzar prompt SOLO si NO lo está
-  async function ensureOneSignalSubscribedOncePerSession() {
-    try {
-      // Para no molestar: solo 1 vez por sesión
-      const key = "os_prompt_shown_session_v1";
-      if (sessionStorage.getItem(key) === "1") return;
-
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-
-        // Detecta estado actual
-        // En v16 la forma más estable es consultar el permiso y/o el "opted in"
-        const perm = OneSignal.Notifications?.permission; // "default" | "granted" | "denied"
-        const optedIn = await (OneSignal.User?.PushSubscription?.optedIn ?? Promise.resolve(false));
-
-        // Si ya está suscrito o ya dio permiso, no mostrar nada
-        if (optedIn || perm === "granted") {
-          sessionStorage.setItem(key, "1");
-          return;
-        }
-
-        // Si está denegado, NO puedes forzar prompt (el navegador lo bloquea).
-        // En ese caso solo muestra un aviso tuyo con instrucciones para habilitar en ajustes.
-        if (perm === "denied") {
-          sessionStorage.setItem(key, "1");
-          // opcional: mostrar SweetAlert explicando cómo habilitar
-          // Swal.fire({icon:'info', title:'Notificaciones bloqueadas', text:'Actívalas en Configuración del navegador.'});
-          return;
-        }
-
-        // Permiso "default" (aún no decide) y NO suscrito => mostrar el prompt nativo
-        sessionStorage.setItem(key, "1");
-        if (OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === "function") {
-          await OneSignal.Slidedown.promptPush();
-        } else if (OneSignal.Notifications && typeof OneSignal.Notifications.requestPermission === "function") {
-          await OneSignal.Notifications.requestPermission();
-        }
-      });
-
-    } catch (e) {
-      console.warn("ensureOneSignalSubscribedOncePerSession error:", e);
-    }
-  }
-</script>
 </head>
 <body>
   <!-- Loader -->
@@ -1318,8 +1246,7 @@
 
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
-
-        <div id="onesignal-container" style="text-align: center; padding: 15px; background: #f9f9f9; border-radius: 10px; margin: 10px;">
+<div id="onesignal-container" style="text-align: center; padding: 15px; background: #f9f9f9; border-radius: 10px; margin: 10px;">
   <p style="font-size: 14px; color: var(--primary); margin-bottom: 8px; font-weight: 500;">
     🔔 ¿Quieres recibir alertas de tus contratos?
   </p>
@@ -1327,9 +1254,9 @@
     Activar Notificaciones
   </button>
 </div>
-
       </div>
     
+
       <div id="guiaInicioFloat" class="guia-float" aria-hidden="true">
   <img
     id="guiaInicioFloatImg"
@@ -4212,9 +4139,19 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     hideConnectingLoginLoader_();
     showView('view-inicio');
 
-  setTimeout(()=> {
-  ensureOneSignalSubscribedOncePerSession();
-}, 800);
+  // ... justo antes de showView('view-inicio');
+OneSignalDeferred.push(async function(OneSignal){
+  try{
+    const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+    if(!isOptedIn){
+      // Forzamos el prompt una sola vez por sesión
+      if(sessionStorage.getItem('os_prompted') !== '1'){
+        sessionStorage.setItem('os_prompted','1');
+        activarNotificaciones({ forcePrompt:true });
+      }
+    }
+  }catch(_){}
+});
 
   }catch(e){
     hideConnectingLoginLoader_();
