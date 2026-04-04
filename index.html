@@ -4191,20 +4191,6 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     hideConnectingLoginLoader_();
     showView('view-inicio');
 
-  // ... justo antes de showView('view-inicio');
-OneSignalDeferred.push(async function(OneSignal){
-  try{
-    const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-    if(!isOptedIn){
-      // Forzamos el prompt una sola vez por sesión
-      if(sessionStorage.getItem('os_prompted') !== '1'){
-        sessionStorage.setItem('os_prompted','1');
-        activarNotificaciones({ forcePrompt:true });
-      }
-    }
-  }catch(_){}
-});
-
   }catch(e){
     hideConnectingLoginLoader_();
     Swal.fire({ icon:'error', title:'Error', text:e.message });
@@ -9599,15 +9585,6 @@ showView('view-inicio');
   }
 });
 
-function activarNotificaciones() {
-  OneSignalDeferred.push(async function(OneSignal) {
-    try {
-      await OneSignal.Notifications.requestPermission();
-    } catch (e) {
-      console.error("Error al solicitar permiso:", e);
-    }
-  });
-}
   
 /* ================== FIN ================== */
 </script>
