@@ -1134,6 +1134,58 @@
     });
   });
 </script>
+  <script>
+  async function activarNotificaciones({ forcePrompt = true } = {}) {
+    try {
+      // Espera a que OneSignal esté listo
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        // Si ya está suscrito, no hacemos nada
+        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+        if (isOptedIn) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Notificaciones activas',
+            text: 'Ya estás suscrito(a).'
+          });
+          return;
+        }
+
+        // Esto abre el prompt nativo (el que ves en tu imagen)
+        // En OneSignal v16 suele funcionar con Slidedown o con optIn directo.
+        // Intento 1: Slidedown (lo más parecido a tu screenshot)
+        let opened = false;
+
+        if (forcePrompt && OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === 'function') {
+          opened = true;
+          await OneSignal.Slidedown.promptPush();
+        } else {
+          // Intento 2: opt-in directo (si el slidedown no está disponible)
+          await OneSignal.User.PushSubscription.optIn();
+        }
+
+        // Re-verifica
+        const optedAfter = await OneSignal.User.PushSubscription.optedIn;
+        if (optedAfter) {
+          await Swal.fire({
+            icon: 'success',
+            title: '¡Listo!',
+            text: 'Te suscribiste correctamente.'
+          });
+        } else if (!opened) {
+          await Swal.fire({
+            icon: 'info',
+            title: 'No se pudo suscribir',
+            text: 'El navegador no mostró el aviso. Intenta de nuevo.'
+          });
+        }
+      });
+    } catch (e) {
+      console.warn('activarNotificaciones error:', e);
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo activar notificaciones.' });
+    }
+  }
+</script>
 </head>
 <body>
   <!-- Loader -->
