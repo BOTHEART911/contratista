@@ -1258,6 +1258,16 @@
       <div class="card narrow">
         <div class="btn-row" style="margin-bottom:12px;">
           <button class="chip danger" id="btn-logout">Cerrar Sesión</button>
+
+          <div id="onesignal-container" style="text-align: center; padding: 15px; background: #f9f9f9; border-radius: 10px; margin: 10px;">
+  <p style="font-size: 14px; color: var(--primary); margin-bottom: 8px; font-weight: 500;">
+    🔔 ¿Quieres recibir información contractual en tiempo real? 🔔
+  </p>
+  <button onclick="activarNotificaciones()" style="background-color: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    Activar Notificaciones
+  </button>
+</div>
+          
           <button class="chip" id="btn-open-menu">MENÚ</button>
         </div>
 
@@ -1279,14 +1289,6 @@
   </div>
 </div>
 
-        <div id="onesignal-container" style="text-align: center; padding: 15px; background: #f9f9f9; border-radius: 10px; margin: 10px;">
-  <p style="font-size: 14px; color: var(--primary); margin-bottom: 8px; font-weight: 500;">
-    🔔 ¿Quieres recibir alertas de tus contratos?
-  </p>
-  <button onclick="activarNotificaciones()" style="background-color: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    Activar Notificaciones
-  </button>
-</div>
 
         <h2 id="inicio-nombre" style="color:var(--primary); font-weight:900; margin-top:6px;"></h2>
         <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:300;"></p>
