@@ -1128,21 +1128,33 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "0cfb15aa-0a43-4fb9-8198-3bcc9edfe8a8",
-      serviceWorkerPath: "sw.js", // Usa tu archivo sw.js
-      serviceWorkerParam: { scope: "/contratista/" }, // Scope para GitHub Pages
+      serviceWorkerPath: "sw.js",
+      serviceWorkerParam: { scope: "/contratista/" },
       allowLocalhostAsSecureOrigin: true
     });
+
+    // ✅ AJUSTE 2: refresca/rehidrata el estado local de push
+    try {
+      if (OneSignal?.User?.PushSubscription?.refresh) {
+        await OneSignal.User.PushSubscription.refresh();
+      }
+    } catch (e) {
+      console.warn('PushSubscription.refresh() failed:', e);
+    }
   });
 </script>
-  <script>
+ <script>
   async function activarNotificaciones({ forcePrompt = true } = {}) {
     try {
-      // Espera a que OneSignal esté listo
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
-        // Si ya está suscrito, no hacemos nada
-        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-        if (isOptedIn) {
+
+        // 1) CONSULTA REAL (SDK): ¿está opted-in de verdad?
+        // Nota: en tu código estabas usando "await OneSignal.User.PushSubscription.optedIn"
+        // pero normalmente optedIn es boolean (no promesa). Aquí lo leemos robusto.
+        const isOptedInNow = !!OneSignal?.User?.PushSubscription?.optedIn;
+
+        if (isOptedInNow) {
           await Swal.fire({
             icon: 'success',
             title: 'Notificaciones activas',
@@ -1151,32 +1163,27 @@
           return;
         }
 
-        // Esto abre el prompt nativo (el que ves en tu imagen)
-        // En OneSignal v16 suele funcionar con Slidedown o con optIn directo.
-        // Intento 1: Slidedown (lo más parecido a tu screenshot)
-        let opened = false;
-
+        // 2) Si NO está opted-in, intenta mostrar el prompt / suscribir
         if (forcePrompt && OneSignal.Slidedown && typeof OneSignal.Slidedown.promptPush === 'function') {
-          opened = true;
           await OneSignal.Slidedown.promptPush();
         } else {
-          // Intento 2: opt-in directo (si el slidedown no está disponible)
           await OneSignal.User.PushSubscription.optIn();
         }
 
-        // Re-verifica
-        const optedAfter = await OneSignal.User.PushSubscription.optedIn;
+        // 3) Re-validar estado después del intento
+        const optedAfter = !!OneSignal?.User?.PushSubscription?.optedIn;
+
         if (optedAfter) {
           await Swal.fire({
             icon: 'success',
             title: '¡Listo!',
             text: 'Te suscribiste correctamente.'
           });
-        } else if (!opened) {
+        } else {
           await Swal.fire({
             icon: 'info',
             title: 'No se pudo suscribir',
-            text: 'El navegador no mostró el aviso. Intenta de nuevo.'
+            text: 'El navegador no mostró el aviso o lo bloqueó. Intenta de nuevo.'
           });
         }
       });
