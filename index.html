@@ -1248,6 +1248,12 @@
           <button class="btn-primary" id="btn-login">Iniciar Sesión</button>
         </div>
 
+        <button id="btn-compartir" class="btn-with-icon">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766267125/compartir_szoxv7.webp" alt="" aria-hidden="true">
+            <span>Instala la App en tu móvil 📲</span>
+          </button>
+        </div>
+
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
       </div>
@@ -4200,6 +4206,100 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
     Swal.fire({ icon:'error', title:'Error', text:e.message });
   }
 });
+
+// COMPARTIR PORTAL (con menú + sonidos)
+document.getElementById('btn-compartir')?.addEventListener('click', ()=>{
+
+  // Sonido al abrir el menú de compartir
+  try{ playSoundOnce(SOUNDS.success); }catch(_){}
+
+  Swal.fire({
+    icon: 'success',
+    title: 'COMPARTE LA APP PARA INSTALAR',
+    text: 'Selecciona una opción',
+    showConfirmButton: false,
+    showCancelButton: false,
+    footer: `
+      <div style="display:flex; justify-content:center; gap:14px; align-items:center; width:100%;">
+        
+        <button id="share-wa" class="swal2-confirm swal2-styled"
+          style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:54px; padding:0; margin:0;">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1759166341/WhatsApp_mljaqm.webp"
+               alt="WhatsApp" style="width:32px; height:32px; object-fit:contain;">
+        </button>
+
+        <button id="share-qr" class="swal2-confirm swal2-styled"
+          style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:54px; padding:0; margin:0; background:#10b981; border-color:#10b981;">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1769201714/QR_v8d70l.jpg"
+               alt="QR" style="width:32px; height:32px; object-fit:contain;">
+        </button>
+
+        <button id="share-close" class="swal2-cancel swal2-styled"
+          style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:54px; padding:0; margin:0;">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1769201713/cerrar_dob9nv.png"
+               alt="Cerrar" style="width:28px; height:28px; object-fit:contain;">
+        </button>
+
+      </div>
+    `
+  });
+
+  setTimeout(()=>{
+
+    const btnWA = document.getElementById('share-wa');
+    const btnQR = document.getElementById('share-qr');
+    const btnClose = document.getElementById('share-close');
+
+    // 1) WhatsApp
+    if (btnWA){
+      btnWA.addEventListener('click', async ()=>{
+        try{ playSoundOnce(SOUNDS.login); }catch(_){}
+
+        const url = "https://tinyurl.com/GDF-CONTRATISTA-APP";
+        const txt = "Instala la *App Contratista* 📲\n" + url;
+
+        try{
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            await navigator.clipboard.writeText(txt);
+          }
+        }catch(_){}
+
+        const enc = encodeURIComponent(txt);
+        const esMovil = /android|iphone|ipad|mobile/i.test(navigator.userAgent);
+        window.open((esMovil ? "whatsapp://send?text=" : "https://api.whatsapp.com/send?text=") + enc, "_blank");
+      });
+    }
+
+    // 2) QR
+    if (btnQR){
+      btnQR.addEventListener('click', async ()=>{
+        try{ playSoundOnce(SOUNDS.success); }catch(_){}
+
+        await Swal.fire({
+          icon: 'success',
+          title: 'ESCANEA EL QR PARA INSTALAR',
+          imageUrl: 'https://res.cloudinary.com/dqqeavica/image/upload/v1775413403/Contratista_2_xi2jzj.png',
+          imageAlt: 'QR para instalar',
+          confirmButtonText: 'Cerrar'
+        });
+
+        // Sonido "atrás" al volver a login
+        try{ playSoundOnce(SOUNDS.back); }catch(_){}
+        showView('view-login');
+      });
+    }
+
+    // 3) Cerrar alerta
+    if (btnClose){
+      btnClose.addEventListener('click', ()=>{
+        try{ playSoundOnce(SOUNDS.back); }catch(_){}
+        Swal.close();
+      });
+    }
+
+  }, 50);
+});
+  
 // Botón COMUNICADOS (sin recarga innecesaria)
 document.getElementById('go-comunicados')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.login);
