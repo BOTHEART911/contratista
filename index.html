@@ -1083,6 +1083,18 @@ button:active{
   background:rgba(var(--primary-rgb),.08) !important;
   color:var(--primary) !important;
 }
+
+    /* ── FIX: labels de color primario (no blanco) ── */
+label {
+  color: var(--primary);
+}
+    input, select, textarea {
+  color: #111;
+}
+input::placeholder, textarea::placeholder {
+  color: #888;
+}
+    
   </style>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
