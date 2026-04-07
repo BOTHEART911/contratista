@@ -9130,12 +9130,14 @@ if(applyNextMonthRule){
     1
   );
 
-  const primeros3Next = addHabilDaysFrom_(nextMonthStart, 3);
+// Obtener más candidatos para tener buffer después del filtro por habilStart
+  const candidatosNextMonth = addHabilDaysFrom_(nextMonthStart, 5);
 
-  const allPast = primeros3Next.every(dt => startOfDay_(dt) < hoy0);
+  // ✅ FIX: Filtrar respetando habilStart (que ya contempla la regla de >= 16:30)
+  const opcionesNextFiltradas = candidatosNextMonth.filter(dt => startOfDay_(dt) >= habilStart);
 
-  if(!allPast){
-    opciones = primeros3Next;
+  if(opcionesNextFiltradas.length > 0){
+    opciones = opcionesNextFiltradas.slice(0, after4pm ? 2 : 3);
     if(sub){
       sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
     }
