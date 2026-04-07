@@ -5546,7 +5546,58 @@ function spInitSimplePicker(dSelId,mSelId,aSelId){
 
 // Inicializar pickers de solicitud prensa
 spInitSimplePicker('spEvtDia','spEvtMes','spEvtAnio');
-spInitSimplePicker('spPubDia','spPubMes','spPubAnio');
+// Publicación: picker con mínimo = hoy + 3 días
+function spInitPubPicker() {
+  const dSel = document.getElementById('spPubDia');
+  const mSel = document.getElementById('spPubMes');
+
+  const minDate  = new Date();
+  minDate.setDate(minDate.getDate() + 3);
+  const minDay   = minDate.getDate();
+  const minMonth = minDate.getMonth() + 1; // 1-based
+
+  const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  // Año (fijo, ya lo carga spInitSimplePicker)
+  const aSel = document.getElementById('spPubAnio');
+  if (aSel && !aSel.childElementCount) {
+    const opt = document.createElement('option');
+    opt.value = '2026'; opt.textContent = '2026'; opt.selected = true;
+    aSel.appendChild(opt);
+  }
+
+  function refreshDias(mesSeleccionado) {
+    if (!dSel) return;
+    const diaActual = parseInt(dSel.value) || 0;
+    dSel.innerHTML = '';
+    const desde = (mesSeleccionado === minMonth) ? minDay : 1;
+    for (let d = desde; d <= 31; d++) {
+      const opt = document.createElement('option');
+      opt.value = spPad2(d);
+      opt.textContent = opt.value;
+      if (d === Math.max(diaActual, desde)) opt.selected = true;
+      dSel.appendChild(opt);
+    }
+  }
+
+  // Poblar meses desde el mes mínimo
+  if (mSel) {
+    mSel.innerHTML = '';
+    for (let i = minMonth - 1; i < 12; i++) {
+      const opt = document.createElement('option');
+      opt.value = spPad2(i + 1);
+      opt.textContent = mesesNombres[i];
+      mSel.appendChild(opt);
+    }
+    mSel.value = spPad2(minMonth);
+    refreshDias(minMonth);
+
+    mSel.addEventListener('change', () => {
+      refreshDias(parseInt(mSel.value));
+    });
+  }
+}
+spInitPubPicker();
 
 document.getElementById('sp-fechaEvento')?.addEventListener('click', ()=>{
   const m = document.getElementById('spEventoFechaModal');
@@ -5575,6 +5626,7 @@ document.getElementById('spEvtFechaOk')?.addEventListener('click', ()=>{
 });
 
 document.getElementById('sp-publicacion')?.addEventListener('click', ()=>{
+  spInitPubPicker();
   const m = document.getElementById('spPublicacionFechaModal');
   if(m){
     m.style.display = 'flex';
