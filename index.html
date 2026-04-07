@@ -6018,7 +6018,7 @@ function mostrarEstadoCuenta(res){
   );
 });
 
-    /* ================== OBTENER EGRESOS ================== */
+   /* ================== OBTENER EGRESOS ================== */
 
 document.getElementById('go-descargar-egresos')?.addEventListener('click', async () => {
   playSoundOnce(SOUNDS.login);
@@ -6036,20 +6036,10 @@ document.getElementById('go-descargar-egresos')?.addEventListener('click', async
   }
 
   try {
-    Swal.fire({
-      title: 'OBTENIENDO EGRESOS...',
-      html: 'Espera un momento mientras consultamos tu información 🤓',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => { Swal.showLoading(); }
-    });
-
     const data = await apiGet('getEgresosContratista', {
       documento: currentUser.documento,
       supervisor: currentUser.supervisor || ''
     });
-
-    Swal.close();
 
     if (!data || !data.found) {
       await Swal.fire({
@@ -6063,7 +6053,7 @@ document.getElementById('go-descargar-egresos')?.addEventListener('click', async
     }
 
     const emojis = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
-    const nombre  = data.nombre   || currentUser.documento;
+    const nombre   = data.nombre   || currentUser.documento;
     const contrato = data.contrato || '';
 
     const lineas = (data.egresos || []).map((eg, idx) => {
@@ -6077,9 +6067,9 @@ document.getElementById('go-descargar-egresos')?.addEventListener('click', async
     const msg =
       'Estimado *' + nombre + '*\n' +
       'Tus *Egresos* del *contrato ' + contrato + '* son:\n' +
-      lineas.join('\n') + '\n' +
-      'Cordialmente,\n' +
-      '*Gobierno Digital*\n' +
+      lineas.join('\n') + '\n\n' +
+      'Cordialmente,\n\n' +
+      '*Gobierno Digital - Tesorería*\n' +
       '> Alcaldía de Flandes';
 
     sendBuilderbotMessage(telefono, msg);
@@ -6091,11 +6081,10 @@ document.getElementById('go-descargar-egresos')?.addEventListener('click', async
       timer: 3500,
       showConfirmButton: false
     });
-    
+
     showView('view-inicio');
 
   } catch (e) {
-    Swal.close();
     Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
   }
 });
