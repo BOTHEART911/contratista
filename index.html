@@ -1294,7 +1294,7 @@ button:active { transform: translateY(0); }
     <div id="cat-tramites" class="menu-cat-options">
       <button class="menu-btn" id="go-solicitud-prensa">SOLICITUD PRENSA</button>
       <button class="menu-btn" id="go-certificacion-contrato">CERTIFICACIÓN CONTRATO</button>
-      <button class="menu-btn" id="go-descargar-egresos">DESCARGAR EGRESOS</button>
+      <button class="menu-btn" id="go-descargar-egresos">RECIBIR EGRESOS REGISTRADOS</button>
       <button class="menu-btn" id="go-solicitud-tesoreria">SOLICITUD TESORERÍA</button>
     </div>
   </div>
@@ -6018,81 +6018,88 @@ function mostrarEstadoCuenta(res){
   );
 });
 
-    /* ================== GENERAR EGRESOS ================== */
+    /* ================== OBTENER EGRESOS ================== */
 
- document.getElementById('go-descargar-egresos')?.addEventListener('click', async ()=>{
+document.getElementById('go-descargar-egresos')?.addEventListener('click', async () => {
+  playSoundOnce(SOUNDS.login);
   overlay.classList.remove('open');
 
-  if(!currentUser || !currentUser.documento){
-    Swal.fire({icon:'warning', title:'Sesión inválida'});
+  if (!currentUser || !currentUser.documento) {
+    Swal.fire({ icon: 'warning', title: 'Sesión inválida' });
     return;
   }
 
-  // === NUEVO: desactivar spinner global y usar SweetAlert loading ===
-  const prevSuppress = suppressLoader;
-  suppressLoader = true;
-
-  // Fuerza a ocultar el loader global si llegara a estar visible
-  loadingCount = 0;
-  if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
-  const prevLoaderDisplay = loader?.style.display;
-  if(loader){
-    loader.classList.add('hidden');
-    loader.style.display = 'none';
+  const telefono = (document.getElementById('inicio-contacto')?.textContent || '').trim();
+  if (!telefono) {
+    Swal.fire({ icon: 'warning', title: 'Sin teléfono registrado', text: 'Actualiza tu número en Datos Personales.' });
+    return;
   }
 
-  // SweetAlert de cargue
-  Swal.fire({
-    title: 'GENERANDO EGRESOS...',
-    html: 'Espera unos segundos mientras filtro tu información<br><br>Hacemos todo por ti 🤓',
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
+  try {
+    Swal.fire({
+      title: 'OBTENIENDO EGRESOS...',
+      html: 'Espera un momento mientras consultamos tu información 🤓',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
 
-  try{
-   const data = await apiGet('descargarEgresosContratista', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+    const data = await apiGet('getEgresosContratista', {
+      documento: currentUser.documento,
+      supervisor: currentUser.supervisor || ''
+    });
 
-    await Swal.close();
+    Swal.close();
 
-    if(!data?.created || !data?.exportUrl){
-      Swal.fire({
-        icon:'info',
-        title:'NO TIENES EGRESOS EMITIDOS',
-        text:'Debes consultar posteriormente.'
+    if (!data || !data.found) {
+      await Swal.fire({
+        icon: 'info',
+        title: 'SIN EGRESOS PAGADOS',
+        text: 'No se encontraron egresos con estado PAGADA para tu contrato.',
+        timer: 4000,
+        showConfirmButton: false
       });
       return;
     }
 
-    const url = data.exportUrl;
-    const isMobile = /android|iphone|ipad|mobile/i.test(navigator.userAgent);
+    const emojis = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+    const nombre  = data.nombre   || currentUser.documento;
+    const contrato = data.contrato || '';
 
-    if(isMobile){
-      window.open(url,'_blank');
-    }else{
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_self';
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  }catch(e){
-    await Swal.close();
-    Swal.fire({icon:'error', title:'Error', text: e.message});
-  }finally{
-    // === NUEVO: restaurar loader global ===
-    suppressLoader = prevSuppress;
-    loadingCount = 0;
-    if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
-    if(loader){
-      loader.style.display = prevLoaderDisplay || '';
-      loader.classList.add('hidden');
-    }
+    const lineas = (data.egresos || []).map((eg, idx) => {
+      const emoji = emojis[idx] || (idx + 1) + '.';
+      let linea = emoji + '  *' + eg.cn + '*';
+      if (eg.du) linea += ' y *' + eg.du + '*';
+      linea += ' de *' + eg.fecha + '*';
+      return linea;
+    });
+
+    const msg =
+      'Estimado *' + nombre + '*\n' +
+      'Tus *Egresos* del *contrato ' + contrato + '* son:\n' +
+      lineas.join('\n') + '\n' +
+      'Cordialmente,\n' +
+      '*Gobierno Digital*\n' +
+      '> Alcaldía de Flandes';
+
+    sendBuilderbotMessage(telefono, msg);
+
+    await Swal.fire({
+      icon: 'success',
+      title: '¡EGRESOS ENVIADOS!',
+      text: 'El mensaje con tus egresos fue enviado a tu WhatsApp registrado.',
+      timer: 3500,
+      showConfirmButton: false
+    });
+    
+    showView('view-inicio');
+
+  } catch (e) {
+    Swal.close();
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
   }
 });
-
+  
     /* ================== GENERAR CERTIFICADO DE CONTRATO ================== */
 
   document.getElementById('go-certificacion-contrato')?.addEventListener('click', async ()=>{
