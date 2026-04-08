@@ -1009,12 +1009,18 @@ button:active { transform: translateY(0); }
 }
 
     /* ── Video card — centrado responsive ── */
+#view-menu {
+  overflow-x: hidden;
+}
+
 #videoCard {
+  position: relative !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   width: calc(100vw - 32px) !important;
   max-width: 620px !important;
-  margin: 18px auto !important;
-  left: auto !important;
-  right: auto !important;
+  margin-top: 18px !important;
+  margin-bottom: 18px !important;
 }
     
   </style>
