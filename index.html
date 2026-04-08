@@ -8692,7 +8692,6 @@ document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
     return;
   }
 
-  // Datos base desde backend (nombre/secretaría/teléfono), para que no dependas del front
   try{
     const base = await apiGet('getSoporteContratista', { documento: currentUser.documento });
 
@@ -8706,12 +8705,16 @@ document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
       return;
     }
 
+    const nombre    = String(base.nombre    || '');
+    const secretaria = String(base.secretaria || '');
+    const telefono  = String(base.telefono  || '').trim();
+
     const payload = {
-      documento: currentUser.documento,
-      soporte: soporte,
-      celular: String(base.telefono || ''),
-      nombre: String(base.nombre || ''),
-      secretaria: String(base.secretaria || '')
+      documento:  currentUser.documento,
+      soporte:    soporte,
+      celular:    telefono,
+      nombre:     nombre,
+      secretaria: secretaria
     };
 
     const r = await apiPost('guardarSoporteContratista', payload);
@@ -8721,11 +8724,33 @@ document.getElementById('soporte-enviar')?.addEventListener('click', async ()=>{
       return;
     }
 
+    // Mensaje 1 → al contratista
+    if(telefono){
+      const msg1 =
+        'Estimado(a) *' + nombre + '*\n' +
+        '¡He recibido tu solicitud ✍🏻!\n' +
+        'Te ayudaré en el menor tiempo posible.\n\n' +
+        'Cordialmente,\n\n' +
+        '*Oscar Polania*\n' +
+        '> Desarrollador Gobierno Digital';
+      sendBuilderbotMessage(telefono, msg1);
+    }
+
+    // Mensaje 2 → directo a Oscar
+    const msg2 =
+      'Hola *Oscar*\n' +
+      'Tienes una nueva solicitud:\n' +
+      '*Contratista:* ' + nombre + '\n' +
+      '*Secretaría:* ' + secretaria + '\n' +
+      '*Solicitud:*\n' +
+      soporte;
+    sendBuilderbotMessage('573103230712', msg2);
+
     await Swal.fire({
-      icon:'success',
-      title:'Soporte enviado',
-      html:`Tu solicitud fue registrada con el código: <b>${String(r.codigo||'')}</b>`,
-      confirmButtonText:'Ok'
+      icon: 'success',
+      title: '¡Solicitud enviada!',
+      timer: 5000,
+      showConfirmButton: false
     });
 
     document.getElementById('soporte-text').value = '';
