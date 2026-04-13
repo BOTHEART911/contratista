@@ -3194,16 +3194,28 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
   const clearBtn = document.getElementById(id + '-clear');
   const stEl     = document.getElementById(id + '-status');
 
-  // ── Ícono PDF (mismo que preloaded-badge) ──────────────────────────────────
   const PDF_ICON = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
-  // ── Ícono Eliminar (nuevo, junto al badge) ─────────────────────────────────
   const DEL_ICON = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp';
 
-  // Guarda el HTML del status ANTES de que el usuario toque el input
-  // (puede ser un badge precargado en corrección, o vacío en ingreso)
+  // ── SIEMPRE ocultamos el botón grande rojo "Quitar" ──────────────────────
+  // No lo necesitamos: usamos el ícono pequeño inline.
+  if(clearBtn) clearBtn.style.display = 'none';
+
+  // Guardamos el HTML del status EN EL MOMENTO EN QUE SE LLAMA bindPdfInputStrict.
+  // IMPORTANTE: si hay un badge precargado ya pintado (setPreloadedUi_),
+  // este valor se sobreescribirá más abajo con refreshSavedHtml_().
   let __savedStatusHtml = stEl ? stEl.innerHTML : '';
 
-  /* ── Muestra badge "archivo nuevo cargado" + botón quitar inline ── */
+  /**
+   * Permite que el código externo (setPreloadedUi_) actualice la referencia
+   * del HTML "guardado" DESPUÉS de pintar el badge precargado.
+   * Así, al quitar un archivo nuevo, se restaura correctamente el badge.
+   */
+  inp.__refreshSavedHtml = function(){
+    __savedStatusHtml = stEl ? stEl.innerHTML : '';
+  };
+
+  /* ── Muestra badge "archivo nuevo cargado" + ícono quitar inline ── */
   function setNewFileUi_(file){
     if(!stEl) return;
     const name = String(file ? file.name : '').replace(/\.pdf$/i,'');
@@ -3226,7 +3238,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     badge.appendChild(iconImg);
     badge.appendChild(textSpan);
 
-    // Botón quitar (ícono pequeño, inline junto al badge)
+    // Ícono quitar pequeño (inline, junto al badge)
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.title = 'Quitar archivo';
@@ -3256,11 +3268,11 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     delBtn.appendChild(delImg);
 
     delBtn.addEventListener('click', ()=>{
-      // Limpia el input
+      // Limpia el input nativo
       inp.value = '';
-      // Restaura el status anterior (badge precargado o vacío)
+      // Restaura el badge precargado (o vacío si era ingreso nuevo)
       if(stEl) stEl.innerHTML = __savedStatusHtml;
-      // Si había un clearBtn clásico (en corrección no lo usamos para esto), ocúltalo
+      // El botón grande rojo siempre oculto
       if(clearBtn) clearBtn.style.display = 'none';
     });
 
@@ -3270,26 +3282,13 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     stEl.innerHTML = '';
     stEl.appendChild(wrap);
 
-    // Oculta el botón "Quitar" rojo original (ya no se necesita)
+    // Botón grande siempre oculto
     if(clearBtn) clearBtn.style.display = 'none';
-  }
-
-  /* ── clearBtn clásico: ocultar siempre (ya no se usa visualmente) ── */
-  if(clearBtn){
-    clearBtn.type = 'button';
-    // Ya no lo mostramos; el quitar inline lo reemplaza
-    clearBtn.style.display = 'none';
-    clearBtn.onclick = ()=>{
-      inp.value = '';
-      if(stEl) stEl.innerHTML = __savedStatusHtml;
-      clearBtn.style.display = 'none';
-    };
   }
 
   inp.addEventListener('change', async ()=>{
     const file = inp.files && inp.files[0];
 
-    // Si el usuario cancela el diálogo sin elegir archivo
     if(!file){
       if(required){ /* nada */ }
       return;
@@ -3324,7 +3323,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
       }
     }
 
-    // ✅ Archivo válido: mostrar badge + quitar inline
+    // ✅ Archivo válido: mostrar badge + ícono quitar inline
     setNewFileUi_(file);
   });
 }
@@ -7101,6 +7100,9 @@ function setPreloadedUi_(id, url){
 
   if(inp) inp.value = '';
 
+  // Botón grande siempre oculto
+  if(clearBtn) clearBtn.style.display = 'none';
+
   if(!st) return;
 
   const rawUrl = String(url || '').trim();
@@ -7109,7 +7111,6 @@ function setPreloadedUi_(id, url){
   if(hasUrl){
     const label = FILE_LABELS[id] || 'Archivo.pdf';
 
-    // Construir badge clickeable tipo "archivo ya cargado — clic para ver"
     const badge = document.createElement('a');
     badge.className = 'preloaded-badge';
     badge.href = rawUrl;
@@ -7130,10 +7131,14 @@ function setPreloadedUi_(id, url){
     st.innerHTML = '';
     st.appendChild(badge);
 
-    if(clearBtn) clearBtn.style.display = '';
+    // ── Notifica a bindPdfInputStrict que actualice su referencia "guardada" ──
+    // Así, si el usuario sube un nuevo archivo y luego lo quita,
+    // se restaura este badge (no el HTML vacío).
+    if(inp && typeof inp.__refreshSavedHtml === 'function'){
+      inp.__refreshSavedHtml();
+    }
   }else{
     st.innerHTML = '';
-    if(clearBtn) clearBtn.style.display = 'none';
   }
 }
 
