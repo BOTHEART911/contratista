@@ -3192,42 +3192,120 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
   if(!inp) return;
 
   const clearBtn = document.getElementById(id + '-clear');
+  const stEl     = document.getElementById(id + '-status');
 
-  function clearUi(){
-    inp.value = '';
-    setPdfStatus(id, null);
-    try{
-      inp.dispatchEvent(new Event('change', { bubbles:true }));
-    }catch(_){}
+  // ── Ícono PDF (mismo que preloaded-badge) ──────────────────────────────────
+  const PDF_ICON = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
+  // ── Ícono Eliminar (nuevo, junto al badge) ─────────────────────────────────
+  const DEL_ICON = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp';
+
+  // Guarda el HTML del status ANTES de que el usuario toque el input
+  // (puede ser un badge precargado en corrección, o vacío en ingreso)
+  let __savedStatusHtml = stEl ? stEl.innerHTML : '';
+
+  /* ── Muestra badge "archivo nuevo cargado" + botón quitar inline ── */
+  function setNewFileUi_(file){
+    if(!stEl) return;
+    const name = String(file ? file.name : '').replace(/\.pdf$/i,'');
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:inline-flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap;';
+
+    // Badge estilo preloaded
+    const badge = document.createElement('span');
+    badge.className = 'preloaded-badge';
+    badge.style.cursor = 'default';
+
+    const iconImg = document.createElement('img');
+    iconImg.src = PDF_ICON;
+    iconImg.alt = '';
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = name + ': archivo cargado';
+
+    badge.appendChild(iconImg);
+    badge.appendChild(textSpan);
+
+    // Botón quitar (ícono pequeño, inline junto al badge)
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.title = 'Quitar archivo';
+    delBtn.style.cssText = `
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background .15s ease;
+    `;
+    delBtn.addEventListener('mouseenter', ()=>{ delBtn.style.background = 'rgba(220,38,38,.10)'; });
+    delBtn.addEventListener('mouseleave', ()=>{ delBtn.style.background = 'transparent'; });
+
+    const delImg = document.createElement('img');
+    delImg.src = DEL_ICON;
+    delImg.alt = 'Quitar';
+    delImg.style.cssText = 'width:22px; height:22px; object-fit:contain;';
+
+    delBtn.appendChild(delImg);
+
+    delBtn.addEventListener('click', ()=>{
+      // Limpia el input
+      inp.value = '';
+      // Restaura el status anterior (badge precargado o vacío)
+      if(stEl) stEl.innerHTML = __savedStatusHtml;
+      // Si había un clearBtn clásico (en corrección no lo usamos para esto), ocúltalo
+      if(clearBtn) clearBtn.style.display = 'none';
+    });
+
+    wrap.appendChild(badge);
+    wrap.appendChild(delBtn);
+
+    stEl.innerHTML = '';
+    stEl.appendChild(wrap);
+
+    // Oculta el botón "Quitar" rojo original (ya no se necesita)
+    if(clearBtn) clearBtn.style.display = 'none';
   }
 
+  /* ── clearBtn clásico: ocultar siempre (ya no se usa visualmente) ── */
   if(clearBtn){
     clearBtn.type = 'button';
-    clearBtn.onclick = async ()=>{
-      clearUi();
+    // Ya no lo mostramos; el quitar inline lo reemplaza
+    clearBtn.style.display = 'none';
+    clearBtn.onclick = ()=>{
+      inp.value = '';
+      if(stEl) stEl.innerHTML = __savedStatusHtml;
+      clearBtn.style.display = 'none';
     };
   }
 
   inp.addEventListener('change', async ()=>{
     const file = inp.files && inp.files[0];
-    setPdfStatus(id, null);
 
+    // Si el usuario cancela el diálogo sin elegir archivo
     if(!file){
-      if(required){
-        return;
-      }
+      if(required){ /* nada */ }
       return;
     }
 
     if(!isPdfFile_(file)){
-      clearUi();
+      inp.value = '';
+      if(stEl) stEl.innerHTML = __savedStatusHtml;
       await Swal.fire({ icon:'warning', title:'Archivo inválido', text:'Solo se permiten archivos PDF.' });
       return;
     }
 
     const sizeMB = file.size / (1024*1024);
     if(sizeMB > maxMb){
-      clearUi();
+      inp.value = '';
+      if(stEl) stEl.innerHTML = __savedStatusHtml;
       await Swal.fire({ icon:'warning', title:'Archivo muy pesado', text:`El PDF supera ${maxMb} MB.` });
       return;
     }
@@ -3235,7 +3313,8 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     if(forbidEncrypted){
       const encrypted = await isEncryptedPdfFile_(file);
       if(encrypted){
-        clearUi();
+        inp.value = '';
+        if(stEl) stEl.innerHTML = __savedStatusHtml;
         await Swal.fire({
           icon:'warning',
           title:'PDF protegido no permitido',
@@ -3245,7 +3324,8 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
       }
     }
 
-    setPdfStatus(id, file);
+    // ✅ Archivo válido: mostrar badge + quitar inline
+    setNewFileUi_(file);
   });
 }
 
