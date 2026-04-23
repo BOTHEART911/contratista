@@ -4266,28 +4266,14 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
       return;
     }
 
-    if (bj === 'INGRESADA' || bj === 'REPORTADA') {
+    if (bj === 'INGRESADA' || bj === 'REPORTADA'|| bj === 'REVISADA POR SUPERVISOR' || bj === 'APROBADA' || bj === 'PLAN DE PAGOS') {
       await Swal.fire({
         icon:'info',
-        title:'NO PUEDES ACUMULAR CUENTAS',
-        html: `Tu Supervisor no ha revisado y por ende, la oficina de Contratación no ha Aprobado tu cuenta recientemente reportada<br><br>
+        title:'NO PUEDES ACUMULAR CUENTAS EN CICLO DE REVISIÓN',
+        html: `Tu Supervisor no ha aceptado el Plan de Pagos de tu cuenta anterior<br><br>
                Puedes ir adelantado el registro de las Actividades de la <b>siguiente cuenta</b> desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
                ¡No dejes acumular cuentas!`,
         timer:13000,
-        showConfirmButton:false
-      });
-      showView('view-inicio');
-      return;
-    }
-
-    if (bj === 'REVISADA POR SUPERVISOR') {
-      await Swal.fire({
-        icon:'info',
-        title:'DEBES ESPERAR UN POCO MÁS',
-        html: `La oficina de Contratación no ha Aprobado tu anterior cuenta<br><br>
-               Puedes ir adelantado el registro de las Actividades de la <b>siguiente cuenta</b> desde la opción <b>BORRADOR ACTIVIDADES</b><br><br>
-               ¡No dejes acumular cuentas!`,
-        timer:11000,
         showConfirmButton:false
       });
       showView('view-inicio');
