@@ -7210,12 +7210,17 @@ async function checkAppVersion(){
   }
 }
 
-// Recarga automática cuando el SW nuevo toma control
+// Recarga automática cuando el SW nuevo toma control (solo una vez por sesión de página)
 if('serviceWorker' in navigator){
   let __reloadingFromSW = false;
   navigator.serviceWorker.addEventListener('controllerchange', ()=>{
     if(__reloadingFromSW) return;
+    // Evitar loop: solo recargar si NO veníamos de una recarga reciente
+    const lastReload = Number(sessionStorage.getItem('__swReloadTs') || 0);
+    const now = Date.now();
+    if(now - lastReload < 10000) return; // si recargamos hace menos de 10s, no recargar otra vez
     __reloadingFromSW = true;
+    sessionStorage.setItem('__swReloadTs', String(now));
     location.reload();
   });
 }
@@ -7223,7 +7228,12 @@ if('serviceWorker' in navigator){
 // Chequeo al cargar la página
 window.addEventListener('load', ()=>{ checkAppVersion(); });
 
-// Chequeo cada vez que la pestaña/PWA vuelve a estar visible
+// Chequeo cada vez que la pestaña/PWA vuelve a estar visible (máx 1 vez cada 30s)
+let __lastVersionCheck = Date.now();
 document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden) checkAppVersion();
+  if(document.hidden) return;
+  const now = Date.now();
+  if(now - __lastVersionCheck < 30000) return;
+  __lastVersionCheck = now;
+  checkAppVersion();
 });
