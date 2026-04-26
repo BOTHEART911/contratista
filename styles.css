@@ -1027,3 +1027,66 @@ button:active { transform: translateY(0); }
   background: transparent;
   border: none;
 }
+
+/* ── Ocultar input file cuando hay badge ── */
+.file-input-hidden { display: none !important; }
+
+/* ── Badge de imagen cargada ── */
+.image-badge-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.image-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(22,163,74,.10);
+  border: 1.5px solid rgba(22,163,74,.35);
+  color: #15803d;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 800;
+  font-size: .82rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .18s ease, box-shadow .18s ease;
+  max-width: 100%;
+  word-break: break-all;
+}
+.image-badge:hover {
+  background: rgba(22,163,74,.18);
+  box-shadow: 0 2px 10px rgba(22,163,74,.18);
+}
+.image-badge img.icon {
+  width: 22px; height: 22px;
+  object-fit: contain; flex-shrink: 0;
+  border-radius: 4px; background: transparent; border: none;
+}
+
+/* ── Botón quitar (común a imagen y PDF inline) ── */
+.btn-quitar-inline {
+  background: transparent; border: none; padding: 0; margin: 0;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%; flex-shrink: 0;
+  transition: background .15s ease;
+}
+.btn-quitar-inline:hover { background: rgba(220,38,38,.10); }
+.btn-quitar-inline img { width: 22px; height: 22px; object-fit: contain; }
+
+/* ── Resaltado de archivos a eliminar en resumen ── */
+.delete-summary-list {
+  background: rgba(220,38,38,.06);
+  border: 1.5px solid rgba(220,38,38,.30);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  text-align: left;
+}
+.delete-summary-list b { color: #b91c1c; }
+.delete-summary-list ul { margin: 6px 0 0; padding-left: 18px; }
