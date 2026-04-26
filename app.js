@@ -468,6 +468,24 @@ const MAX_IMG_DIM  = 1600;   // px lado mayor para evidencias/firmas
 const JPEG_QUALITY = 0.78;
 const EVI_SELECT_MAX_MB = 10;
 
+// Iconos para badges
+const IMG_ICON_URL = 'https://res.cloudinary.com/dqqeavica/image/upload/v1777237163/imagen_crcfy1.webp';
+const PDF_ICON_URL = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
+const DEL_ICON_URL = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp';
+
+// Etiquetas legibles para resumen de eliminación
+const FILE_LABELS_DELETE = {
+  bancaria:'Certificación Bancaria', baucher1:'Baucher Planilla', planaporte1:'Planilla',
+  baucher2:'Baucher Planilla Anexa', planaporte2:'Planilla Anexa',
+  rutsg:'RUT Régimen Simple', factElect:'Factura Electrónica',
+  otroPdf:'Certificado Parafíscales', noafp:'Certificado NO Aportes Pensión',
+  actAnexos:'Anexos de Actividades',
+  actaI:'Acta de Inicio', clasulados:'Clausulados del Contrato',
+  cdpC:'CDP', rpC:'RP', rutpn:'RUT Persona Natural', arlC:'Certificado ARL',
+  otrosi:'OTROSI', cdpAc:'CDP Adición', rpAc:'RP Adición',
+  actaL:'Acta de Liquidación', otroR:'Otro Requerido'
+};
+
 function revokeObjUrl(url){ try{ if(url) URL.revokeObjectURL(url); }catch(_){ } }
 
 /**
@@ -587,28 +605,23 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
   const clearBtn = document.getElementById(id + '-clear');
   const stEl     = document.getElementById(id + '-status');
 
-  const PDF_ICON = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
-  const DEL_ICON = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp';
-
-  // ── SIEMPRE ocultamos el botón grande rojo "Quitar" ──────────────────────
-  // No lo necesitamos: usamos el ícono pequeño inline.
   if(clearBtn) clearBtn.style.display = 'none';
 
-  // Guardamos el HTML del status EN EL MOMENTO EN QUE SE LLAMA bindPdfInputStrict.
-  // IMPORTANTE: si hay un badge precargado ya pintado (setPreloadedUi_),
-  // este valor se sobreescribirá más abajo con refreshSavedHtml_().
   let __savedStatusHtml = stEl ? stEl.innerHTML : '';
 
-  /**
-   * Permite que el código externo (setPreloadedUi_) actualice la referencia
-   * del HTML "guardado" DESPUÉS de pintar el badge precargado.
-   * Así, al quitar un archivo nuevo, se restaura correctamente el badge.
-   */
   inp.__refreshSavedHtml = function(){
     __savedStatusHtml = stEl ? stEl.innerHTML : '';
   };
 
-  /* ── Muestra badge "archivo nuevo cargado" + ícono quitar inline ── */
+  // Helpers para mostrar/ocultar el input
+  function hideInput_(){ inp.classList.add('file-input-hidden'); }
+  function showInput_(){ inp.classList.remove('file-input-hidden'); }
+
+  // Si al inicio ya hay un badge precargado, ocultar input
+  if(stEl && String(stEl.innerHTML||'').trim() !== ''){
+    hideInput_();
+  }
+
   function setNewFileUi_(file){
     if(!stEl) return;
     const name = String(file ? file.name : '').replace(/\.pdf$/i,'');
@@ -616,13 +629,12 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     const wrap = document.createElement('div');
     wrap.style.cssText = 'display:inline-flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap;';
 
-    // Badge estilo preloaded
     const badge = document.createElement('span');
     badge.className = 'preloaded-badge';
     badge.style.cursor = 'default';
 
     const iconImg = document.createElement('img');
-    iconImg.src = PDF_ICON;
+    iconImg.src = PDF_ICON_URL;
     iconImg.alt = '';
 
     const textSpan = document.createElement('span');
@@ -631,41 +643,25 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     badge.appendChild(iconImg);
     badge.appendChild(textSpan);
 
-    // Ícono quitar pequeño (inline, junto al badge)
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
+    delBtn.className = 'btn-quitar-inline';
     delBtn.title = 'Quitar archivo';
-    delBtn.style.cssText = `
-      background: transparent;
-      border: none;
-      padding: 0;
-      margin: 0;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      transition: background .15s ease;
-    `;
-    delBtn.addEventListener('mouseenter', ()=>{ delBtn.style.background = 'rgba(220,38,38,.10)'; });
-    delBtn.addEventListener('mouseleave', ()=>{ delBtn.style.background = 'transparent'; });
-
     const delImg = document.createElement('img');
-    delImg.src = DEL_ICON;
+    delImg.src = DEL_ICON_URL;
     delImg.alt = 'Quitar';
-    delImg.style.cssText = 'width:22px; height:22px; object-fit:contain;';
-
     delBtn.appendChild(delImg);
 
     delBtn.addEventListener('click', ()=>{
-      // Limpia el input nativo
       inp.value = '';
-      // Restaura el badge precargado (o vacío si era ingreso nuevo)
       if(stEl) stEl.innerHTML = __savedStatusHtml;
-      // El botón grande rojo siempre oculto
+
+      // Si tras restaurar quedó vacío => mostrar input; si hay precargado => mantener oculto
+      if(stEl && String(stEl.innerHTML||'').trim() === ''){
+        showInput_();
+      }else{
+        hideInput_();
+      }
       if(clearBtn) clearBtn.style.display = 'none';
     });
 
@@ -675,7 +671,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     stEl.innerHTML = '';
     stEl.appendChild(wrap);
 
-    // Botón grande siempre oculto
+    hideInput_();
     if(clearBtn) clearBtn.style.display = 'none';
   }
 
@@ -683,13 +679,14 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     const file = inp.files && inp.files[0];
 
     if(!file){
-      if(required){ /* nada */ }
+      if(stEl && String(stEl.innerHTML||'').trim() === '') showInput_();
       return;
     }
 
     if(!isPdfFile_(file)){
       inp.value = '';
       if(stEl) stEl.innerHTML = __savedStatusHtml;
+      if(stEl && String(stEl.innerHTML||'').trim() === '') showInput_(); else hideInput_();
       await Swal.fire({ icon:'warning', title:'Archivo inválido', text:'Solo se permiten archivos PDF.' });
       return;
     }
@@ -698,6 +695,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
     if(sizeMB > maxMb){
       inp.value = '';
       if(stEl) stEl.innerHTML = __savedStatusHtml;
+      if(stEl && String(stEl.innerHTML||'').trim() === '') showInput_(); else hideInput_();
       await Swal.fire({ icon:'warning', title:'Archivo muy pesado', text:`El PDF supera ${maxMb} MB.` });
       return;
     }
@@ -707,6 +705,7 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
       if(encrypted){
         inp.value = '';
         if(stEl) stEl.innerHTML = __savedStatusHtml;
+        if(stEl && String(stEl.innerHTML||'').trim() === '') showInput_(); else hideInput_();
         await Swal.fire({
           icon:'warning',
           title:'PDF protegido no permitido',
@@ -716,7 +715,6 @@ function bindPdfInputStrict(id, { required=false, forbidEncrypted=false, maxMb=M
       }
     }
 
-    // ✅ Archivo válido: mostrar badge + ícono quitar inline
     setNewFileUi_(file);
   });
 }
@@ -3964,6 +3962,7 @@ let IC_STATE = {
   evidFiles: [],    // ya no guardaremos el File para subir
   evidData: [],     // dataURL comprimida para preview + backend
   evidSizes: [],    // tamaño MB de la dataURL comprimida
+  evidDeleteFlags: [],   // Eliminar Evidencias
   cuentaExiste: false,
   nextMode: false,
   contrato: '',
@@ -4478,17 +4477,16 @@ function setPreloadedUi_(id, url){
   const clearBtn = document.getElementById(id + '-clear');
 
   if(inp) inp.value = '';
-
-  // Botón grande siempre oculto
   if(clearBtn) clearBtn.style.display = 'none';
-
   if(!st) return;
 
   const rawUrl = String(url || '').trim();
-  const hasUrl = !!rawUrl;
 
-  if(hasUrl){
-    const label = FILE_LABELS[id] || 'Archivo.pdf';
+  if(rawUrl){
+    const label = (FILE_LABELS_DELETE[id] || 'Archivo');
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:inline-flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap;';
 
     const badge = document.createElement('a');
     badge.className = 'preloaded-badge';
@@ -4498,26 +4496,59 @@ function setPreloadedUi_(id, url){
     badge.title = 'Ver archivo cargado';
 
     const iconImg = document.createElement('img');
-    iconImg.src = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
+    iconImg.src = PDF_ICON_URL;
     iconImg.alt = '';
 
     const textSpan = document.createElement('span');
-    textSpan.textContent = label.replace('.pdf','') + ': archivo ya cargado — clic para ver';
+    textSpan.textContent = label + ': archivo ya cargado — clic para ver';
 
     badge.appendChild(iconImg);
     badge.appendChild(textSpan);
 
-    st.innerHTML = '';
-    st.appendChild(badge);
+    // Botón Quitar (solo en corrección): elimina realmente
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'btn-quitar-inline';
+    delBtn.title = 'Quitar archivo (se eliminará al guardar)';
+    const delImg = document.createElement('img');
+    delImg.src = DEL_ICON_URL;
+    delImg.alt = 'Quitar';
+    delBtn.appendChild(delImg);
 
-    // ── Notifica a bindPdfInputStrict que actualice su referencia "guardada" ──
-    // Así, si el usuario sube un nuevo archivo y luego lo quita,
-    // se restaura este badge (no el HTML vacío).
+    delBtn.addEventListener('click', async ()=>{
+      const ok = await Swal.fire({
+        icon:'warning',
+        title:'¿Quitar este archivo?',
+        text:'Si guardas la corrección sin reemplazarlo, el archivo será ELIMINADO.',
+        showCancelButton:true,
+        confirmButtonText:'Sí, quitar',
+        cancelButtonText:'Cancelar'
+      });
+      if(!ok.isConfirmed) return;
+
+      st.innerHTML = '';
+      // refresca el "savedHtml" para que el flujo nuevo-archivo no restaure el badge
+      if(inp && typeof inp.__refreshSavedHtml === 'function'){
+        inp.__refreshSavedHtml();
+      }
+      if(inp) inp.classList.remove('file-input-hidden');
+    });
+
+    wrap.appendChild(badge);
+    wrap.appendChild(delBtn);
+
+    st.innerHTML = '';
+    st.appendChild(wrap);
+
+    // Ocultar el input file
+    if(inp) inp.classList.add('file-input-hidden');
+
     if(inp && typeof inp.__refreshSavedHtml === 'function'){
       inp.__refreshSavedHtml();
     }
   }else{
     st.innerHTML = '';
+    if(inp) inp.classList.remove('file-input-hidden');
   }
 }
 
@@ -4594,15 +4625,19 @@ if(IC_MODE !== 'correccion'){
   wrap.innerHTML = '';
   const n = Math.max(1, IC_STATE.obligaciones.length);
 
+  // Inicializar arrays de control
+  IC_STATE.evidDeleteFlags = IC_STATE.evidDeleteFlags || [];
+
   for(let i=0;i<n && i<26;i++){
     const idx = i + 1;
     const oblig = IC_STATE.obligaciones[i] || '-';
     const actVal = (IC_STATE.actividades && IC_STATE.actividades[i]) ? IC_STATE.actividades[i] : '';
+    const existingUrl = (IC_STATE.evidOriginalUrls && IC_STATE.evidOriginalUrls[i]) ? IC_STATE.evidOriginalUrls[i] : '';
 
     const block = document.createElement('div');
     block.className = 'oblig-block';
 
-        const p = document.createElement('p');
+    const p = document.createElement('p');
     p.innerHTML = `<b>Obligación ${idx}:</b> ${oblig}`;
 
     const lab = document.createElement('label');
@@ -4622,7 +4657,10 @@ if(IC_MODE !== 'correccion'){
     inp.accept = 'image/*';
     inp.id = 'ic-evi-' + idx;
 
-    // Botón VER (solo se muestra en móvil); en desktop lo ocultamos
+    const badgeWrap = document.createElement('div');
+    badgeWrap.id = 'ic-evi-badge-' + idx;
+    badgeWrap.className = 'image-badge-wrap';
+
     const verBtn = document.createElement('button');
     verBtn.type = 'button';
     verBtn.textContent = 'VER';
@@ -4630,62 +4668,156 @@ if(IC_MODE !== 'correccion'){
     verBtn.style.marginTop = '6px';
     verBtn.style.display = IS_MOBILE_INGRESAR ? '' : 'none';
 
-        // Preview inline (solo desktop)
     const prev = document.createElement('img');
     prev.id = 'ic-evi-prev-' + idx;
     prev.className = 'evi-preview';
     prev.loading = 'lazy';
-    prev.style.display = IS_MOBILE_INGRESAR ? 'none' : 'none'; // en desktop se activará al tener data
+    prev.style.display = 'none';
 
-    // Si estamos en corrección y hay URL existente, mostrarla como thumbnail,
-// PERO NO tocar evidData (solo se llena cuando el usuario sube una nueva imagen)
-if(IC_MODE === 'correccion'){
-  const existingUrl = (IC_STATE.evidOriginalUrls && IC_STATE.evidOriginalUrls[i]) ? IC_STATE.evidOriginalUrls[i] : '';
-  if(existingUrl && !IS_MOBILE_INGRESAR){
-    prev.src = driveUrlToThumb(existingUrl);
-    prev.style.display = 'block';
-  }
+    // Helpers para badges de imagen
+    function paintImagePreloaded_(){
+      badgeWrap.innerHTML = '';
+      inp.classList.add('file-input-hidden');
 
-  // En móvil, el botón VER debe usar la URL original si no hay data nueva
-  verBtn.addEventListener('click', ()=>{
-    const dataUrl = IC_STATE.evidData[i] || existingUrl;
-    if(!dataUrl){
-      Swal.fire({icon:'info', title:'Sin imagen', text:'Primero carga una imagen para esta evidencia.'});
-      return;
+      const badge = document.createElement('a');
+      badge.className = 'image-badge';
+      badge.href = existingUrl;
+      badge.target = '_blank';
+      badge.rel = 'noopener';
+      badge.title = 'Ver imagen';
+
+      const iconImg = document.createElement('img');
+      iconImg.className = 'icon';
+      iconImg.src = IMG_ICON_URL;
+      iconImg.alt = '';
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = `Evidencia ${idx} ya cargada — clic para ver`;
+
+      badge.appendChild(iconImg);
+      badge.appendChild(textSpan);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn-quitar-inline';
+      delBtn.title = 'Quitar imagen (se eliminará al guardar)';
+      const delImg = document.createElement('img');
+      delImg.src = DEL_ICON_URL;
+      delImg.alt = 'Quitar';
+      delBtn.appendChild(delImg);
+
+      delBtn.addEventListener('click', async ()=>{
+        const ok = await Swal.fire({
+          icon:'warning',
+          title:'¿Quitar esta imagen?',
+          text:'Si guardas la corrección sin reemplazarla, será ELIMINADA.',
+          showCancelButton:true,
+          confirmButtonText:'Sí, quitar',
+          cancelButtonText:'Cancelar'
+        });
+        if(!ok.isConfirmed) return;
+
+        IC_STATE.evidDeleteFlags[i] = true;
+        IC_STATE.evidData[i] = '';
+        IC_STATE.evidSizes[i] = 0;
+        badgeWrap.innerHTML = '';
+        prev.src = '';
+        prev.style.display = 'none';
+        inp.classList.remove('file-input-hidden');
+      });
+
+      badgeWrap.appendChild(badge);
+      badgeWrap.appendChild(delBtn);
+
+      if(!IS_MOBILE_INGRESAR){
+        prev.src = driveUrlToThumb(existingUrl);
+        prev.style.display = 'block';
+      }
     }
-    Swal.fire({
-      title: `Evidencia ${idx}`,
-      html: `<img src="${driveUrlToThumb(dataUrl)}" alt="Evidencia ${idx}" style="max-width:100%;max-height:70vh;border-radius:10px;border:1.5px solid #d8e4ff;">`,
-      width: '90%',
-      allowOutsideClick: true
-    });
-  });
-} else {
-  // En modo ingreso original, el botón VER usa solo data nueva
-  verBtn.addEventListener('click', ()=>{
-    const dataUrl = IC_STATE.evidData[i] || '';
-    if(!dataUrl){
-      Swal.fire({icon:'info', title:'Sin imagen', text:'Primero carga una imagen para esta evidencia.'});
-      return;
+
+    function paintImageNewFile_(dataUrl){
+      badgeWrap.innerHTML = '';
+      inp.classList.add('file-input-hidden');
+
+      const badge = document.createElement('span');
+      badge.className = 'image-badge';
+      badge.style.cursor = 'default';
+
+      const iconImg = document.createElement('img');
+      iconImg.className = 'icon';
+      iconImg.src = IMG_ICON_URL;
+      iconImg.alt = '';
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = `Evidencia ${idx} cargada`;
+
+      badge.appendChild(iconImg);
+      badge.appendChild(textSpan);
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn-quitar-inline';
+      delBtn.title = 'Quitar imagen';
+      const delImg = document.createElement('img');
+      delImg.src = DEL_ICON_URL;
+      delImg.alt = 'Quitar';
+      delBtn.appendChild(delImg);
+
+      delBtn.addEventListener('click', ()=>{
+        IC_STATE.evidData[i] = '';
+        IC_STATE.evidSizes[i] = 0;
+        inp.value = '';
+        badgeWrap.innerHTML = '';
+        prev.src = '';
+        prev.style.display = 'none';
+
+        // Si en corrección había precargada y NO la marcamos para borrar, restaurar badge
+        if(IC_MODE === 'correccion' && existingUrl && !IC_STATE.evidDeleteFlags[i]){
+          paintImagePreloaded_();
+        }else{
+          inp.classList.remove('file-input-hidden');
+        }
+      });
+
+      badgeWrap.appendChild(badge);
+      badgeWrap.appendChild(delBtn);
+
+      if(!IS_MOBILE_INGRESAR){
+        prev.src = dataUrl;
+        prev.style.display = 'block';
+      }
     }
-    Swal.fire({
-      title: `Evidencia ${idx}`,
-      html: `<img src="${dataUrl}" alt="Evidencia ${idx}" style="max-width:100%;max-height:70vh;border-radius:10px;border:1.5px solid #d8e4ff;">`,
-      width: '90%',
-      allowOutsideClick: true
+
+    // Estado inicial: si hay precargada y no está marcada para borrar, mostrar badge
+    if(IC_MODE === 'correccion' && existingUrl && !IC_STATE.evidDeleteFlags[i]){
+      paintImagePreloaded_();
+    }
+
+    // VER button (móvil)
+    verBtn.addEventListener('click', ()=>{
+      const dataUrl = IC_STATE.evidData[i] || (IC_MODE==='correccion' && !IC_STATE.evidDeleteFlags[i] ? existingUrl : '');
+      if(!dataUrl){
+        Swal.fire({icon:'info', title:'Sin imagen', text:'Primero carga una imagen para esta evidencia.'});
+        return;
+      }
+      Swal.fire({
+        title: `Evidencia ${idx}`,
+        html: `<img src="${driveUrlToThumb(dataUrl)}" alt="Evidencia ${idx}" style="max-width:100%;max-height:70vh;border-radius:10px;border:1.5px solid #d8e4ff;">`,
+        width: '90%',
+        allowOutsideClick: true
+      });
     });
-  });
-}
-    
-    // Handler de carga/compresión
+
     inp.addEventListener('change', async (e)=>{
       const file = e.target.files && e.target.files[0];
-      IC_STATE.evidData[i]  = '';
-      IC_STATE.evidSizes[i] = 0;
-      prev.src = '';
-      prev.style.display = IS_MOBILE_INGRESAR ? 'none' : 'none';
 
-      if(!file){ return; }
+      if(!file){
+        // Si quitan selección y hay precargada vigente, restaurar
+        if(IC_MODE==='correccion' && existingUrl && !IC_STATE.evidDeleteFlags[i]){
+          paintImagePreloaded_();
+        }
+        return;
+      }
 
       if(file.size > EVI_SELECT_MAX_MB * 1024 * 1024){
         await Swal.fire({
@@ -4710,16 +4842,12 @@ if(IC_MODE === 'correccion'){
         }
         IC_STATE.evidData[i]  = dataUrl;
         IC_STATE.evidSizes[i] = sizeMB;
+        // Si reemplaza una precargada, ya no se borra (se sustituye)
+        IC_STATE.evidDeleteFlags[i] = false;
 
-        // Desktop: muestra inline
-        if(!IS_MOBILE_INGRESAR){
-          prev.src = dataUrl;
-          prev.style.display = 'block';
-        }
+        paintImageNewFile_(dataUrl);
       }catch(err){
         inp.value = '';
-        prev.src = '';
-        prev.style.display = 'none';
         await Swal.fire({ icon:'error', title:'Error con la imagen', text:String(err.message||err) });
       }
     });
@@ -4729,6 +4857,7 @@ if(IC_MODE === 'correccion'){
     block.appendChild(ta);
     block.appendChild(labE);
     block.appendChild(inp);
+    block.appendChild(badgeWrap);
     block.appendChild(prev);
     block.appendChild(verBtn);
     wrap.appendChild(block);
@@ -4753,6 +4882,7 @@ if(IC_MODE === 'correccion'){
     IC_STATE.evidData = [];
 IC_STATE.evidSizes = [];
 IC_STATE.evidFiles = [];
+    IC_STATE.evidDeleteFlags = [];   // Eliminar evidencias
   if(wrap){ wrap.innerHTML=''; }
 
   // Reset estado local mínimo
@@ -4764,6 +4894,7 @@ IC_STATE.evidFiles = [];
   evidFiles: [],
   evidData: [],
   evidSizes: [],
+    evidDeleteFlags: [],   // Borrar evidencias
     cuentaExiste: false,
     nextMode: false,
     contrato: '',
@@ -4895,6 +5026,41 @@ document.getElementById('ic-volver')?.addEventListener('click', ()=>{
   resetIngresarCuentaView();  
   showView('view-inicio');
 });
+
+function getDeletionSummary_(){
+  if(IC_MODE !== 'correccion') return [];
+  const deletions = [];
+
+  // PDFs eliminados (status vacío y había precargado)
+  const allPdfIds = Object.keys(FILE_LABELS_DELETE);
+  for(const id of allPdfIds){
+    const inp = document.getElementById(id);
+    const st  = document.getElementById(id + '-status');
+    if(!inp || !st) continue;
+
+    const hasNewFile  = inp.files && inp.files[0];
+    const statusEmpty = String(st.innerHTML||'').trim() === '';
+    const bankUrl = IC_STATE.bankPlanUrls && IC_STATE.bankPlanUrls[id];
+    const novUrl  = IC_STATE.novedadesUrls && IC_STATE.novedadesUrls[id];
+    const hadPreloaded = !!(bankUrl || novUrl);
+
+    if(hadPreloaded && !hasNewFile && statusEmpty){
+      deletions.push(FILE_LABELS_DELETE[id]);
+    }
+  }
+
+  // Imágenes marcadas para eliminar
+  const flags = IC_STATE.evidDeleteFlags || [];
+  for(let i=0; i<flags.length; i++){
+    const wantsDelete = !!flags[i];
+    const hasNew = !!(IC_STATE.evidData && IC_STATE.evidData[i]);
+    if(wantsDelete && !hasNew){
+      deletions.push(`Evidencia de la actividad ${i+1}`);
+    }
+  }
+
+  return deletions;
+}
 
 /* Guardar con resumen + backend saveNuevaCuenta + generación de documentos */
 document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
@@ -5037,6 +5203,7 @@ const evidenciasData = [];
 for(let i=0;i<Math.min(26,n);i++){
   const dataUrl = IC_STATE.evidData[i] || '';
   const sz = IC_STATE.evidSizes[i] || 0;
+  const wantsDelete = !!(IC_STATE.evidDeleteFlags && IC_STATE.evidDeleteFlags[i]);
 
   if(dataUrl && sz > MAX_IMAGE_MB){
     await Swal.fire({
@@ -5046,9 +5213,16 @@ for(let i=0;i<Math.min(26,n);i++){
     });
     return;
   }
-  evidenciasData.push(dataUrl); // '' => no se reemplaza; dataUrl => sí se reemplaza
-}
 
+  if(dataUrl){
+    evidenciasData.push(dataUrl);                  // reemplaza
+  }else if(wantsDelete && IC_MODE === 'correccion'){
+    evidenciasData.push('__DELETE__');             // eliminar la existente
+  }else{
+    evidenciasData.push('');                       // sin cambio
+  }
+}
+  
   // Cálculos
   const saldo = numPure(required.saldo);
   const cobro = numPure(required.cobro);
@@ -5175,13 +5349,33 @@ const icbf2 = numPure(document.getElementById('icbf2').value);
     if (body.aporte2)       resumenParts.push(`<b>Aporte Anexo (entidad):</b> ${body.aporte2}`);
   }
 
-  const resumen = resumenParts.join('<br>');
+ const deletionsList = getDeletionSummary_();
+let deletionHtml = '';
+if(deletionsList.length){
+  deletionHtml = `
+    <div class="delete-summary-list">
+      <b>⚠ ARCHIVOS QUE SERÁN ELIMINADOS:</b>
+      <ul>
+        ${deletionsList.map(d => `<li>${d}</li>`).join('')}
+      </ul>
+      <div style="margin-top:6px; color:#7f1d1d; font-weight:700;">
+        Esta acción no se puede deshacer una vez confirmes.
+      </div>
+    </div>
+  `;
+}
 
-  const rs = await Swal.fire({
-    icon:'info', title:'Resumen de Ingreso', html:resumen,
-    showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar'
-  });
-  if(!rs.isConfirmed) return;
+const resumen = deletionHtml + resumenParts.join('<br>');
+
+const rs = await Swal.fire({
+  icon: deletionsList.length ? 'warning' : 'info',
+  title: deletionsList.length ? 'Resumen — Hay archivos a eliminar' : (IC_MODE==='correccion' ? 'Resumen de Corrección' : 'Resumen de Ingreso'),
+  html: resumen,
+  showCancelButton:true,
+  confirmButtonText: deletionsList.length ? 'Confirmar y Eliminar' : 'Confirmar',
+  cancelButtonText:'Editar'
+});
+if(!rs.isConfirmed) return;
 
   // Suprime el loader nativo durante este flujo
   suppressLoader = true;
