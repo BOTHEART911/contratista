@@ -1077,31 +1077,6 @@ function isMobileDevice(){
 
   /* ================== BANNERS DINÁMICOS (SOLO INICIO) ================== */
 const HOME_BANNERS = [
-  {
-    id: 'app_actualizada',
-    title: 'APP 100% ACTUALIZADA',
-    img: 'https://res.cloudinary.com/dqqeavica/image/upload/v1772417403/app_version_jpcpqr.png',
-    modal: {
-      heroImg: 'https://res.cloudinary.com/dqqeavica/image/upload/v1772452588/app_actualziada_nopaxl.png',
-      html: `
-        <p style="font-weight:900; color:#06402B; margin-top:0;">
-          Sigue estos pasos para estar siempre en la última versión de la App:
-        </p>
-        <ol>
-          <li>Clic en los 3 punticos, cerca al botón minimizar.</li>
-          <li>
-            Clic en info. de la aplicación.<br>
-            Revisa que estén activos los campos <b>Notificaciones</b>, <b>Sonidos</b>, <b>Descargas automáticas</b>.
-          </li>
-          <li>
-            Clic en Configuración.<br>
-            Revisa que estén activos los campos <b>Abrir como ventana</b>, <b>Notificaciones</b>.
-          </li>
-          <li>Finalmente actualiza o ejecuta <b>Ctrl + R</b>.</li>
-        </ol>
-      `
-    }
-  },
     {
     id: 'denegado',
     title: '¿Por qué no tienes permiso para revisar tus documentos?',
@@ -1125,7 +1100,7 @@ const HOME_BANNERS = [
         <p style="margin-bottom:0;">
           Es importante que tengas presente que hay dos momentos donde tienes acceso a tu carpeta:<br><br>
           <b>1️⃣ Al CREAR o CORREGIR</b> la cuenta y <b>antes de REPORTARLA</b>, puedes tomar la opción <b>MI CUENTA DRIVE</b> para revisar.<br>
-          <b>2️⃣ Al recibir el mensaje de aceptación de Plan de Pagos, SOLO EN ESTE MOMENTO,</b> puedes tomar la opción <b>MI CUENTA DRIVE</b> para descargar los documentos.<br><br>
+          <b>2️⃣ Al recibir el segundo estado de cuenta, Aprobación, SOLO EN ESTE MOMENTO,</b> puedes tomar la opción <b>MI CUENTA DRIVE</b> para descargar los documentos previo a realizar el Plan de Pagos en el SECOP II.<br><br>
           📌 Cuando <b>REPORTAS EL PLAN DE PAGOS, Te retiras el acceso definitivo a tu carpeta</b>
         </p>
       `
@@ -1178,7 +1153,7 @@ const HOME_BANNERS = [
           font-weight:800;
           color:#111;
         ">
-          "Por esta razón, <b>si tu periodo a relacionar termina entre el 25 y 30 del mes</b>, verás que la app te muestra como fecha de radicación, los primeros días del siguiente mes."
+          "Por esta razón, <b>si tu periodo a relacionar termina entre el 27 y 30 del mes</b>, verás que la app te muestra como fecha de radicación, los primeros días del siguiente mes."
         </div>
         <p style="margin-bottom:0;">
            Las cuentas o facturas que no sean radicadas dentro del mes correspondiente serán tramitadas en el período siguiente.
