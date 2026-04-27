@@ -5040,6 +5040,8 @@ function getDeletionSummary_(){
 /* Guardar con resumen + backend saveNuevaCuenta + generación de documentos */
 document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning',title:'Sesión inválida'}); return; }
+  if(window.__icSaving){ return; }  // anti doble-click
+  window.__icSaving = true;
 
   // Validar actividades obligatorias
   {
@@ -5372,10 +5374,24 @@ const waitSwal = Swal.fire(
   }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3')
 );
 
-   try{
+  try{
     const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
     const r = await apiPost(action, body);
     await Swal.close();
+
+    // === Cuenta ya existía (reintento tras fallo de Drive) ===
+    if(r && r.duplicate === true){
+      await Swal.fire({
+        icon: 'info',
+        title: 'TU CUENTA YA SE CREÓ',
+        html: 'Toma la opción <b>REPORTAR CUENTA</b>',
+        confirmButtonText: 'OK'
+      });
+      resetIngresarCuentaView();
+      showView('view-inicio');
+      return;
+    }
+
    if(r && r.success){
   const isCorrection = (IC_MODE === 'correccion');
   if(r && r.success){
@@ -5410,6 +5426,7 @@ const waitSwal = Swal.fire(
     await Swal.close();
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }finally{
+    window.__icSaving = false;  // libera el bloqueo
     // Restablece el loader y el flag
     suppressLoader = false;
     loadingCount = 0;
