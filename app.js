@@ -3631,11 +3631,10 @@ document.getElementById('go-descargar-egresos')?.addEventListener('click', async
     return;
   }
 
-  // Desactivar loader global para esta operación
   const prevSuppress = suppressLoader;
   suppressLoader = true;
 
-  const waitSwal = Swal.fire({
+  Swal.fire({
     title: 'GENERANDO CERTIFICACIÓN...',
     html: 'Por favor espera unos segundos<br><br>Hacemos todo por ti 👩🏻‍💻',
     allowOutsideClick: false,
@@ -3644,39 +3643,95 @@ document.getElementById('go-descargar-egresos')?.addEventListener('click', async
   });
 
   try{
-    const data = await apiGet('generarCertificacionContrato', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
-    await Swal.close();
+    const data = await apiGet('generarCertificacionContrato', {
+      documento: currentUser.documento,
+      supervisor: currentUser.supervisor || ''
+    });
 
-    if(!data || !data.base64){
-      Swal.fire({ icon:'error', title:'Error', text:'No se pudo generar la certificación.' });
+    // Validación robusta de la respuesta
+    if(!data || typeof data.base64 !== 'string' || data.base64.length < 100){
+      await Swal.close();
+      Swal.fire({
+        icon:'error',
+        title:'No se pudo generar la certificación',
+        text:'El servidor no devolvió un PDF válido. Intenta nuevamente en unos minutos.'
+      });
       return;
     }
 
-    const byteCharacters = atob(data.base64);
-    const byteArrays = [];
-    const sliceSize = 1024;
-    for(let offset = 0; offset < byteCharacters.length; offset += sliceSize){
-      const slice = byteCharacters.slice(offset, offset + sliceSize);
-      const byteNumbers = new Array(slice.length);
-      for(let i = 0; i < slice.length; i++){
-        byteNumbers[i] = slice.charCodeAt(i);
+    // Limpiar base64 de posibles saltos de línea o espacios
+    const cleanBase64 = String(data.base64).replace(/\s/g, '');
+    const contentType = data.contentType || 'application/pdf';
+    const fileName = data.fileName || ('CERTIFICACIÓN CONTRATO N° ' + (currentUser.documento || '') + ' DE 2026.pdf');
+
+    // ✅ Conversión robusta usando fetch + data URL (la maneja el navegador)
+    let blob;
+    try{
+      const dataUrl = 'data:' + contentType + ';base64,' + cleanBase64;
+      const response = await fetch(dataUrl);
+      blob = await response.blob();
+    }catch(convErr){
+      // Fallback: conversión manual por si fetch falla
+      try{
+        const byteCharacters = atob(cleanBase64);
+        const len = byteCharacters.length;
+        const bytes = new Uint8Array(len);
+        for(let i = 0; i < len; i++){
+          bytes[i] = byteCharacters.charCodeAt(i);
+        }
+        blob = new Blob([bytes], { type: contentType });
+      }catch(fallbackErr){
+        await Swal.close();
+        Swal.fire({
+          icon:'error',
+          title:'Error procesando el PDF',
+          text:'El archivo recibido tiene un formato inválido. Inténtalo nuevamente.'
+        });
+        return;
       }
-      byteArrays.push(new Uint8Array(byteNumbers));
     }
-    const blob = new Blob(byteArrays, { type: data.contentType || 'application/pdf' });
+
+    // Verificar que el blob tenga contenido
+    if(!blob || blob.size < 100){
+      await Swal.close();
+      Swal.fire({
+        icon:'error',
+        title:'PDF vacío',
+        text:'El servidor generó un archivo vacío. Inténtalo nuevamente.'
+      });
+      return;
+    }
+
+    await Swal.close();
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = data.fileName || ('CERTIFICACIÓN CONTRATO N° ' + (currentUser.documento || '') + ' DE 2026.pdf');
+    a.download = fileName;
+    a.style.display = 'none';
     document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+
+    try{
+      a.click();
+    }catch(clickErr){
+      // Fallback: abrir en nueva pestaña si el click falla (algunos móviles)
+      window.open(url, '_blank');
+    }
+
+    // Esperar más tiempo antes de revocar (para conexiones lentas)
+    setTimeout(()=>{
+      try{ a.remove(); }catch(_){}
+      try{ URL.revokeObjectURL(url); }catch(_){}
+    }, 30000); // 30 segundos en lugar de 5
+
   }catch(e){
     await Swal.close();
-    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+    Swal.fire({
+      icon:'error',
+      title:'Error al generar certificación',
+      text: String(e.message || e || 'Error desconocido')
+    });
   }finally{
-    // Restaurar el comportamiento normal del loader global
     suppressLoader = prevSuppress;
   }
 });
@@ -4543,9 +4598,25 @@ if(IC_MODE !== 'correccion'){
 }
   
   // Meses select
-  const sel1 = document.getElementById('ic-mesPlanilla'); const sel2 = document.getElementById('ic-mesPlanilla2');
-  if(sel1) sel1.innerHTML = '<option value="" disabled selected>Selecciona</option>' + MESES_LIT.map(m=>`<option>${m}</option>`).join('');
-  if(sel2) sel2.innerHTML = '<option value="" disabled selected>Selecciona</option>' + MESES_LIT.map(m=>`<option>${m}</option>`).join('');
+const sel1 = document.getElementById('ic-mesPlanilla');
+const sel2 = document.getElementById('ic-mesPlanilla2');
+
+// sel1 = Mes Planilla principal (REQUERIDO, no se puede limpiar)
+if(sel1){
+  sel1.innerHTML = '<option value="" disabled selected>Selecciona</option>'
+    + MESES_LIT.map(m=>`<option>${m}</option>`).join('');
+}
+
+// sel2 = Mes Planilla Anexa (OPCIONAL: en corrección agregamos opción para limpiar)
+if(sel2){
+  let opcionesSel2 = '<option value="" disabled selected>Selecciona</option>';
+  if(IC_MODE === 'correccion'){
+    // Opción especial para que el usuario pueda volver a "vacío"
+    opcionesSel2 += '<option value="">— Quitar selección —</option>';
+  }
+  opcionesSel2 += MESES_LIT.map(m=>`<option>${m}</option>`).join('');
+  sel2.innerHTML = opcionesSel2;
+}
 
   // Planilla anexa toggle
   document.getElementById('btn-planilla2-show')?.addEventListener('click', ()=>{
@@ -4594,6 +4665,50 @@ if(IC_MODE !== 'correccion'){
   // >>> Formato de pesos
   bindCOPFormatters();
   recompute();
+
+  // Botón "Limpiar Anexa" solo en CORRECCIÓN
+if(IC_MODE === 'correccion'){
+  const wrapAnexa = document.getElementById('ic-planilla2-wrap');
+  if(wrapAnexa && !document.getElementById('btn-limpiar-anexa')){
+    const btnLimp = document.createElement('button');
+    btnLimp.type = 'button';
+    btnLimp.id = 'btn-limpiar-anexa';
+    btnLimp.className = 'chip danger';
+    btnLimp.textContent = 'Limpiar Planilla Anexa completa';
+    btnLimp.style.marginTop = '8px';
+    btnLimp.addEventListener('click', async ()=>{
+      const ok = await Swal.fire({
+        icon:'warning',
+        title:'¿Limpiar la Planilla Anexa?',
+        text:'Se borrarán todos los campos opcionales de la Planilla Anexa al guardar la corrección.',
+        showCancelButton:true,
+        confirmButtonText:'Sí, limpiar',
+        cancelButtonText:'Cancelar'
+      });
+      if(!ok.isConfirmed) return;
+
+      // Limpiar todos los campos de la planilla anexa
+      ['ic-planilla2','ic-base2','ic-salud2','ic-fondo2','ic-riesgos2','caja2','sena2','icbf2']
+        .forEach(id=>{
+          const el = document.getElementById(id);
+          if(el) el.value = '';
+        });
+
+      // Limpiar el select (volver a "Selecciona")
+      const sm = document.getElementById('ic-mesPlanilla2');
+      if(sm) sm.value = '';
+
+      // Limpiar campos calculados ocultos
+      const sol = document.getElementById('ic-solidario2');
+      const ap  = document.getElementById('ic-aporte2');
+      if(sol) sol.value = '0';
+      if(ap)  ap.value  = '-';
+    });
+
+    // Insertarlo dentro del wrap de planilla anexa
+    wrapAnexa.appendChild(btnLimp);
+  }
+}
 
   // Obligaciones + Actividades + Evidencias
   const wrap = document.getElementById('ic-oblig-wrap');
