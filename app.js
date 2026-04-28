@@ -821,9 +821,15 @@ function showConnectingLoginLoader_(){
     title: 'CONECTANDO TU INFORMACIÓN...',
     html: `
       <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:10px; gap:10px;">
-        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1772411980/inicio_pp7o9q.gif"
-             alt="Conectando"
-             style="width:240px; max-width:80vw; height:auto; display:block;">
+        <video id="login-loader-video"
+               src="https://res.cloudinary.com/dqqeavica/video/upload/v1777418843/Iniciando_yetetb.mp4"
+               autoplay
+               muted
+               loop
+               playsinline
+               preload="auto"
+               style="width:240px; max-width:80vw; height:auto; display:block; border-radius:12px;">
+        </video>
         <div style="text-align:center; font-weight:900;">
           ¡Espera unos segundos!
         </div>
@@ -833,13 +839,32 @@ function showConnectingLoginLoader_(){
     allowOutsideClick:false,
     allowEscapeKey:false,
     backdrop:true,
-    didOpen: ()=>{ try{ Swal.showLoading(); }catch(_){} }
+    didOpen: ()=>{
+      try{ Swal.showLoading(); }catch(_){}
+      try{
+        const v = document.getElementById('login-loader-video');
+        if(v){
+          v.muted = true; // necesario para que los navegadores permitan autoplay
+          const p = v.play();
+          if(p && typeof p.catch === 'function') p.catch(()=>{});
+        }
+      }catch(_){}
+    }
   });
 }
 
 function hideConnectingLoginLoader_(){
   if(!__loginOverlayOpen) return;
   __loginOverlayOpen = false;
+
+  // Detener el video antes de cerrar la alerta (evita que retrase o quede sonando)
+  try{
+    const v = document.getElementById('login-loader-video');
+    if(v){
+      try{ v.pause(); }catch(_){}
+      try{ v.removeAttribute('src'); v.load(); }catch(_){}
+    }
+  }catch(_){}
 
   try{ Swal.close(); }catch(_){}
 
@@ -852,7 +877,6 @@ function hideConnectingLoginLoader_(){
     }
   }catch(_){}
 }
-
 
 /* ================== API ================== */
 async function apiGet(action, params = {}){
