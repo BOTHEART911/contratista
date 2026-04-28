@@ -928,6 +928,26 @@
       <button id="btn-planilla2-show" class="chip">Relacionar Planilla Anexa</button>
     </div>
 
+     <label>Certificación Bancaria (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>Archivo Sin Contraseña</b></div>
+        <input id="bancaria" type="file" accept="application/pdf" />
+        <div id="bancaria-status" class="muted" style="margin-top:6px;"></div>
+
+        <label>Baucher Planilla (PDF)</label>
+        <input id="baucher1" type="file" accept="application/pdf" />
+        <div id="baucher1-status" class="muted" style="margin-top:6px;"></div>
+
+        <label>Planilla (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>Archivo Sin Contraseña</b></div>
+        <input id="planaporte1" type="file" accept="application/pdf" />
+        <div id="planaporte1-status" class="muted" style="margin-top:6px;"></div>
+
+        <div class="center" style="margin-top:10px; margin-bottom:6px;">
+            <button type="button" id="btn-desbloquear-pdf" class="chip btn-unificar-anexos">
+              Puedas desbloquear tus PDF Aquí
+            </button>
+          </div>
+
     <div id="ic-planilla2-wrap" class="narrow hidden" style="margin-top:8px;">
       <h3 class="center" style="margin-top:6px;color:#333;">RELACIÓN DE PAGO PLANILLA ANEXA</h3>
       <label>N° de Planilla Anexa</label>
@@ -987,6 +1007,22 @@
       <input id="ic-supervisor" type="hidden" />
       <input id="ic-editor-email" type="hidden" />
 
+        <label>Baucher Planilla Anexa (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
+        <input id="baucher2" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+        <button type="button" class="chip danger" id="baucher2-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="baucher2-status" class="muted" style="margin-top:6px;"></div>
+
+        <label>Planilla Anexa (PDF)</label>
+        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL, SIN CONTRASEÑA</b></div>
+        <input id="planaporte2" type="file" accept="application/pdf" />
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="chip danger" id="planaporte2-clear" style="display:none;">Quitar</button>
+        </div>
+        <div id="planaporte2-status" class="muted" style="margin-top:6px;"></div>
+
       <div class="center" style="margin-top:8px;">
         <button id="btn-planilla2-hide" class="chip danger">Ocultar Planilla Anexa</button>
       </div>
@@ -1013,43 +1049,7 @@
             </button>
           </div>
 
-        <label>Certificación Bancaria (PDF)</label>
-        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>Archivo Sin Contraseña</b></div>
-        <input id="bancaria" type="file" accept="application/pdf" />
-        <div id="bancaria-status" class="muted" style="margin-top:6px;"></div>
-
-        <label>Baucher Planilla (PDF)</label>
-        <input id="baucher1" type="file" accept="application/pdf" />
-        <div id="baucher1-status" class="muted" style="margin-top:6px;"></div>
-
-        <label>Planilla (PDF)</label>
-        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>Archivo Sin Contraseña</b></div>
-        <input id="planaporte1" type="file" accept="application/pdf" />
-        <div id="planaporte1-status" class="muted" style="margin-top:6px;"></div>
-
-        <div class="center" style="margin-top:10px; margin-bottom:6px;">
-            <button type="button" id="btn-desbloquear-pdf" class="chip btn-unificar-anexos">
-              Puedas desbloquear tus PDF Aquí
-            </button>
-          </div>
-
              <h3 class="center" style="margin-top:6px;color:#5b5b5b;">LOS SIGUIENTES DOCUMENTOS SON OPCIONALES</h3>
-
-        <label>Baucher Planilla Anexa (PDF)</label>
-        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL</b></div>
-        <input id="baucher2" type="file" accept="application/pdf" />
-        <div class="btn-row" style="margin-top:6px;">
-        <button type="button" class="chip danger" id="baucher2-clear" style="display:none;">Quitar</button>
-        </div>
-        <div id="baucher2-status" class="muted" style="margin-top:6px;"></div>
-
-        <label>Planilla Anexa (PDF)</label>
-        <div class="muted" style="margin:6px 0 8px; text-align: justify; "><b>SOLO SI VAS A PRESENTAR PLANILLA ADICIONAL, SIN CONTRASEÑA</b></div>
-        <input id="planaporte2" type="file" accept="application/pdf" />
-        <div class="btn-row" style="margin-top:6px;">
-          <button type="button" class="chip danger" id="planaporte2-clear" style="display:none;">Quitar</button>
-        </div>
-        <div id="planaporte2-status" class="muted" style="margin-top:6px;"></div>
 
         <h3 class="center" style="margin-top:6px;color:#5b5b5b;">DOCUMENTOS PARA PERSONAS REGIMEN SIMPLE, JURÍDICAS, NO APORTES A PENSIÓN</h3>
 
