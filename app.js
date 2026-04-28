@@ -3955,6 +3955,31 @@ document.getElementById('btn-unificar-anexos')?.addEventListener('click', ()=>{
   window.open('https://smallpdf.com/es/desbloquear-pdf', '_blank', 'noopener');
 });
 
+                                                          /* ================== AUDIO RADICACIÓN MES SIGUIENTE ================== */
+let __icRadAudio = null;
+
+function playRadAudio_(){
+  try{
+    if(!__icRadAudio){
+      __icRadAudio = new Audio('https://res.cloudinary.com/dqqeavica/video/upload/v1777400627/radicacion_ch7e1d.mp3');
+      __icRadAudio.preload = 'auto';
+    }
+    try{ __icRadAudio.pause(); }catch(_){}
+    __icRadAudio.currentTime = 0;
+    const p = __icRadAudio.play();
+    if(p && typeof p.catch === 'function') p.catch(()=>{});
+  }catch(_){}
+}
+
+function stopRadAudio_(){
+  try{
+    if(__icRadAudio){
+      __icRadAudio.pause();
+      __icRadAudio.currentTime = 0;
+    }
+  }catch(_){}
+}
+
     /* ================== INGRESAR CUENTA ================== */
 
   // Modo de operación de la vista de cuenta: ingreso o corrección
@@ -6976,6 +7001,7 @@ function icEsHabil(d){
 }
 function icAbrirRadicado(){
   const modal = document.getElementById('icRadicadoModal');
+  stopRadAudio_(); // por si quedó audio sonando de una apertura previa
   const dSel  = document.getElementById('icRadDia');
   const mSel  = document.getElementById('icRadMes');
   const aSel  = document.getElementById('icRadAnio');
@@ -7072,11 +7098,12 @@ if(applyNextMonthRule){
   // ✅ FIX: Filtrar respetando habilStart (que ya contempla la regla de >= 16:30)
   const opcionesNextFiltradas = candidatosNextMonth.filter(dt => startOfDay_(dt) >= habilStart);
 
-  if(opcionesNextFiltradas.length > 0){
+ if(opcionesNextFiltradas.length > 0){
     opciones = opcionesNextFiltradas.slice(0, after4pm ? 2 : 3);
     if(sub){
       sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
     }
+    playRadAudio_(); // solo cuando aparece el encabezado especial
   }else{
     opciones = addHabilDaysFrom_(habilStart, after4pm ? 2 : 3);
     if(sub) sub.textContent = '';
@@ -7134,6 +7161,7 @@ if(applyNextMonthRule){
 }
   
 function icCancelarRadicado(){
+  stopRadAudio_();
   const m=document.getElementById('icRadicadoModal');
   if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
 }
