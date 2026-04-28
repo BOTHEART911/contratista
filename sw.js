@@ -24,6 +24,23 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
+  // ✅ NO interceptar peticiones con Range (streaming de video/audio)
+  // Esto evita el error "Failed to convert value to 'Response'" en <video> y <audio>
+  if (req.headers.has('range')) {
+    return;
+  }
+
+  // ✅ NO interceptar archivos multimedia (mp4, mp3, webm, mov, ogg, wav, m4a)
+  // El navegador los maneja directamente sin pasar por el SW
+  if (/\.(mp4|mp3|webm|mov|ogg|wav|m4a|avi|mkv)(\?|$)/i.test(url.pathname + url.search)) {
+    return;
+  }
+
+  // ✅ NO interceptar contenido multimedia de Cloudinary (videos y audios)
+  if (url.hostname === 'res.cloudinary.com' && /\/video\/upload\//.test(url.pathname)) {
+    return;
+  }
+
   // version.json SIEMPRE desde la red, nunca caché
   if (url.pathname.endsWith('/version.json')) {
     event.respondWith(fetch(req, { cache: 'no-store' }).catch(() => new Response('{}', { headers: { 'Content-Type': 'application/json' } })));
