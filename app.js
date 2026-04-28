@@ -4451,6 +4451,46 @@ if (sup) sup.value = IC_STATE.supervisor || '';
     saldoHint.style.display = isFirst ? '' : 'none';
   }
 
+  function renderIngresarCuenta(){
+
+  // ===== HARD RESET de campos de archivos cuando es INGRESO (no corrección) =====
+  // Debe ejecutarse ANTES de cualquier bindPdfInputStrict para que el bind
+  // capture estado limpio (__savedStatusHtml vacío) y los inputs queden visibles.
+  if(IC_MODE !== 'correccion'){
+    const allPdfIds = [
+      'bancaria','baucher1','planaporte1','baucher2','planaporte2',
+      'rutsg','factElect','otroPdf','noafp','actAnexos',
+      'actaI','clasulados','cdpC','rpC','rutpn','arlC',
+      'otrosi','cdpAc','rpAc','actaL','otroR'
+    ];
+    allPdfIds.forEach(id => {
+      const inp    = document.getElementById(id);
+      const stEl   = document.getElementById(id + '-status');
+      const clrBtn = document.getElementById(id + '-clear');
+
+      if(inp){
+        inp.value = '';
+        inp.classList.remove('file-input-hidden');     // volver a mostrar el "Seleccionar archivo"
+        if(typeof inp.__refreshSavedHtml === 'function'){
+          try{ inp.__refreshSavedHtml(); }catch(_){}    // refrescar memoria interna
+        }
+      }
+      if(stEl) stEl.innerHTML = '';
+      if(clrBtn) clrBtn.style.display = 'none';
+    });
+
+    // Limpiar evidencias de imágenes (data, tamaños, flags y urls precargadas)
+    IC_STATE.evidData         = [];
+    IC_STATE.evidSizes        = [];
+    IC_STATE.evidDeleteFlags  = [];
+    IC_STATE.evidOriginalUrls = [];
+  }
+  // ===== FIN HARD RESET =====
+
+  // Ajustar título y descripción según modo
+  const titleEl = document.getElementById('ic-title');
+  ...
+
 // Adjunto de archivos de cuenta certificado bancario y planilla
 bindPdfInputStrict('bancaria',    { required: (IC_MODE !== 'correccion'), forbidEncrypted:true });
 bindPdfInputStrict('baucher1',    { required: (IC_MODE !== 'correccion'), forbidEncrypted:true });
@@ -4496,7 +4536,13 @@ function resetFileUi_(id){
   const st = document.getElementById(id + '-status');
   const clearBtn = document.getElementById(id + '-clear');
 
-  if(inp) inp.value = '';
+  if(inp){
+    inp.value = '';
+    inp.classList.remove('file-input-hidden');
+    if(typeof inp.__refreshSavedHtml === 'function'){
+      try{ inp.__refreshSavedHtml(); }catch(_){}
+    }
+  }
   if(st) st.innerHTML = '';
   if(clearBtn) clearBtn.style.display = 'none';
 }
