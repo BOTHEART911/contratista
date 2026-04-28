@@ -7542,6 +7542,105 @@ showView('view-inicio');
 });
 
 
+/* ================== AUTO-ACTUALIZACIÓN (version.json) MANTENIMIENTO ================== */
+let __maintenanceActive = false;
+
+function forzarMantenimientoVista_(){
+  for(const el of document.querySelectorAll('.view')){
+    el.classList.remove('active');
+  }
+  const mant = document.getElementById('view-mantenimiento');
+  if(mant) mant.classList.add('active');
+  try{ window.scrollTo({ top:0, behavior:'smooth' }); }catch(_){}
+}
+
+function activarModoMantenimiento_(){
+  if(__maintenanceActive){
+    forzarMantenimientoVista_();
+    return;
+  }
+  __maintenanceActive = true;
+
+  // Cerrar SweetAlerts, overlays, modales
+  try{ Swal.close(); }catch(_){}
+  try{ document.getElementById('overlay')?.classList.remove('open'); }catch(_){}
+  try{ document.getElementById('bannerModal')?.setAttribute('aria-hidden','true'); }catch(_){}
+  try{ document.getElementById('guiaModal')?.setAttribute('aria-hidden','true'); }catch(_){}
+  try{ document.getElementById('guiaInicioModal')?.setAttribute('aria-hidden','true'); }catch(_){}
+  try{ hideConnectingLoginLoader_(); }catch(_){}
+
+  // Apagar carruseles
+  try{ stopHomeBanners_(); }catch(_){}
+
+  // Restablecer loader global
+  try{
+    suppressLoader = false;
+    loadingCount = 0;
+    if(loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
+    if(loader){ loader.style.display=''; loader.classList.add('hidden'); }
+  }catch(_){}
+
+  forzarMantenimientoVista_();
+
+  // Reproducir video automáticamente una vez
+  const v = document.getElementById('mant-video');
+  if(v){
+    try{
+      v.currentTime = 0;
+      v.muted = false;
+      const p = v.play();
+      if(p && typeof p.catch === 'function'){
+        p.catch(()=>{
+          // si el navegador bloquea autoplay con sonido, intenta muteado
+          try{
+            v.muted = true;
+            v.play().catch(()=>{});
+          }catch(_){}
+        });
+      }
+    }catch(_){}
+  }
+}
+
+function desactivarModoMantenimiento_(){
+  if(!__maintenanceActive) return;
+  __maintenanceActive = false;
+  const v = document.getElementById('mant-video');
+  if(v){ try{ v.pause(); }catch(_){} }
+  const mant = document.getElementById('view-mantenimiento');
+  if(mant) mant.classList.remove('active');
+}
+
+// Botón "Volver a reproducir"
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('mant-replay');
+  if(btn){
+    btn.addEventListener('click', ()=>{
+      const v = document.getElementById('mant-video');
+      if(!v) return;
+      try{
+        v.currentTime = 0;
+        v.muted = false;
+        const p = v.play();
+        if(p && typeof p.catch === 'function') p.catch(()=>{});
+      }catch(_){}
+    });
+  }
+});
+
+// Bloquear cambio de vista mientras esté activo el mantenimiento
+(function hookShowViewForMaintenance_(){
+  if(typeof window.showView !== 'function') return;
+  const __orig = window.showView;
+  window.showView = function(id){
+    if(__maintenanceActive){
+      forzarMantenimientoVista_();
+      return;
+    }
+    __orig(id);
+  };
+})();
+
 /* ================== AUTO-ACTUALIZACIÓN (version.json) ================== */
 let __APP_VERSION_LOADED = '';
 let __versionCheckInFlight = false;
@@ -7555,9 +7654,17 @@ async function checkAppVersion(){
     if(!r.ok) return;
     const j = await r.json();
     const serverVersion = String(j.version || '').trim();
+    const serverMaintenance = !!j.maintenance;
     if(!serverVersion) return;
 
-    // Primera lectura: guardar la versión actual y pintarla en login
+    // Aplicar/quitar mantenimiento dinámicamente
+    if(serverMaintenance){
+      activarModoMantenimiento_();
+    } else {
+      desactivarModoMantenimiento_();
+    }
+
+    // Primera lectura: guarda versión y muestra en login
     if(!__APP_VERSION_LOADED){
       __APP_VERSION_LOADED = serverVersion;
       const el = document.getElementById('app-version');
@@ -7565,7 +7672,7 @@ async function checkAppVersion(){
       return;
     }
 
-    // Lecturas posteriores: si cambió, recargar silenciosamente
+    // Si cambió la versión: limpia cachés y recarga (esto también desactiva mantenimiento si bajaste el flag)
     if(serverVersion !== __APP_VERSION_LOADED){
       try{
         const keys = await caches.keys();
@@ -7574,31 +7681,30 @@ async function checkAppVersion(){
       location.reload();
     }
   }catch(_){
-    /* silencio: sin red no hay actualización */
+    /* sin red: silencio */
   }finally{
     __versionCheckInFlight = false;
   }
 }
 
-// Recarga automática cuando el SW nuevo toma control (solo una vez por sesión de página)
+// Recarga automática cuando el SW nuevo toma control
 if('serviceWorker' in navigator){
   let __reloadingFromSW = false;
   navigator.serviceWorker.addEventListener('controllerchange', ()=>{
     if(__reloadingFromSW) return;
-    // Evitar loop: solo recargar si NO veníamos de una recarga reciente
     const lastReload = Number(sessionStorage.getItem('__swReloadTs') || 0);
     const now = Date.now();
-    if(now - lastReload < 10000) return; // si recargamos hace menos de 10s, no recargar otra vez
+    if(now - lastReload < 10000) return;
     __reloadingFromSW = true;
     sessionStorage.setItem('__swReloadTs', String(now));
     location.reload();
   });
 }
 
-// Chequeo al cargar la página
+// Chequeo al cargar
 window.addEventListener('load', ()=>{ checkAppVersion(); });
 
-// Chequeo cada vez que la pestaña/PWA vuelve a estar visible (máx 1 vez cada 30s)
+// Chequeo cada vez que la pestaña/PWA vuelve a estar visible (mín 30s)
 let __lastVersionCheck = Date.now();
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden) return;
@@ -7607,3 +7713,8 @@ document.addEventListener('visibilitychange', ()=>{
   __lastVersionCheck = now;
   checkAppVersion();
 });
+
+// 🆕 Chequeo periódico cada 30 s (clave para entrar a mantenimiento sin recargar)
+setInterval(()=>{
+  if(!document.hidden) checkAppVersion();
+}, 30000);
