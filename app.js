@@ -7542,7 +7542,7 @@ showView('view-inicio');
 });
 
 
-/* ================== AUTO-ACTUALIZACIÓN (version.json) MANTENIMIENTO ================== */
+/* ================== MANTENIMIENTO ================== */
 let __maintenanceActive = false;
 
 function forzarMantenimientoVista_(){
@@ -7642,8 +7642,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 })();
 
 /* ================== AUTO-ACTUALIZACIÓN (version.json) ================== */
-let __APP_VERSION_LOADED = '';
-let __versionCheckInFlight = false;
+let __APP_MAINTENANCE_LOADED = null; // null = aún no leído
 
 async function checkAppVersion(){
   if(__versionCheckInFlight) return;
@@ -7657,64 +7656,41 @@ async function checkAppVersion(){
     const serverMaintenance = !!j.maintenance;
     if(!serverVersion) return;
 
-    // Aplicar/quitar mantenimiento dinámicamente
-    if(serverMaintenance){
-      activarModoMantenimiento_();
-    } else {
-      desactivarModoMantenimiento_();
-    }
-
-    // Primera lectura: guarda versión y muestra en login
+    // Primera lectura: solo guarda valores y muestra versión
     if(!__APP_VERSION_LOADED){
       __APP_VERSION_LOADED = serverVersion;
+      __APP_MAINTENANCE_LOADED = serverMaintenance;
+
       const el = document.getElementById('app-version');
       if(el) el.textContent = 'Versión ' + serverVersion;
+
+      // Si en el primer arranque ya está en mantenimiento, lo activa
+      if(serverMaintenance){
+        activarModoMantenimiento_();
+      }
       return;
     }
 
-    // Si cambió la versión: limpia cachés y recarga (esto también desactiva mantenimiento si bajaste el flag)
-    if(serverVersion !== __APP_VERSION_LOADED){
+    // Lecturas siguientes: detectar cambios
+    const versionChanged = (serverVersion !== __APP_VERSION_LOADED);
+    const maintenanceChanged = (serverMaintenance !== __APP_MAINTENANCE_LOADED);
+
+    if(versionChanged || maintenanceChanged){
+      // Limpiar cachés
       try{
         const keys = await caches.keys();
         await Promise.all(keys.map(k => caches.delete(k)));
       }catch(_){}
+
+      // Recargar siempre que cambie versión o mantenimiento
       location.reload();
+      return;
     }
+
+    // Sin cambios: nada que hacer
   }catch(_){
     /* sin red: silencio */
   }finally{
     __versionCheckInFlight = false;
   }
 }
-
-// Recarga automática cuando el SW nuevo toma control
-if('serviceWorker' in navigator){
-  let __reloadingFromSW = false;
-  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
-    if(__reloadingFromSW) return;
-    const lastReload = Number(sessionStorage.getItem('__swReloadTs') || 0);
-    const now = Date.now();
-    if(now - lastReload < 10000) return;
-    __reloadingFromSW = true;
-    sessionStorage.setItem('__swReloadTs', String(now));
-    location.reload();
-  });
-}
-
-// Chequeo al cargar
-window.addEventListener('load', ()=>{ checkAppVersion(); });
-
-// Chequeo cada vez que la pestaña/PWA vuelve a estar visible (mín 30s)
-let __lastVersionCheck = Date.now();
-document.addEventListener('visibilitychange', ()=>{
-  if(document.hidden) return;
-  const now = Date.now();
-  if(now - __lastVersionCheck < 30000) return;
-  __lastVersionCheck = now;
-  checkAppVersion();
-});
-
-// 🆕 Chequeo periódico cada 30 s (clave para entrar a mantenimiento sin recargar)
-setInterval(()=>{
-  if(!document.hidden) checkAppVersion();
-}, 30000);
