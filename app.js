@@ -4489,7 +4489,6 @@ if (sup) sup.value = IC_STATE.supervisor || '';
 
   // Ajustar título y descripción según modo
   const titleEl = document.getElementById('ic-title');
-  ...
 
 // Adjunto de archivos de cuenta certificado bancario y planilla
 bindPdfInputStrict('bancaria',    { required: (IC_MODE !== 'correccion'), forbidEncrypted:true });
