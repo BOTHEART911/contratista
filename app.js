@@ -7694,3 +7694,27 @@ async function checkAppVersion(){
     __versionCheckInFlight = false;
   }
 }
+
+/* ===== Inicialización auto-actualización + mantenimiento ===== */
+let __APP_VERSION_LOADED = '';
+let __versionCheckInFlight = false;
+
+// Primera ejecución al cargar
+document.addEventListener('DOMContentLoaded', ()=>{
+  checkAppVersion();
+});
+
+// Chequeo periódico cada 30 segundos
+setInterval(checkAppVersion, 30000);
+
+// Cuando el usuario regresa a la pestaña, chequea inmediatamente
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden){
+    checkAppVersion();
+  }
+});
+
+// Cuando recupera conexión, también chequea
+window.addEventListener('online', ()=>{
+  checkAppVersion();
+});
