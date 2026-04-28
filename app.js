@@ -823,6 +823,7 @@ function showConnectingLoginLoader_(){
       <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:10px; gap:10px;">
         <video id="login-loader-video"
                src="https://res.cloudinary.com/dqqeavica/video/upload/v1777418843/Iniciando_yetetb.mp4"
+               crossorigin="anonymous"
                autoplay
                loop
                playsinline
