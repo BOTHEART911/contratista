@@ -838,7 +838,7 @@ function showConnectingLoginLoader_(){
     allowOutsideClick:false,
     allowEscapeKey:false,
     backdrop:true,
-didOpen: ()=>{
+    didOpen: ()=>{
       try{ Swal.showLoading(); }catch(_){}
       try{
         const v = document.getElementById('login-loader-video');
@@ -859,12 +859,14 @@ didOpen: ()=>{
         }
       }catch(_){}
     }
+  });
+}
 
 function hideConnectingLoginLoader_(){
   if(!__loginOverlayOpen) return;
   __loginOverlayOpen = false;
 
-  // Detener el video antes de cerrar la alerta (evita que retrase o quede sonando)
+  // Detener el video antes de cerrar la alerta
   try{
     const v = document.getElementById('login-loader-video');
     if(v){
