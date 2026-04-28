@@ -824,7 +824,6 @@ function showConnectingLoginLoader_(){
         <video id="login-loader-video"
                src="https://res.cloudinary.com/dqqeavica/video/upload/v1777418843/Iniciando_yetetb.mp4"
                autoplay
-               muted
                loop
                playsinline
                preload="auto"
@@ -839,19 +838,27 @@ function showConnectingLoginLoader_(){
     allowOutsideClick:false,
     allowEscapeKey:false,
     backdrop:true,
-    didOpen: ()=>{
+didOpen: ()=>{
       try{ Swal.showLoading(); }catch(_){}
       try{
         const v = document.getElementById('login-loader-video');
         if(v){
-          v.muted = true; // necesario para que los navegadores permitan autoplay
+          // Intentar reproducir CON sonido (permitido porque el usuario hizo click en "Iniciar Sesión")
+          v.muted = false;
+          v.volume = 1.0;
           const p = v.play();
-          if(p && typeof p.catch === 'function') p.catch(()=>{});
+          if(p && typeof p.catch === 'function'){
+            p.catch(()=>{
+              // Si el navegador bloquea el autoplay con sonido, reintentar muteado
+              try{
+                v.muted = true;
+                v.play().catch(()=>{});
+              }catch(_){}
+            });
+          }
         }
       }catch(_){}
     }
-  });
-}
 
 function hideConnectingLoginLoader_(){
   if(!__loginOverlayOpen) return;
