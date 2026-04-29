@@ -7686,8 +7686,15 @@ async function checkAppVersion(){
     if(!r.ok) return;
     const j = await r.json();
     const serverVersion = String(j.version || '').trim();
-    const serverMaintenance = !!j.maintenance;
-    if(!serverVersion) return;
+const serverMaintenance = !!j.maintenance;
+const serverMaintenanceTime = String(j.maintenanceTime || '30 minutos').trim();
+if(!serverVersion) return;
+
+// Actualizar el tiempo de mantenimiento en la vista (siempre, esté o no activo)
+try{
+  const tiempoEl = document.getElementById('mant-tiempo');
+  if(tiempoEl) tiempoEl.textContent = serverMaintenanceTime;
+}catch(_){}
 
     // Primera lectura: solo guarda valores y muestra versión
     if(!__APP_VERSION_LOADED){
