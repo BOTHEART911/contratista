@@ -7031,6 +7031,56 @@ function icAbrirFin(){
   if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
 }
 
+// ===== Cancelar / Confirmar Inicio =====
+function icCancelarInicio(){
+  const modal = document.getElementById('icInicioModal');
+  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+}
+
+function icConfirmarInicio(){
+  const dia = document.getElementById('icInicioDia')?.value || '';
+  const mes = document.getElementById('icInicioMes')?.value || '';
+  if(!dia || !mes){ showPickerSelectAlert(); return; }
+
+  const anio = '2026';
+  const idx = Math.max(1, Math.min(12, parseInt(mes,10))) - 1;
+  const mesNombre = icMesesNombres[idx];
+
+  const input = document.getElementById('ic-inicio');
+  const dOut  = document.getElementById('ic-diaRat1');
+  const mOut  = document.getElementById('ic-mesRat1');
+  if(input) input.value = `${dia}/${mes}/${anio}`;
+  if(dOut)  dOut.value  = dia;
+  if(mOut)  mOut.value  = mesNombre;
+
+  icCancelarInicio();
+}
+
+// ===== Cancelar / Confirmar Fin =====
+function icCancelarFin(){
+  const modal = document.getElementById('icFinModal');
+  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+}
+
+function icConfirmarFin(){
+  const dia = document.getElementById('icFinDia')?.value || '';
+  const mes = document.getElementById('icFinMes')?.value || '';
+  if(!dia || !mes){ showPickerSelectAlert(); return; }
+
+  const anio = '2026';
+  const idx = Math.max(1, Math.min(12, parseInt(mes,10))) - 1;
+  const mesNombre = icMesesNombres[idx];
+
+  const input = document.getElementById('ic-fin');
+  const dOut  = document.getElementById('ic-diaRat2');
+  const mOut  = document.getElementById('ic-mesRat2');
+  if(input) input.value = `${dia}/${mes}/${anio}`;
+  if(dOut)  dOut.value  = dia;
+  if(mOut)  mOut.value  = mesNombre;
+
+  icCancelarFin();
+}
+
 // 3) Radicado (hoy + 2 hábiles; feriados no hábiles, excepción diciembre habilita todos excepto feriados)
 const IC_FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026']);
 function icEsHabil(d){
