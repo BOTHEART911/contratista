@@ -6941,77 +6941,94 @@ const icMesesNombres=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','
 let __icRadMonth = '';
 let __icRadYear  = '';
 
-// 1) Inicio (ruleta libre, año fijo 2026)
-(function icInitInicio(){
-  const d = document.getElementById('icInicioDia');
-  const m = document.getElementById('icInicioMes');
-  if (d && !d.childElementCount){
-    for(let i=1;i<=31;i++){ const o=document.createElement('option'); o.value=icPad2(i); o.textContent=o.value; d.appendChild(o); }
+// ===== Helper común para pickers Inicio / Fin con tope de fecha actual =====
+function icCalcularMaxFechaPermitida_(){
+  const now = new Date();
+  const hoy0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const after4pm = (now.getHours() >= 16);
+  if(after4pm){
+    return new Date(hoy0.getFullYear(), hoy0.getMonth(), hoy0.getDate() + 1);
   }
-  if (m && !m.childElementCount){
-    for(let i=0;i<12;i++){ const o=document.createElement('option'); o.value=icPad2(i+1); o.textContent=icMesesNombres[i]; m.appendChild(o); }
+  return hoy0;
+}
+
+function icDiasEnMes_(year, month0){
+  // month0 = 0..11
+  return new Date(year, month0 + 1, 0).getDate();
+}
+
+function icRellenarPickerLimitado_(prefix){
+  // prefix: 'icInicio' | 'icFin'
+  const dSel = document.getElementById(prefix + 'Dia');
+  const mSel = document.getElementById(prefix + 'Mes');
+  const aSel = document.getElementById(prefix + 'Anio');
+  if(!dSel || !mSel || !aSel) return;
+
+  const max = icCalcularMaxFechaPermitida_();
+  const maxYear  = max.getFullYear();   // 2026
+  const maxMonth = max.getMonth();      // 0..11
+  const maxDay   = max.getDate();
+
+  // Año fijo (ya viene en HTML como disabled con 2026)
+  // Forzamos coherencia
+  aSel.innerHTML = '';
+  const optY = document.createElement('option');
+  optY.value = String(maxYear);
+  optY.textContent = String(maxYear);
+  optY.selected = true;
+  aSel.appendChild(optY);
+
+  // Meses: solo de enero hasta el mes del máximo
+  mSel.innerHTML = '';
+  for(let i = 0; i <= maxMonth; i++){
+    const opt = document.createElement('option');
+    opt.value = icPad2(i + 1);
+    opt.textContent = icMesesNombres[i];
+    mSel.appendChild(opt);
   }
-})();
+  // Por defecto seleccionamos el mes del máximo (mes actual o el del +1 día)
+  mSel.value = icPad2(maxMonth + 1);
+
+  function recargarDias(){
+    const mesElegido = parseInt(mSel.value, 10) - 1; // 0..11
+    let topeDia;
+    if(mesElegido === maxMonth){
+      topeDia = maxDay;
+    }else{
+      topeDia = icDiasEnMes_(maxYear, mesElegido);
+    }
+    const diaPrev = parseInt(dSel.value || '0', 10);
+    dSel.innerHTML = '';
+    for(let d = 1; d <= topeDia; d++){
+      const opt = document.createElement('option');
+      opt.value = icPad2(d);
+      opt.textContent = icPad2(d);
+      dSel.appendChild(opt);
+    }
+    // Restaurar selección si sigue siendo válida; si no, último día permitido
+    if(diaPrev >= 1 && diaPrev <= topeDia){
+      dSel.value = icPad2(diaPrev);
+    }else{
+      dSel.value = icPad2(topeDia);
+    }
+  }
+
+  recargarDias();
+  mSel.onchange = recargarDias;
+}
+
+// ===== Inicio =====
 function icAbrirInicio(){
+  icRellenarPickerLimitado_('icInicio');
   const modal = document.getElementById('icInicioModal');
   if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
 }
-function icCancelarInicio(){
-  const modal = document.getElementById('icInicioModal');
-  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
-}
-function icConfirmarInicio(){
-  const dia = document.getElementById('icInicioDia')?.value || '';
-  const mes = document.getElementById('icInicioMes')?.value || '';
-  if(!dia || !mes){ showPickerSelectAlert(); return; }
 
-  const anio = '2026';
-  const idx = Math.max(1,Math.min(12,parseInt(mes,10))) - 1;
-  const mesNombre = icMesesNombres[idx];
-  const input = document.getElementById('ic-inicio');
-  const dOut  = document.getElementById('ic-diaRat1');
-  const mOut  = document.getElementById('ic-mesRat1');
-  if(input) input.value = `${dia}/${mes}/${anio}`;
-  if(dOut) dOut.value = dia;
-  if(mOut) mOut.value = mesNombre;
-  icCancelarInicio();
-}
-
-
-// 2) Fin (ruleta libre, año fijo 2026)
-(function icInitFin(){
-  const d = document.getElementById('icFinDia');
-  const m = document.getElementById('icFinMes');
-  if (d && !d.childElementCount){
-    for(let i=1;i<=31;i++){ const o=document.createElement('option'); o.value=icPad2(i); o.textContent=o.value; d.appendChild(o); }
-  }
-  if (m && !m.childElementCount){
-    for(let i=0;i<12;i++){ const o=document.createElement('option'); o.value=icPad2(i+1); o.textContent=icMesesNombres[i]; m.appendChild(o); }
-  }
-})();
+// ===== Fin =====
 function icAbrirFin(){
+  icRellenarPickerLimitado_('icFin');
   const modal = document.getElementById('icFinModal');
   if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
-}
-function icCancelarFin(){
-  const modal = document.getElementById('icFinModal');
-  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
-}
-function icConfirmarFin(){
-  const dia = document.getElementById('icFinDia')?.value || '';
-  const mes = document.getElementById('icFinMes')?.value || '';
-  if(!dia || !mes){ showPickerSelectAlert(); return; }
-
-  const anio = '2026';
-  const idx = Math.max(1,Math.min(12,parseInt(mes,10))) - 1;
-  const mesNombre = icMesesNombres[idx];
-  const input = document.getElementById('ic-fin');
-  const dOut  = document.getElementById('ic-diaRat2');
-  const mOut  = document.getElementById('ic-mesRat2');
-  if(input) input.value = `${dia}/${mes}/${anio}`;
-  if(dOut) dOut.value = dia;
-  if(mOut) mOut.value = mesNombre;
-  icCancelarFin();
 }
 
 // 3) Radicado (hoy + 2 hábiles; feriados no hábiles, excepción diciembre habilita todos excepto feriados)
