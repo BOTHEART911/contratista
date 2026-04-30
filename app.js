@@ -7040,7 +7040,7 @@ function icAbrirRadicado(){
   const aSel  = document.getElementById('icRadAnio');
   if(!modal || !dSel || !mSel || !aSel) return;
 
-  // ===== Subtítulo dinámico (solo para la regla fin>=27) =====
+  // ===== Subtítulo dinámico (solo cuando aplica regla "siguiente mes") =====
   const box = modal.querySelector('.picker-box');
   let sub = modal.querySelector('#icRadSub');
   if(!sub && box){
@@ -7058,7 +7058,7 @@ function icAbrirRadicado(){
   mSel.innerHTML = '';
   aSel.innerHTML = '';
 
-  // Helpers
+  // ===== Helpers locales =====
   function parseDMY_(str){
     const s = String(str||'').trim();
     if(!/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return null;
@@ -7082,71 +7082,75 @@ function icAbrirRadicado(){
     }
     return out;
   }
-
- const hoy0 = startOfDay_(new Date());
-
- // ✅ NUEVO: si son >= 4:00 PM, no se incluye el día actual
-const now = new Date();
-const after4pm = (now.getHours() > 16) || (now.getHours() === 16 && now.getMinutes() >= 0);
-const habilStart = after4pm ? new Date(hoy0.getFullYear(), hoy0.getMonth(), hoy0.getDate() + 1) : hoy0;
-
-// ===== Determinar si aplica regla "fin >= 27" =====
-const finVal = String(document.getElementById('ic-fin')?.value || '').trim(); // dd/mm/aaaa
-const dFin = parseDMY_(finVal);
-
-// ✅ NUEVO: también aplica si HOY es >= 27
-const todayDay = hoy0.getDate();
-
-let applyNextMonthRule = false;
-
-if(dFin){
-  const finDay = dFin.getDate();
-  applyNextMonthRule = (finDay >= 27) || (todayDay >= 27);
-}else{
-  // Si no hay fin válido, igual aplica por regla de "hoy >= 27"
-  applyNextMonthRule = (todayDay >= 27);
-}
-
-let opciones = [];
-
-if(applyNextMonthRule){
-  // ✅ Base para “siguiente mes”:
-  // - Si FIN es válido y FIN>=27, usamos FIN.
-  // - Si la regla se activó por HOY>=27 (o FIN no es válido), usamos HOY.
-  let baseForNextMonth = hoy0;
-
-  if(dFin && dFin.getDate() >= 27){
-    baseForNextMonth = startOfDay_(dFin);
+  function isInsidePeriodo_(d, dInicio, dFin){
+    if(!dInicio || !dFin) return false;
+    const t = startOfDay_(d).getTime();
+    return t >= startOfDay_(dInicio).getTime() && t <= startOfDay_(dFin).getTime();
   }
 
-  const nextMonthStart = new Date(
-    baseForNextMonth.getFullYear(),
-    baseForNextMonth.getMonth() + 1,
-    1
-  );
+  // ===== Datos base =====
+  const now = new Date();
+  const hoy0 = startOfDay_(now);
+  const todayDay = hoy0.getDate();
+  const todayMonth = hoy0.getMonth();
 
-// Obtener más candidatos para tener buffer después del filtro por habilStart
-  const candidatosNextMonth = addHabilDaysFrom_(nextMonthStart, 5);
+  // Corte horario: >= 16:00 (4 PM)
+  const after4pm = (now.getHours() >= 16);
 
-  // ✅ FIX: Filtrar respetando habilStart (que ya contempla la regla de >= 16:30)
-  const opcionesNextFiltradas = candidatosNextMonth.filter(dt => startOfDay_(dt) >= habilStart);
+  // Periodo relacionado
+  const inicioVal = String(document.getElementById('ic-inicio')?.value || '').trim();
+  const finVal    = String(document.getElementById('ic-fin')?.value    || '').trim();
+  const dInicio   = parseDMY_(inicioVal);
+  const dFin      = parseDMY_(finVal);
 
- if(opcionesNextFiltradas.length > 0){
-    opciones = opcionesNextFiltradas.slice(0, after4pm ? 2 : 3);
+  // ===== Decidir conjunto de opciones =====
+  let opciones = [];
+
+  if(todayDay >= 27){
+    // ───── CASO A: HOY >= 27 → siempre primeros 2 hábiles del siguiente mes
+    const nextMonthStart = new Date(hoy0.getFullYear(), hoy0.getMonth() + 1, 1);
+    opciones = addHabilDaysFrom_(nextMonthStart, 2);
+  } else {
+    // ───── CASO B: HOY <= 26
+    // Punto de inicio según hora
+    const habilStart = after4pm
+      ? new Date(hoy0.getFullYear(), hoy0.getMonth(), hoy0.getDate() + 1) // mañana
+      : hoy0;                                                              // hoy
+    const cantidad = after4pm ? 2 : 3;
+
+    // Generar candidatos hábiles, filtrando los que caen dentro del periodo
+    const out = [];
+    const cursor = new Date(habilStart);
+    let safety = 0;
+    while(out.length < cantidad && safety < 200){
+      if(icEsHabil(cursor) && !isInsidePeriodo_(cursor, dInicio, dFin)){
+        out.push(new Date(cursor));
+      }
+      cursor.setDate(cursor.getDate() + 1);
+      safety++;
+    }
+    opciones = out;
+  }
+
+  // ===== ¿Las opciones caen en mes siguiente? → aviso + audio =====
+  const cruzaAlSiguienteMes = opciones.some(dt => {
+    const m = dt.getMonth();
+    const y = dt.getFullYear();
+    // distinto mes que el actual
+    return !(m === todayMonth && y === hoy0.getFullYear());
+  });
+
+  if(cruzaAlSiguienteMes){
     if(sub){
       sub.textContent = '📌 Encuentras los primeros días del siguiente mes para evitar el vencimiento de la cuenta antes de llegar al área de contabilidad 📌';
     }
-    playRadAudio_(); // solo cuando aparece el encabezado especial
-  }else{
-    opciones = addHabilDaysFrom_(habilStart, after4pm ? 2 : 3);
+    playRadAudio_();
+  } else {
     if(sub) sub.textContent = '';
   }
-}else{
-  opciones = addHabilDaysFrom_(habilStart, after4pm ? 2 : 3);
-}
 
-  // Map por día para setear MES/AÑO (y permitir saltos de mes si pasara)
-  const byDay = new Map(); // key: "DD" -> { month: "MM", year:"YYYY", monthName:"..." }
+  // ===== Map por día para setear MES/AÑO automáticamente =====
+  const byDay = new Map();
   opciones.forEach(dt=>{
     const dd = icPad2(dt.getDate());
     const mm = icPad2(dt.getMonth()+1);
@@ -7154,7 +7158,7 @@ if(applyNextMonthRule){
     byDay.set(dd, { month:mm, year:yy, monthName: icMesesNombres[dt.getMonth()] });
   });
 
-  // Días posibles
+  // Cargar opciones de día
   opciones.forEach(dt=>{
     const opt = document.createElement('option');
     opt.value = icPad2(dt.getDate());
