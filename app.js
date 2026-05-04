@@ -6969,8 +6969,18 @@ function icRellenarPickerLimitado_(prefix){
   const maxMonth = max.getMonth();      // 0..11
   const maxDay   = max.getDate();
 
-  // Año fijo (ya viene en HTML como disabled con 2026)
-  // Forzamos coherencia
+  // === Mínimo dinámico SOLO para Fin: Inicio + 1 día ===
+  let minDate = null;
+  if(prefix === 'icFin'){
+    const inicioVal = document.getElementById('ic-inicio')?.value || '';
+    const dInicio = icParseDMY_(inicioVal);
+    if(dInicio){
+      minDate = new Date(dInicio.getFullYear(), dInicio.getMonth(), dInicio.getDate() + 1);
+    }
+  }
+  const minMonth = (minDate && minDate.getFullYear() === maxYear) ? minDate.getMonth() : 0;
+
+  // Año fijo
   aSel.innerHTML = '';
   const optY = document.createElement('option');
   optY.value = String(maxYear);
@@ -6978,35 +6988,48 @@ function icRellenarPickerLimitado_(prefix){
   optY.selected = true;
   aSel.appendChild(optY);
 
-  // Meses: solo de enero hasta el mes del máximo
+  // Meses: desde minMonth hasta maxMonth
   mSel.innerHTML = '';
-  for(let i = 0; i <= maxMonth; i++){
+  for(let i = minMonth; i <= maxMonth; i++){
     const opt = document.createElement('option');
     opt.value = icPad2(i + 1);
     opt.textContent = icMesesNombres[i];
     mSel.appendChild(opt);
   }
-  // Por defecto seleccionamos el mes del máximo (mes actual o el del +1 día)
   mSel.value = icPad2(maxMonth + 1);
 
   function recargarDias(){
     const mesElegido = parseInt(mSel.value, 10) - 1; // 0..11
+
+    // Día máximo según mes elegido
     let topeDia;
     if(mesElegido === maxMonth){
       topeDia = maxDay;
     }else{
       topeDia = icDiasEnMes_(maxYear, mesElegido);
     }
+
+    // Día mínimo si aplica (solo Fin con Inicio elegido)
+    let desdeDia = 1;
+    if(minDate && mesElegido === minDate.getMonth() && maxYear === minDate.getFullYear()){
+      desdeDia = minDate.getDate();
+    }
+
+    // Si no hay rango válido en este mes, vaciar y salir
+    if(desdeDia > topeDia){
+      dSel.innerHTML = '';
+      return;
+    }
+
     const diaPrev = parseInt(dSel.value || '0', 10);
     dSel.innerHTML = '';
-    for(let d = 1; d <= topeDia; d++){
+    for(let d = desdeDia; d <= topeDia; d++){
       const opt = document.createElement('option');
       opt.value = icPad2(d);
       opt.textContent = icPad2(d);
       dSel.appendChild(opt);
     }
-    // Restaurar selección si sigue siendo válida; si no, último día permitido
-    if(diaPrev >= 1 && diaPrev <= topeDia){
+    if(diaPrev >= desdeDia && diaPrev <= topeDia){
       dSel.value = icPad2(diaPrev);
     }else{
       dSel.value = icPad2(topeDia);
@@ -7015,6 +7038,37 @@ function icRellenarPickerLimitado_(prefix){
 
   recargarDias();
   mSel.onchange = recargarDias;
+}
+
+// === Helper: parsear dd/mm/aaaa a Date ===
+function icParseDMY_(str){
+  const s = String(str || '').trim();
+  if(!/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return null;
+  const [dd, mm, yy] = s.split('/').map(n => parseInt(n, 10));
+  if(!dd || !mm || !yy) return null;
+  const dt = new Date(yy, mm - 1, dd);
+  if(isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+// === Helper: limpiar Fecha de Radicación ===
+function icLimpiarRadicacion_(){
+  const r  = document.getElementById('ic-radicado');
+  const dr = document.getElementById('ic-diaRad');
+  const mr = document.getElementById('ic-mesRad');
+  if(r)  r.value  = '';
+  if(dr) dr.value = '';
+  if(mr) mr.value = '';
+}
+
+// === Helper: limpiar Fin de Periodo ===
+function icLimpiarFin_(){
+  const f  = document.getElementById('ic-fin');
+  const df = document.getElementById('ic-diaRat2');
+  const mf = document.getElementById('ic-mesRat2');
+  if(f)  f.value  = '';
+  if(df) df.value = '';
+  if(mf) mf.value = '';
 }
 
 // ===== Inicio =====
@@ -7026,6 +7080,24 @@ function icAbrirInicio(){
 
 // ===== Fin =====
 function icAbrirFin(){
+  // Si ya hay Inicio, validar que exista rango disponible
+  const inicioVal = document.getElementById('ic-inicio')?.value || '';
+  const dInicio   = icParseDMY_(inicioVal);
+
+  if(dInicio){
+    const minDate = new Date(dInicio.getFullYear(), dInicio.getMonth(), dInicio.getDate() + 1);
+    const maxDate = icCalcularMaxFechaPermitida_();
+    if(minDate.getTime() > maxDate.getTime()){
+      Swal.fire({
+        icon:'warning',
+        title:'Sin fechas disponibles',
+        html:'No hay fechas válidas para el Fin de Periodo.<br>El Inicio seleccionado (<b>'+inicioVal+'</b>) no permite un Fin posterior dentro del rango disponible.',
+        confirmButtonText:'OK'
+      });
+      return;
+    }
+  }
+
   icRellenarPickerLimitado_('icFin');
   const modal = document.getElementById('icFinModal');
   if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
@@ -7045,13 +7117,32 @@ function icConfirmarInicio(){
   const anio = '2026';
   const idx = Math.max(1, Math.min(12, parseInt(mes,10))) - 1;
   const mesNombre = icMesesNombres[idx];
+  const nuevaInicio = `${dia}/${mes}/${anio}`;
 
   const input = document.getElementById('ic-inicio');
   const dOut  = document.getElementById('ic-diaRat1');
   const mOut  = document.getElementById('ic-mesRat1');
-  if(input) input.value = `${dia}/${mes}/${anio}`;
+  if(input) input.value = nuevaInicio;
   if(dOut)  dOut.value  = dia;
   if(mOut)  mOut.value  = mesNombre;
+
+  // Si el Fin existente queda <= Inicio, se limpia
+  const finVal  = document.getElementById('ic-fin')?.value || '';
+  const dInicio = icParseDMY_(nuevaInicio);
+  const dFin    = icParseDMY_(finVal);
+  if(dFin && dInicio && dFin <= dInicio){
+    icLimpiarFin_();
+    Swal.fire({
+      icon:'info',
+      title:'Revisa Fin de Periodo',
+      text:'La fecha de Fin debe ser posterior al Inicio. Selecciónala nuevamente.',
+      timer: 3500,
+      showConfirmButton: false
+    });
+  }
+
+  // Siempre limpiar Radicación al cambiar Inicio (cambia el rango)
+  icLimpiarRadicacion_();
 
   icCancelarInicio();
 }
@@ -7070,13 +7161,42 @@ function icConfirmarFin(){
   const anio = '2026';
   const idx = Math.max(1, Math.min(12, parseInt(mes,10))) - 1;
   const mesNombre = icMesesNombres[idx];
+  const nuevaFin = `${dia}/${mes}/${anio}`;
+
+  // Validar Fin > Inicio
+  const inicioVal = document.getElementById('ic-inicio')?.value || '';
+  const dInicio   = icParseDMY_(inicioVal);
+  const dFinSel   = icParseDMY_(nuevaFin);
+
+  if(!dInicio){
+    Swal.fire({
+      icon:'info',
+      title:'Selecciona primero el Inicio',
+      text:'Debes elegir la Fecha de Inicio antes de la Fecha de Fin.',
+      confirmButtonText:'OK'
+    });
+    return;
+  }
+
+  if(dFinSel && dFinSel <= dInicio){
+    Swal.fire({
+      icon:'warning',
+      title:'Fecha inválida',
+      html:'La <b>Fecha de Fin</b> debe ser posterior al <b>Inicio</b>.<br>Inicio: <b>'+inicioVal+'</b>',
+      confirmButtonText:'OK'
+    });
+    return;
+  }
 
   const input = document.getElementById('ic-fin');
   const dOut  = document.getElementById('ic-diaRat2');
   const mOut  = document.getElementById('ic-mesRat2');
-  if(input) input.value = `${dia}/${mes}/${anio}`;
+  if(input) input.value = nuevaFin;
   if(dOut)  dOut.value  = dia;
   if(mOut)  mOut.value  = mesNombre;
+
+  // Limpiar Radicación porque cambió el rango
+  icLimpiarRadicacion_();
 
   icCancelarFin();
 }
@@ -7101,6 +7221,20 @@ function icEsHabil(d){
 }
 function icAbrirRadicado(){
   const modal = document.getElementById('icRadicadoModal');
+
+  // Requerir Inicio y Fin antes de abrir el picker
+  const __icInicioVal = document.getElementById('ic-inicio')?.value || '';
+  const __icFinVal    = document.getElementById('ic-fin')?.value    || '';
+  if(!__icInicioVal || !__icFinVal){
+    Swal.fire({
+      icon:'info',
+      title:'Selecciona primero las fechas del periodo',
+      text:'Debes ingresar Inicio y Fin de Periodo Relacionado antes de elegir la Fecha de Radicación.',
+      confirmButtonText:'OK'
+    });
+    return;
+  }
+  
   stopRadAudio_(); // por si quedó audio sonando de una apertura previa
   const dSel  = document.getElementById('icRadDia');
   const mSel  = document.getElementById('icRadMes');
