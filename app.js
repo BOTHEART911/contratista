@@ -3417,6 +3417,15 @@ function mostrarEstadoCuenta(res){
   const valorCOP = formatCOPView(res.valor || 0);
 
   switch(estado){
+      case 'INGRESADA':
+      Swal.fire({
+        icon:'info',
+        title:'CUENTA INGRESADA',
+        html:`Tu <b>Cuenta ${informe}</b> por valor de <b>${valorCOP}</b> apenas está INGRESADA<br><br>Debes Reportarla para que la vea tu supervisor(a)`,
+        timer:8000,
+        showConfirmButton:false
+      });
+      break;
     case 'DEVUELTA':
       Swal.fire({
         icon:'info',
@@ -4047,10 +4056,10 @@ let IC_STATE = {
   total: '',
   obligaciones: [],
   actividades: [],
-  evidFiles: [],    // ya no guardaremos el File para subir
-  evidData: [],     // dataURL comprimida para preview + backend
-  evidSizes: [],    // tamaño MB de la dataURL comprimida
-  evidDeleteFlags: [],   // Eliminar Evidencias
+  evidFiles: [],
+  evidData: [],
+  evidSizes: [],
+  evidDeleteFlags: [],
   cuentaExiste: false,
   nextMode: false,
   contrato: '',
@@ -4058,6 +4067,7 @@ let IC_STATE = {
   rowTarget: null,
   nombre: '',
   saldoQ: '',
+  inicioSugerido: '',
   supervisor: ''
 };
 
@@ -4367,11 +4377,12 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
       return;
     }
 
-    // Cargar estado único
-    IC_STATE.informe       = Number(base.informe||1);
-    IC_STATE.total         = String(base.total||'');
-    IC_STATE.saldoQ        = String(base.saldoQ||''); 
-    IC_STATE.obligaciones  = Array.isArray(base.obligaciones) ? base.obligaciones : [];
+   // Cargar estado único
+    IC_STATE.informe        = Number(base.informe||1);
+    IC_STATE.total          = String(base.total||'');
+    IC_STATE.saldoQ         = String(base.saldoQ||''); 
+    IC_STATE.inicioSugerido = String(base.inicioSugerido||'');
+    IC_STATE.obligaciones   = Array.isArray(base.obligaciones) ? base.obligaciones : [];
     IC_STATE.actividades   = Array.isArray(base.actividades) ? base.actividades : [];
     IC_STATE.cuentaExiste  = !!base.cuentaExiste;
     IC_STATE.nextMode      = !!base.nextMode;
@@ -4397,6 +4408,25 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
         document.getElementById('ic-nuevoSaldo').value = formatCOPView(saldoNum - cobro);
       }else{
         saldoEl.placeholder = 'Primera cuenta: valor del contrato';
+      }
+    }
+
+   // Precargar INICIO DE PERIODO RELACIONADO (col L de cuenta previa + 1 día)
+    if(IC_STATE.inicioSugerido){
+      const icInicioEl  = document.getElementById('ic-inicio');
+      const icDiaRat1El = document.getElementById('ic-diaRat1');
+      const icMesRat1El = document.getElementById('ic-mesRat1');
+
+      const partes = String(IC_STATE.inicioSugerido).split('/');
+      if(partes.length === 3){
+        const dia = partes[0];
+        const mes = partes[1];
+        const idx = Math.max(1, Math.min(12, parseInt(mes, 10))) - 1;
+        const mesNombre = (typeof icMesesNombres !== 'undefined' && icMesesNombres[idx]) ? icMesesNombres[idx] : '';
+
+        if(icInicioEl)  icInicioEl.value  = IC_STATE.inicioSugerido;
+        if(icDiaRat1El) icDiaRat1El.value = dia;
+        if(icMesRat1El) icMesRat1El.value = mesNombre;
       }
     }
 
@@ -5075,21 +5105,23 @@ IC_STATE.evidFiles = [];
   if(wrap){ wrap.innerHTML=''; }
 
   // Reset estado local mínimo
-  IC_STATE = {
+IC_STATE = {
     informe: 1,
     total: '',
-     obligaciones: [],
-  actividades: [],
-  evidFiles: [],
-  evidData: [],
-  evidSizes: [],
-    evidDeleteFlags: [],   // Borrar evidencias
+    obligaciones: [],
+    actividades: [],
+    evidFiles: [],
+    evidData: [],
+    evidSizes: [],
+    evidDeleteFlags: [],
     cuentaExiste: false,
     nextMode: false,
     contrato: '',
     carpetaContratista: '',
     rowTarget: null,
-    nombre: ''   // oculto
+    nombre: '',
+    saldoQ: '',
+    inicioSugerido: ''
   };
 }
 
