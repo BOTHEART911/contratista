@@ -2102,346 +2102,841 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
   /* ================== TUTORIALES DE USO ================== */
+/* ============================================================
+   TUTORIALES TIPO YOUTUBE - LÓGICA FRONTEND
+   ============================================================
+   INTEGRACIÓN:
+   1) BORRA de tu app.js TODO el bloque actual de tutoriales:
+      - El objeto `const TUTORIALES = { ... }`
+      - Las funciones: driveIdFromUrl, drivePreviewUrl, driveDirectMp4Url,
+        stopAllTutorialVideos, buildTutorialVideoCard, renderTutorialBox
+      - El listener: document.getElementById('go-tutoriales')?.addEventListener(...)
+      - El IIFE: (function bindTutorialButtons(){...})()
+      - El listener: document.getElementById('tutoriales-volver')?.addEventListener(...)
+      - El listener: document.addEventListener('visibilitychange',...) PERO solo
+        si esta función SOLO maneja tutoriales. (si maneja más cosas, déjala)
+      
+   2) PEGA todo este código en su lugar.
 
- /* Mapa de tutoriales (deja los demás listos para completar después) */
- const TUTORIALES = {
-    primera: [
-      {
-        title: 'DOCUMENTOS PRIMERA CUENTA',
-        drive: 'https://drive.google.com/file/d/1g_QIRIOT2sPr1iO3WgABx1CNUFe7E7Q5/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771209106/primera_cuenta_nyx5e7.png'
+   3) Asegúrate de que las constantes SOUNDS, currentUser, apiGet, apiPost,
+      playSoundOnce, showView, overlay y SweetAlert2 ya estén disponibles
+      (vienen de tu app.js actual).
+   ============================================================ */
+
+/* ===== Config y estado ===== */
+const YT_STATE = {
+  videos: {},          // { categoria: [videos] }
+  videosFlat: [],      // array plano para búsqueda por id
+  currentTab: 'todos',
+  expandedId: null,    // id del video actualmente expandido
+  comentarios: {},     // cache: { tutId: [comentarios] }
+  loading: false
+};
+
+const YT_CATEGORIA_LABELS = {
+  primera: 'Primera Cuenta',
+  personales: 'Datos Personales',
+  contrato: 'Contrato',
+  borrador: 'Borrador',
+  ingresar: 'Ingresar',
+  corregir: 'Corregir',
+  reportes: 'Reportes',
+  estados: 'Estados',
+  tramites: 'Trámites',
+  institucional: 'Institucional'
+};
+
+/* ===== Helpers ===== */
+function ytFormatVistas_(n){
+  const num = Number(n) || 0;
+  if(num < 1000) return num + (num === 1 ? ' vista' : ' vistas');
+  if(num < 1000000) return (num / 1000).toFixed(num >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'K vistas';
+  return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M vistas';
+}
+
+function ytFormatLikes_(n){
+  const num = Number(n) || 0;
+  if(num < 1000) return String(num);
+  if(num < 1000000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+}
+
+function ytEscapeHtml_(s){
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function ytGetInitials_(nombre){
+  const parts = String(nombre||'').trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return '?';
+  if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+function ytDriveIdFromUrl_(u){
+  const s = String(u || '').trim();
+  let m = s.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]{10,})\//);
+  if(m) return m[1];
+  m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+  if(m) return m[1];
+  return '';
+}
+
+function ytDrivePreviewUrl_(u){
+  const id = ytDriveIdFromUrl_(u);
+  return id ? ('https://drive.google.com/file/d/' + id + '/preview') : '';
+}
+
+function ytDriveDirectMp4_(u){
+  const id = ytDriveIdFromUrl_(u);
+  return id ? ('https://drive.google.com/uc?export=download&id=' + id) : '';
+}
+
+/* ===== Detener cualquier reproductor activo ===== */
+function ytStopAllPlayers_(){
+  document.querySelectorAll('#yt-videos-list video').forEach(v=>{
+    try{ v.pause(); v.removeAttribute('src'); v.load(); v.remove(); }catch(_){}
+  });
+  document.querySelectorAll('#yt-videos-list iframe').forEach(fr=>{
+    try{ fr.src = 'about:blank'; fr.remove(); }catch(_){}
+  });
+}
+
+/* ===== Colapsar tarjeta expandida ===== */
+function ytCollapseAll_(){
+  ytStopAllPlayers_();
+  document.querySelectorAll('.yt-video-card.expanded').forEach(card=>{
+    card.classList.remove('expanded');
+    const collapsed = card.querySelector('.yt-card-collapsed');
+    const expanded = card.querySelector('.yt-card-expanded');
+    if(collapsed) collapsed.style.display = '';
+    if(expanded) expanded.remove();
+  });
+  YT_STATE.expandedId = null;
+}
+
+/* ===== ENTRADA: botón del menú abre la vista ===== */
+document.getElementById('go-tutoriales')?.addEventListener('click', async ()=>{
+  try{ playSoundOnce(SOUNDS.login); }catch(_){}
+  overlay.classList.remove('open');
+  showView('view-tutoriales');
+  await ytLoadTutoriales_();
+});
+
+/* ===== Botón Regresar ===== */
+document.getElementById('tutoriales-volver')?.addEventListener('click', ()=>{
+  try{ playSoundOnce(SOUNDS.back); }catch(_){}
+  ytCollapseAll_();
+  showView('view-inicio');
+});
+
+/* ===== Cargar tutoriales desde backend ===== */
+async function ytLoadTutoriales_(){
+  if(YT_STATE.loading) return;
+  YT_STATE.loading = true;
+
+  const list = document.getElementById('yt-videos-list');
+  if(list){
+    list.innerHTML = `
+      <div class="yt-loading">
+        <div class="yt-spinner"></div>
+        <p class="muted">Cargando tutoriales…</p>
+      </div>
+    `;
+  }
+
+  try{
+    const docParam = (currentUser && currentUser.documento) ? currentUser.documento : '';
+    const data = await apiGet('listTutoriales', { documento: docParam });
+
+    YT_STATE.videos = (data && data.categorias) ? data.categorias : {};
+    YT_STATE.videosFlat = [];
+    Object.keys(YT_STATE.videos).forEach(cat=>{
+      YT_STATE.videos[cat].forEach(v=> YT_STATE.videosFlat.push(v));
+    });
+
+    ytRenderTabs_();
+    ytRenderVideos_();
+  }catch(e){
+    if(list){
+      list.innerHTML = `
+        <div class="yt-empty">
+          <p>⚠️ No se pudieron cargar los tutoriales.</p>
+          <p class="muted">${ytEscapeHtml_(String(e.message||e))}</p>
+        </div>
+      `;
+    }
+  }finally{
+    YT_STATE.loading = false;
+  }
+}
+
+/* ===== Render tabs de categorías ===== */
+function ytRenderTabs_(){
+  const wrap = document.getElementById('yt-tabs');
+  if(!wrap) return;
+
+  const cats = Object.keys(YT_STATE.videos);
+  if(!cats.length){
+    wrap.innerHTML = '';
+    return;
+  }
+
+  let html = `<button class="yt-tab ${YT_STATE.currentTab==='todos'?'active':''}" data-cat="todos">Todos</button>`;
+  cats.forEach(c=>{
+    const label = YT_CATEGORIA_LABELS[c] || c.charAt(0).toUpperCase()+c.slice(1);
+    html += `<button class="yt-tab ${YT_STATE.currentTab===c?'active':''}" data-cat="${ytEscapeHtml_(c)}">${ytEscapeHtml_(label)}</button>`;
+  });
+
+  wrap.innerHTML = html;
+
+  // Listeners
+  wrap.querySelectorAll('.yt-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      try{ playSoundOnce(SOUNDS.back); }catch(_){}
+      const cat = btn.getAttribute('data-cat');
+      if(cat === YT_STATE.currentTab) return;
+      YT_STATE.currentTab = cat;
+      ytCollapseAll_();
+      wrap.querySelectorAll('.yt-tab').forEach(b=> b.classList.remove('active'));
+      btn.classList.add('active');
+      ytRenderVideos_();
+    });
+  });
+}
+
+/* ===== Render lista de videos ===== */
+function ytRenderVideos_(){
+  const list = document.getElementById('yt-videos-list');
+  if(!list) return;
+
+  let videos = [];
+  if(YT_STATE.currentTab === 'todos'){
+    videos = YT_STATE.videosFlat.slice();
+  }else{
+    videos = (YT_STATE.videos[YT_STATE.currentTab] || []).slice();
+  }
+
+  if(!videos.length){
+    list.innerHTML = `<div class="yt-empty"><p>No hay videos disponibles en esta categoría.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  videos.forEach(v=>{
+    const card = ytBuildVideoCard_(v);
+    list.appendChild(card);
+  });
+}
+
+/* ===== Construir tarjeta de video (estado colapsado) ===== */
+function ytBuildVideoCard_(v){
+  const card = document.createElement('div');
+  card.className = 'yt-video-card';
+  card.dataset.tutId = v.id;
+
+  const collapsed = document.createElement('div');
+  collapsed.className = 'yt-card-collapsed';
+
+  const thumbWrap = document.createElement('div');
+  thumbWrap.className = 'yt-thumb-wrap';
+
+  const img = document.createElement('img');
+  img.className = 'yt-thumb';
+  img.src = v.thumb || '';
+  img.alt = v.titulo || '';
+  img.loading = 'lazy';
+
+  const playLayer = document.createElement('div');
+  playLayer.className = 'yt-thumb-play';
+  playLayer.textContent = '▶';
+
+  thumbWrap.appendChild(img);
+  thumbWrap.appendChild(playLayer);
+
+  if(v.duracion){
+    const dur = document.createElement('span');
+    dur.className = 'yt-thumb-duration';
+    dur.textContent = v.duracion;
+    thumbWrap.appendChild(dur);
+  }
+
+  const info = document.createElement('div');
+  info.className = 'yt-card-info';
+
+  const title = document.createElement('h3');
+  title.className = 'yt-card-title';
+  title.textContent = v.titulo || '';
+
+  const meta = document.createElement('div');
+  meta.className = 'yt-card-meta';
+  const metaParts = [];
+  metaParts.push(`<span>${ytFormatVistas_(v.vistas)}</span>`);
+  if(v.fechaPublicacion){
+    metaParts.push('<span>·</span>');
+    metaParts.push(`<span>${ytEscapeHtml_(v.fechaPublicacion)}</span>`);
+  }
+  meta.innerHTML = metaParts.join('');
+
+  info.appendChild(title);
+  info.appendChild(meta);
+
+  collapsed.appendChild(thumbWrap);
+  collapsed.appendChild(info);
+
+  collapsed.addEventListener('click', ()=>{
+    ytExpandVideo_(v.id);
+  });
+
+  card.appendChild(collapsed);
+  return card;
+}
+
+/* ===== Expandir video (reproductor + acciones + comentarios) ===== */
+async function ytExpandVideo_(tutId){
+  // Si ya hay otro expandido, lo colapsamos primero
+  if(YT_STATE.expandedId && YT_STATE.expandedId !== tutId){
+    ytCollapseAll_();
+  }
+  if(YT_STATE.expandedId === tutId) return;
+
+  const card = document.querySelector(`.yt-video-card[data-tut-id="${tutId}"]`);
+  if(!card) return;
+
+  const v = YT_STATE.videosFlat.find(x => x.id === tutId);
+  if(!v) return;
+
+  YT_STATE.expandedId = tutId;
+  try{ playSoundOnce(SOUNDS.back); }catch(_){}
+
+  // Ocultar el bloque colapsado y construir el expandido
+  const collapsed = card.querySelector('.yt-card-collapsed');
+  if(collapsed) collapsed.style.display = 'none';
+  card.classList.add('expanded');
+
+  const expanded = document.createElement('div');
+  expanded.className = 'yt-card-expanded';
+  expanded.innerHTML = ytBuildExpandedHtml_(v);
+  card.appendChild(expanded);
+
+  // Reproductor
+  ytSetupPlayer_(card, v);
+
+  // Listeners de acciones
+  ytBindExpandedActions_(card, v);
+
+  // Scroll suave a la tarjeta
+  setTimeout(()=>{
+    try{ card.scrollIntoView({ behavior:'smooth', block:'start' }); }catch(_){}
+  }, 100);
+
+  // Llamadas en paralelo para no bloquear UI
+  ytIncrementarVistas_(tutId);
+  ytLoadComentarios_(tutId);
+}
+
+/* ===== HTML del estado expandido ===== */
+function ytBuildExpandedHtml_(v){
+  const desc = (v.descripcion || '').trim();
+  const showToggle = desc.length > 180;
+  const liked = !!v.userLiked;
+
+  return `
+    <div class="yt-player-wrap" data-player></div>
+    <div class="yt-card-expanded-body">
+      <h3 class="yt-card-title-big">${ytEscapeHtml_(v.titulo)}</h3>
+      <div class="yt-card-meta-big">
+        <span>${ytFormatVistas_(v.vistas)}</span>
+        ${v.fechaPublicacion ? `<span>·</span><span>${ytEscapeHtml_(v.fechaPublicacion)}</span>` : ''}
+      </div>
+
+      <div class="yt-actions">
+        <button class="yt-btn-action yt-btn-like" data-liked="${liked?'true':'false'}">
+          <span class="yt-icon">${liked?'❤️':'🤍'}</span>
+          <span class="yt-like-count">${ytFormatLikes_(v.totalLikes)}</span>
+        </button>
+        <button class="yt-btn-action yt-btn-share">
+          <span class="yt-icon">🔗</span>
+          <span>Compartir</span>
+        </button>
+        <button class="yt-btn-action yt-btn-close-video">
+          <span class="yt-icon">✕</span>
+          <span>Cerrar</span>
+        </button>
+      </div>
+
+      ${desc ? `
+        <div class="yt-description">
+          <p class="yt-description-text">${ytEscapeHtml_(desc)}</p>
+          ${showToggle ? `<button class="yt-description-toggle">Mostrar más</button>` : ''}
+        </div>
+      ` : ''}
+
+      <div class="yt-comments-section">
+        <h4>Comentarios <span class="yt-comments-count">0</span></h4>
+        <div class="yt-comment-form">
+          <textarea placeholder="Añade un comentario público..." maxlength="1000" data-comment-input></textarea>
+          <div class="yt-comment-form-actions">
+            <button class="yt-btn-cancel" data-comment-cancel>Cancelar</button>
+            <button class="yt-btn-publish" data-comment-publish disabled>Comentar</button>
+          </div>
+        </div>
+        <div class="yt-comments-list" data-comments-list>
+          <div class="yt-no-comments">Cargando comentarios…</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ===== Setup del reproductor con autoplay con sonido ===== */
+function ytSetupPlayer_(card, v){
+  const wrap = card.querySelector('[data-player]');
+  if(!wrap) return;
+
+  const direct = ytDriveDirectMp4_(v.drive);
+  const preview = ytDrivePreviewUrl_(v.drive);
+
+  let fallbackDone = false;
+
+  function fallbackToIframe_(){
+    if(fallbackDone) return;
+    fallbackDone = true;
+    wrap.innerHTML = '';
+    if(!preview){
+      wrap.innerHTML = '<div style="color:#fff;text-align:center;padding:20px;">No se pudo reproducir el video.</div>';
+      return;
+    }
+    const iframe = document.createElement('iframe');
+    // autoplay=1 para iframes de Drive
+    iframe.src = preview + (preview.includes('?') ? '&' : '?') + 'autoplay=1';
+    iframe.allow = 'autoplay; fullscreen';
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('title', v.titulo || 'Video');
+    wrap.appendChild(iframe);
+  }
+
+  if(!direct){
+    fallbackToIframe_();
+    return;
+  }
+
+  const video = document.createElement('video');
+  video.controls = true;
+  video.playsInline = true;
+  video.preload = 'metadata';
+  video.setAttribute('controlsList', 'nodownload');
+  // Autoplay con sonido (el click del usuario al expandir lo autoriza)
+  video.muted = false;
+  video.volume = 1.0;
+  video.src = direct;
+
+  video.addEventListener('error', fallbackToIframe_, { once:true });
+
+  wrap.appendChild(video);
+
+  const p = video.play();
+  if(p && typeof p.catch === 'function'){
+    p.catch(()=>{
+      // Si bloquean autoplay con sonido, intentar muteado
+      try{
+        video.muted = true;
+        video.play().catch(()=> fallbackToIframe_());
+      }catch(_){
+        fallbackToIframe_();
       }
-    ],
-    personales: [
-        {
-        title: 'DATOS PERSONALES',
-        drive: 'https://drive.google.com/file/d/12MgRyUemhKG2FrUBoEjoHpBT7J_yHMTd/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770909972/DATOS_PERSONALES_i2uni5.png'
+    });
+  }
+
+  // Si en 2.5s no carga, fallback
+  setTimeout(()=>{
+    try{
+      if(!fallbackDone && video.readyState < 2){
+        fallbackToIframe_();
       }
-    ],
-    contrato: [
-      {
-        title: 'DATOS DEL CONTRATO',
-        drive: 'https://drive.google.com/file/d/1cDZgboD-2uCJyUh-U8nDjHZXUje4r_Xn/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840144/DATOS_DEL_CONTRATO_dauxyu.png'
+    }catch(_){}
+  }, 2500);
+}
+
+/* ===== Bind de acciones del estado expandido ===== */
+function ytBindExpandedActions_(card, v){
+  // Like
+  const btnLike = card.querySelector('.yt-btn-like');
+  if(btnLike){
+    btnLike.addEventListener('click', async ()=>{
+      if(!currentUser || !currentUser.documento){
+        Swal.fire({ icon:'info', title:'Inicia sesión para dar like' });
+        return;
       }
-    ],
-    borrador: [
-      {
-        title: 'BORRADOR DE ACTIVIDADES',
-        drive: 'https://drive.google.com/file/d/1EfGYtRH-SS73UVdMcWWAotL6KxartjEF/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770840145/BORRADOR_DE_ACTIVIDADES_pfvbz2.png'
+      btnLike.disabled = true;
+      try{
+        const r = await apiPost('toggleLikeTutorial', {
+          tutId: v.id,
+          documento: currentUser.documento
+        });
+        if(r && r.success){
+          v.userLiked = !!r.userLiked;
+          v.totalLikes = Number(r.totalLikes) || 0;
+          btnLike.dataset.liked = r.userLiked ? 'true' : 'false';
+          btnLike.querySelector('.yt-icon').textContent = r.userLiked ? '❤️' : '🤍';
+          btnLike.querySelector('.yt-like-count').textContent = ytFormatLikes_(v.totalLikes);
+          if(r.userLiked){ try{ playSoundOnce(SOUNDS.success); }catch(_){} }
+        }
+      }catch(e){
+        Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+      }finally{
+        btnLike.disabled = false;
       }
-    ],
-    ingresar: [
-      {
-        title: 'INGRESAR CUENTA I',
-        drive: 'https://drive.google.com/file/d/1M61tnHW94gf5v4lJyutPjKCl9At1zMwv/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771209221/CUENTA_I_lvwray.png'
-      },
-      {
-        title: 'INGRESAR CUENTA II',
-        drive: 'https://drive.google.com/file/d/1jg0RFl6U9zSAqzl4WE-yECM6Akn2wraF/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771209221/CUENTA_II_jvls5i.png'
-      }
-    ],
-    corregir: [
-      {
-        title: 'CORREGIR CUENTA',
-        drive: 'https://drive.google.com/file/d/1m35yG0imSS63gOoUVKnadhdWf4jTLUt2/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771213331/corregir_cuenta_xdpzn4.png'
-      }
-    ],
-    reportes: [
-        {
-        title: 'REPORTAR CUENTA PARA REVISIÓN',
-        drive: 'https://drive.google.com/file/d/1S70L412SoogBYFUOrOkEvyGITo1khryG/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771437349/REPORTAR_CUENTA_mvhi5m.png'
-      },
-      {
-        title: 'PLAN DE PAGOS Y REPORTE',
-        drive: 'https://drive.google.com/file/d/1fVr35mvYgEa48VycaZIOUGFx52cJm7Sb/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771437349/PLAN_DE_PAGOS_jrth89.png'
-      }
-    ],
-    estados: [
-          {
-        title: 'ESTADOS DE CUENTA',
-        drive: 'https://drive.google.com/file/d/1Rt9vrd8g1CQFNdvQRSrrG7pIbq_XKLXc/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1771556120/ESTADOS_DE_CUENTA_eshxjg.png'
-      }
-    ],
-    tramites: [
-        {
-        title: 'TRAMITES Y SOLICITUDES',
-        drive: 'https://drive.google.com/file/d/11gub8zzZH2YnGZts5TtJz2qTABAKnSIA/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770915557/TRAMITES_cghbep.png'
-      }
-    ],
-    institucional: [
-        {
-        title: 'INSTITUCIONAL',
-        drive: 'https://drive.google.com/file/d/1oFzb0Gi9hLcftIsxlakJ7s9-r_OggKP2/view?usp=sharing',
-        thumb: 'https://res.cloudinary.com/dqqeavica/image/upload/v1770915976/institucional_thxuan.png'
-      }
-    ]
+    });
+  }
+
+  // Compartir
+  const btnShare = card.querySelector('.yt-btn-share');
+  if(btnShare){
+    btnShare.addEventListener('click', async ()=>{
+      const text = `📹 *${v.titulo}*\n\n${v.descripcion || ''}\n\nVer tutorial: ${v.drive}`;
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(text);
+          Swal.fire({ icon:'success', title:'Enlace copiado', timer:1500, showConfirmButton:false });
+        }else{
+          const enc = encodeURIComponent(text);
+          window.open('https://api.whatsapp.com/send?text=' + enc, '_blank');
+        }
+      }catch(_){}
+    });
+  }
+
+  // Cerrar video
+  const btnClose = card.querySelector('.yt-btn-close-video');
+  if(btnClose){
+    btnClose.addEventListener('click', ()=>{
+      try{ playSoundOnce(SOUNDS.back); }catch(_){}
+      ytCollapseAll_();
+    });
+  }
+
+  // Toggle descripción
+  const btnDesc = card.querySelector('.yt-description-toggle');
+  if(btnDesc){
+    btnDesc.addEventListener('click', ()=>{
+      const wrap = btnDesc.closest('.yt-description');
+      if(!wrap) return;
+      wrap.classList.toggle('expanded');
+      btnDesc.textContent = wrap.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar más';
+    });
+  }
+
+  // Form de comentarios
+  const txtArea = card.querySelector('[data-comment-input]');
+  const btnPublish = card.querySelector('[data-comment-publish]');
+  const btnCancel = card.querySelector('[data-comment-cancel]');
+
+  if(txtArea && btnPublish){
+    txtArea.addEventListener('input', ()=>{
+      btnPublish.disabled = txtArea.value.trim().length === 0;
+    });
+    btnPublish.addEventListener('click', ()=> ytPublicarComentario_(card, v.id, txtArea, ''));
+  }
+  if(btnCancel && txtArea){
+    btnCancel.addEventListener('click', ()=>{
+      txtArea.value = '';
+      if(btnPublish) btnPublish.disabled = true;
+    });
+  }
+}
+
+/* ===== Incrementar vistas (background) ===== */
+async function ytIncrementarVistas_(tutId){
+  try{
+    await apiPost('incrementarVistasTutorial', { tutId });
+  }catch(_){}
+}
+
+/* ===== Cargar comentarios ===== */
+async function ytLoadComentarios_(tutId){
+  const card = document.querySelector(`.yt-video-card[data-tut-id="${tutId}"]`);
+  if(!card) return;
+  const listEl = card.querySelector('[data-comments-list]');
+  const countEl = card.querySelector('.yt-comments-count');
+
+  try{
+    const r = await apiGet('listComentariosTutorial', { tutId });
+    const comentarios = (r && r.comentarios) ? r.comentarios : [];
+    const total = (r && r.total) ? Number(r.total) : 0;
+
+    YT_STATE.comentarios[tutId] = comentarios;
+    if(countEl) countEl.textContent = total > 0 ? `(${total})` : '';
+
+    if(!comentarios.length){
+      listEl.innerHTML = '<div class="yt-no-comments">Sé el primero en comentar</div>';
+      return;
+    }
+
+    listEl.innerHTML = '';
+    comentarios.forEach(c=>{
+      listEl.appendChild(ytBuildComentarioEl_(c, tutId, false));
+    });
+  }catch(e){
+    if(listEl) listEl.innerHTML = `<div class="yt-no-comments">Error al cargar comentarios</div>`;
+  }
+}
+
+/* ===== Construir elemento de comentario ===== */
+function ytBuildComentarioEl_(c, tutId, esRespuesta){
+  const wrap = document.createElement('div');
+  wrap.className = esRespuesta ? 'yt-reply' : 'yt-comment';
+  wrap.dataset.comentarioId = c.id;
+
+  const isOwner = currentUser && currentUser.documento &&
+    String(c.documento).trim() === String(currentUser.documento).trim();
+
+  const avatar = document.createElement('div');
+  avatar.className = 'yt-comment-avatar';
+  avatar.textContent = ytGetInitials_(c.nombre);
+
+  const body = document.createElement('div');
+  body.className = 'yt-comment-body';
+
+  const header = document.createElement('div');
+  header.className = 'yt-comment-header';
+  header.innerHTML = `
+    <span class="yt-comment-author">${ytEscapeHtml_(c.nombre)}</span>
+    <span class="yt-comment-time">${ytEscapeHtml_(c.tiempoRelativo || c.fecha || '')}</span>
+    ${c.editado ? '<span class="yt-comment-edited">(editado)</span>' : ''}
+  `;
+
+  const text = document.createElement('p');
+  text.className = 'yt-comment-text';
+  text.textContent = c.comentario;
+
+  const actions = document.createElement('div');
+  actions.className = 'yt-comment-actions';
+
+  // Solo en raíces, no en respuestas anidadas: botón Responder
+  if(!esRespuesta){
+    const btnReply = document.createElement('button');
+    btnReply.className = 'yt-comment-action';
+    btnReply.textContent = 'Responder';
+    btnReply.addEventListener('click', ()=> ytToggleReplyForm_(wrap, tutId, c.id));
+    actions.appendChild(btnReply);
+  }
+
+  if(isOwner){
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'yt-comment-action';
+    btnEdit.textContent = 'Editar';
+    btnEdit.addEventListener('click', ()=> ytShowEditForm_(wrap, c, tutId));
+    actions.appendChild(btnEdit);
+
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'yt-comment-action danger';
+    btnDelete.textContent = 'Eliminar';
+    btnDelete.addEventListener('click', ()=> ytEliminarComentario_(c.id, tutId));
+    actions.appendChild(btnDelete);
+  }
+
+  body.appendChild(header);
+  body.appendChild(text);
+  body.appendChild(actions);
+
+  // Respuestas anidadas (solo en raíces)
+  if(!esRespuesta && Array.isArray(c.respuestas) && c.respuestas.length){
+    const replies = document.createElement('div');
+    replies.className = 'yt-replies';
+    c.respuestas.forEach(rep=>{
+      replies.appendChild(ytBuildComentarioEl_(rep, tutId, true));
+    });
+    body.appendChild(replies);
+  }
+
+  wrap.appendChild(avatar);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+/* ===== Form de respuesta inline ===== */
+function ytToggleReplyForm_(wrapEl, tutId, parentId){
+  // Eliminar otros forms de respuesta abiertos
+  document.querySelectorAll('.yt-reply-form').forEach(f=>{
+    if(f !== wrapEl.querySelector('.yt-reply-form')) f.remove();
+  });
+
+  let form = wrapEl.querySelector('.yt-reply-form');
+  if(form){ form.remove(); return; }
+
+  form = document.createElement('div');
+  form.className = 'yt-reply-form active';
+  form.innerHTML = `
+    <textarea placeholder="Escribe tu respuesta..." maxlength="1000"></textarea>
+    <div class="yt-reply-form-actions">
+      <button class="yt-btn-cancel">Cancelar</button>
+      <button class="yt-btn-publish btn-primary" disabled>Responder</button>
+    </div>
+  `;
+
+  const body = wrapEl.querySelector('.yt-comment-body');
+  if(body) body.appendChild(form);
+
+  const ta = form.querySelector('textarea');
+  const btnCancel = form.querySelector('.yt-btn-cancel');
+  const btnSend = form.querySelector('.yt-btn-publish');
+
+  ta.focus();
+  ta.addEventListener('input', ()=>{
+    btnSend.disabled = ta.value.trim().length === 0;
+  });
+  btnCancel.addEventListener('click', ()=> form.remove());
+  btnSend.addEventListener('click', async ()=>{
+    btnSend.disabled = true;
+    const card = document.querySelector(`.yt-video-card[data-tut-id="${tutId}"]`);
+    await ytPublicarComentario_(card, tutId, ta, parentId);
+    form.remove();
+  });
+}
+
+/* ===== Mostrar form de edición ===== */
+function ytShowEditForm_(wrapEl, c, tutId){
+  const textEl = wrapEl.querySelector('.yt-comment-text');
+  const actionsEl = wrapEl.querySelector('.yt-comment-actions');
+  if(!textEl || !actionsEl) return;
+
+  // Si ya está abierto, no duplicar
+  if(wrapEl.querySelector('.yt-edit-form')) return;
+
+  textEl.style.display = 'none';
+  actionsEl.style.display = 'none';
+
+  const form = document.createElement('div');
+  form.className = 'yt-edit-form';
+  form.innerHTML = `
+    <textarea maxlength="1000"></textarea>
+    <div class="yt-edit-form-actions">
+      <button class="yt-btn-cancel">Cancelar</button>
+      <button class="yt-btn-publish btn-primary">Guardar</button>
+    </div>
+  `;
+  wrapEl.querySelector('.yt-comment-body').appendChild(form);
+
+  const ta = form.querySelector('textarea');
+  ta.value = c.comentario;
+  ta.focus();
+
+  const cancel = ()=>{
+    form.remove();
+    textEl.style.display = '';
+    actionsEl.style.display = '';
   };
 
-     function driveIdFromUrl(u){
-    const s = String(u || '').trim();
-    let m = s.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]{10,})\//);
-    if(m) return m[1];
-    m = s.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
-    if(m) return m[1];
-    return '';
-  }
+  form.querySelector('.yt-btn-cancel').addEventListener('click', cancel);
+  form.querySelector('.yt-btn-publish').addEventListener('click', async ()=>{
+    const nuevo = ta.value.trim();
+    if(!nuevo){ Swal.fire({icon:'warning', title:'Comentario vacío'}); return; }
+    if(nuevo === c.comentario){ cancel(); return; }
 
-  function drivePreviewUrl(u){
-    const id = driveIdFromUrl(u);
-    if(!id) return '';
-    return 'https://drive.google.com/file/d/' + id + '/preview';
-  }
-
-  function driveDirectMp4Url(u){
-    const id = driveIdFromUrl(u);
-    if(!id) return '';
-    // Intento de stream directo (más rápido) para <video>
-    return 'https://drive.google.com/uc?export=download&id=' + id;
-  }
-  
-  /* Apaga TODOS los videos (para permitir solo 1 en reproducción) */
-  function stopAllTutorialVideos(){
-    const iframes = document.querySelectorAll('#view-tutoriales iframe');
-    iframes.forEach(fr=>{
-      try{ fr.src = 'about:blank'; }catch(_){}
-      try{ fr.remove(); }catch(_){}
-    });
-
-    /* Restaura miniaturas/capas play si existen */
-    const cards = document.querySelectorAll('#view-tutoriales .tut-video-card');
-    cards.forEach(card=>{
-      const thumb = card.querySelector('.tut-video-thumb');
-      const layer = card.querySelector('.tut-play-layer');
-      if(thumb) thumb.style.display = 'block';
-      if(layer) layer.style.display = 'flex';
-      card.dataset.playing = '';
-    });
-  }
-
-    function buildTutorialVideoCard(v){
-    const card = document.createElement('div');
-    card.className = 'tut-video-card';
-
-    const img = document.createElement('img');
-    img.className = 'tut-video-thumb';
-    img.src = v.thumb || '';
-    img.alt = '';
-    img.loading = 'lazy';
-
-    const layer = document.createElement('div');
-    layer.className = 'tut-play-layer';
-    layer.textContent = '▶';
-
-    function stopLocal(){
-      const vid = card.querySelector('video');
-      if(vid){
-        try{ vid.pause(); }catch(_){}
-        try{ vid.removeAttribute('src'); vid.load(); }catch(_){}
-        try{ vid.remove(); }catch(_){}
-      }
-      const fr = card.querySelector('iframe');
-      if(fr){
-        try{ fr.src = 'about:blank'; }catch(_){}
-        try{ fr.remove(); }catch(_){}
-      }
-      img.style.display = 'block';
-      layer.style.display = 'flex';
-      card.dataset.playing = '';
-    }
-
-    function play(){
-      stopAllTutorialVideos();
-
-      const direct = driveDirectMp4Url(v.drive);
-      const preview = drivePreviewUrl(v.drive);
-
-      // 1) Intento rápido: <video> con stream directo
-      const video = document.createElement('video');
-      video.controls = true;
-      video.playsInline = true;
-      video.preload = 'metadata';
-      video.style.width = '100%';
-      video.style.height = '100%';
-      video.style.display = 'block';
-      video.setAttribute('controlsList', 'nodownload');
-
-      let fallbackDone = false;
-
-      function fallbackToIframe(){
-        if(fallbackDone) return;
-        fallbackDone = true;
-
-        try{ video.pause(); }catch(_){}
-        try{ video.remove(); }catch(_){}
-
-        const embed = preview;
-        if(!embed){
-          stopLocal();
-          return;
-        }
-
-        const iframe = document.createElement('iframe');
-        iframe.src = embed;
-        iframe.allow = 'autoplay; fullscreen';
-        iframe.allowFullscreen = true;
-        iframe.setAttribute('title', v.title || 'Video');
-
-        card.appendChild(iframe);
-
-        img.style.display = 'none';
-        layer.style.display = 'none';
-        card.dataset.playing = '1';
-      }
-
-      video.addEventListener('error', fallbackToIframe, { once:true });
-
-      if(direct){
-        video.src = direct;
-      }else{
-        fallbackToIframe();
-        return;
-      }
-
-      card.appendChild(video);
-
-      img.style.display = 'none';
-      layer.style.display = 'none';
-      card.dataset.playing = '1';
-
-      const p = video.play();
-      if(p && typeof p.catch === 'function'){
-        p.catch(()=>{});
-      }
-
-      // Si después de ~2.2s no empieza a reproducir, caemos al iframe
-      setTimeout(()=>{
-        try{
-          if(!fallbackDone && video.readyState < 2){
-            fallbackToIframe();
-          }
-        }catch(_){}
-      }, 2200);
-    }
-
-    layer.addEventListener('click', ()=>{ try{ playSoundOnce(SOUNDS.back); }catch(_){} play(); });
-    img.addEventListener('click',   ()=>{ try{ playSoundOnce(SOUNDS.back); }catch(_){} play(); });
-
-    // Repetir: reinicia el reproductor actual
-    card.addEventListener('dblclick', ()=>{
-      const vid = card.querySelector('video');
-      if(vid){
-        try{ vid.currentTime = 0; }catch(_){}
-        const p = vid.play();
-        if(p && typeof p.catch === 'function') p.catch(()=>{});
-        return;
-      }
-      const fr = card.querySelector('iframe');
-      if(fr){
-        const src = fr.src;
-        fr.src = 'about:blank';
-        setTimeout(()=>{ fr.src = src; }, 50);
-      }
-    });
-
-    card.appendChild(img);
-    card.appendChild(layer);
-    return card;
-  }
-  
-  /* Renderiza los videos JUSTO debajo del botón clickeado (en su contenedor hermano) */
-  function renderTutorialBox(key){
-    const box = document.querySelector(`#view-tutoriales .tut-videos[data-tut-box="${key}"]`);
-    if(!box) return;
-
-    const vids = Array.isArray(TUTORIALES[key]) ? TUTORIALES[key] : [];
-
-    const isOpen = box.style.display !== 'none' && box.style.display !== '';
-    const hasContent = box.childElementCount > 0;
-
-    /* Si está abierto, lo cerramos (toggle) */
-    if((box.style.display !== 'none') && (box.style.display !== '')){
-      stopAllTutorialVideos();
-      box.innerHTML = '';
-      box.style.display = 'none';
-      return;
-    }
-
-    /* Cerrar todos los demás boxes y parar reproducción */
-    document.querySelectorAll('#view-tutoriales .tut-videos').forEach(other=>{
-      other.innerHTML = '';
-      other.style.display = 'none';
-    });
-    stopAllTutorialVideos();
-
-    /* Abrir este box */
-    box.innerHTML = '';
-    if(!vids.length){
-      const p = document.createElement('p');
-      p.className = 'muted center';
-      p.style.margin = '6px 0 0';
-      p.textContent = 'Tutorial próximamente.';
-      box.appendChild(p);
-      box.style.display = 'block';
-      return;
-    }
-
-    vids.forEach(v=>{
-      box.appendChild(buildTutorialVideoCard(v));
-    });
-    box.style.display = 'block';
-
-    /* Scroll suave para que quede a la vista (debajo del botón) */
-    try{ box.scrollIntoView({ behavior:'smooth', block:'start' }); }catch(_){}
-  }
-
-  /* Botón del menú: abre vista tutoriales */
-  document.getElementById('go-tutoriales')?.addEventListener('click', ()=>{
-    try{ playSoundOnce(SOUNDS.login); }catch(_){}
-    overlay.classList.remove('open');
-    stopAllTutorialVideos();
-    document.querySelectorAll('#view-tutoriales .tut-videos').forEach(b=>{
-      b.innerHTML = '';
-      b.style.display = 'none';
-    });
-    showView('view-tutoriales');
-  });
-
-  /* Click en cada botón de tutorial */
-  (function bindTutorialButtons(){
-    const btns = document.querySelectorAll('#view-tutoriales .tut-btn');
-    btns.forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        try{ playSoundOnce(SOUNDS.back); }catch(_){}
-        const key = btn.getAttribute('data-tut');
-        if(!key) return;
-        renderTutorialBox(key);
+    try{
+      const r = await apiPost('editarComentarioTutorial', {
+        comentarioId: c.id,
+        documento: currentUser.documento,
+        comentario: nuevo
       });
-    });
-  })();
-
-  /* Regresar */
-  document.getElementById('tutoriales-volver')?.addEventListener('click', ()=>{
-    try{ playSoundOnce(SOUNDS.back); }catch(_){}
-    stopAllTutorialVideos();
-    showView('view-inicio');
-  });
-
-  /* Si cambias de pestaña, pausa (el iframe se corta) */
-  document.addEventListener('visibilitychange', ()=>{
-    if(document.hidden){
-      stopAllTutorialVideos();
+      if(r && r.success){
+        try{ playSoundOnce(SOUNDS.success); }catch(_){}
+        await ytLoadComentarios_(tutId);
+      }
+    }catch(e){
+      Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
     }
   });
+}
+
+/* ===== Publicar comentario o respuesta ===== */
+async function ytPublicarComentario_(card, tutId, txtArea, respuestaA){
+  if(!currentUser || !currentUser.documento){
+    Swal.fire({ icon:'info', title:'Inicia sesión para comentar' });
+    return;
+  }
+  const texto = String(txtArea.value || '').trim();
+  if(!texto) return;
+  if(texto.length > 1000){
+    Swal.fire({ icon:'warning', title:'Comentario muy largo', text:'Máximo 1000 caracteres' });
+    return;
+  }
+
+  try{
+    const r = await apiPost('crearComentarioTutorial', {
+      tutId,
+      documento: currentUser.documento,
+      comentario: texto,
+      respuesta_a: respuestaA || ''
+    });
+    if(r && r.success){
+      try{ playSoundOnce(SOUNDS.success); }catch(_){}
+      txtArea.value = '';
+      const btnPub = card?.querySelector('[data-comment-publish]');
+      if(btnPub) btnPub.disabled = true;
+      await ytLoadComentarios_(tutId);
+    }
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+}
+
+/* ===== Eliminar comentario ===== */
+async function ytEliminarComentario_(comId, tutId){
+  if(!currentUser || !currentUser.documento) return;
+
+  const ok = await Swal.fire({
+    icon:'warning',
+    title:'¿Eliminar comentario?',
+    text:'Esta acción no se puede deshacer.',
+    showCancelButton:true,
+    confirmButtonText:'Sí, eliminar',
+    cancelButtonText:'Cancelar'
+  });
+  if(!ok.isConfirmed) return;
+
+  try{
+    const r = await apiPost('eliminarComentarioTutorial', {
+      comentarioId: comId,
+      documento: currentUser.documento
+    });
+    if(r && r.success){
+      try{ playSoundOnce(SOUNDS.back); }catch(_){}
+      await ytLoadComentarios_(tutId);
+    }
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+}
+
+/* ===== Pausar al cambiar de pestaña/app ===== */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){
+    document.querySelectorAll('#yt-videos-list video').forEach(v=>{
+      try{ v.pause(); }catch(_){}
+    });
+  }
+});
+
+/* ===== Hook con showView para cerrar player al salir ===== */
+(function ytHookShowView_(){
+  if(typeof window.showView !== 'function') return;
+  const orig = window.showView;
+  window.showView = function(id){
+    if(id !== 'view-tutoriales'){
+      ytCollapseAll_();
+    }
+    orig(id);
+  };
+})();
+
+
+
 
   /* ================== CALENDARIO INSTITUCIONAL (CONTRATISTA) ================== */
 
