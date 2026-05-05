@@ -2501,36 +2501,140 @@ function ytSetupPlayer_(card, v){
   const preview = ytDrivePreviewUrl_(v.drive);
   const direct  = ytDriveDirectMp4_(v.drive);
 
-  // Detectar si estamos en móvil
-  const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || '');
+  // Detectar plataformas
+  const ua = navigator.userAgent || '';
+  const isMobile = /android|iphone|ipad|ipod|mobile/i.test(ua);
+  const isIOS    = /iphone|ipad|ipod/i.test(ua);
+
+  // Limpiar contenedor y mostrar loader inicial
+  wrap.innerHTML = '';
+  wrap.classList.add('yt-player-loading');
+
+  const loader = document.createElement('div');
+  loader.className = 'yt-player-loader';
+  loader.innerHTML = '<div class="yt-spinner"></div><p>Cargando video…</p>';
+  wrap.appendChild(loader);
 
   let resolved = false;
+  let loadTimeout = null;
 
-  function useIframe_(){
-    if(resolved) return;
-    resolved = true;
-    wrap.innerHTML = '';
-    if(!preview){
-      wrap.innerHTML = '<div style="color:#fff;text-align:center;padding:20px;font-family:sans-serif;">No se pudo reproducir el video.</div>';
-      return;
-    }
-    const iframe = document.createElement('iframe');
-    // Drive preview ya maneja autoplay correctamente
-    const sep = preview.includes('?') ? '&' : '?';
-    iframe.src = preview + sep + 'autoplay=1';
-    iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
-    iframe.allowFullscreen = true;
-    iframe.setAttribute('title', v.titulo || 'Video');
-    iframe.setAttribute('frameborder', '0');
-    iframe.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#000;';
-    wrap.appendChild(iframe);
+  function clearLoader_(){
+    wrap.classList.remove('yt-player-loading');
+    if(loader && loader.parentNode) loader.parentNode.removeChild(loader);
   }
 
-  function useVideo_(){
+  function showManualPlayFallback_(reason){
+    // Fallback visual: thumbnail + botón "Abrir en Drive" + botón "Reintentar"
+    if(resolved) return;
+    resolved = true;
+    if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout = null; }
+    clearLoader_();
+    wrap.innerHTML = '';
+
+    const fb = document.createElement('div');
+    fb.className = 'yt-player-fallback';
+
+    const thumbBg = (v.thumb || '').trim();
+    if(thumbBg){
+      fb.style.backgroundImage = 'url("' + thumbBg + '")';
+    }
+
+    const inner = document.createElement('div');
+    inner.className = 'yt-player-fallback-inner';
+
+    const msg = document.createElement('p');
+    msg.className = 'yt-player-fallback-msg';
+    msg.textContent = reason || 'Toca para reproducir el video';
+
+    const btnPlay = document.createElement('button');
+    btnPlay.type = 'button';
+    btnPlay.className = 'yt-player-fallback-btn';
+    btnPlay.innerHTML = '▶ Reproducir';
+    btnPlay.addEventListener('click', ()=>{
+      // Reintenta con iframe (que es lo más confiable en móvil)
+      resolved = false;
+      useIframe_(true);
+    });
+
+    const btnExt = document.createElement('a');
+    btnExt.className = 'yt-player-fallback-link';
+    btnExt.href = v.drive;
+    btnExt.target = '_blank';
+    btnExt.rel = 'noopener';
+    btnExt.textContent = 'Abrir en Drive';
+
+    inner.appendChild(msg);
+    inner.appendChild(btnPlay);
+    inner.appendChild(btnExt);
+    fb.appendChild(inner);
+    wrap.appendChild(fb);
+  }
+
+  function useIframe_(forcedByUser){
+    if(resolved && !forcedByUser) return;
+    resolved = true;
+    if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout = null; }
+    clearLoader_();
+    wrap.innerHTML = '';
+
+    if(!preview){
+      showManualPlayFallback_('No se pudo preparar el video.');
+      return;
+    }
+
+    // Loader interno mientras carga el iframe
+    const innerLoader = document.createElement('div');
+    innerLoader.className = 'yt-player-loader';
+    innerLoader.innerHTML = '<div class="yt-spinner"></div><p>Conectando con Drive…</p>';
+    wrap.appendChild(innerLoader);
+
+    const iframe = document.createElement('iframe');
+    // En móvil NO forzamos autoplay (Drive lo bloquea y a veces se queda cargando)
+    // El usuario hace tap en el botón play del propio reproductor de Drive
+    const sep = preview.includes('?') ? '&' : '?';
+    const finalUrl = forcedByUser
+      ? preview + sep + 'autoplay=1'
+      : (isMobile ? preview : preview + sep + 'autoplay=1');
+
+    iframe.src = finalUrl;
+    iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('allowfullscreen', 'true');
+    iframe.setAttribute('webkitallowfullscreen', 'true');
+    iframe.setAttribute('mozallowfullscreen', 'true');
+    iframe.setAttribute('title', v.titulo || 'Video');
+    iframe.setAttribute('frameborder', '0');
+    iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0;display:block;background:#000;';
+
+    iframe.addEventListener('load', ()=>{
+      // Quitar loader interno cuando Drive ya respondió
+      if(innerLoader && innerLoader.parentNode){
+        innerLoader.parentNode.removeChild(innerLoader);
+      }
+    }, { once:true });
+
+    iframe.addEventListener('error', ()=>{
+      showManualPlayFallback_('No se pudo cargar el video. Toca para reintentar.');
+    }, { once:true });
+
+    wrap.appendChild(iframe);
+
+    // Timeout largo para móviles con red lenta
+    const safetyMs = isMobile ? 15000 : 9000;
+    setTimeout(()=>{
+      // Si el loader interno sigue ahí después del timeout, mostrar fallback manual
+      if(innerLoader && innerLoader.parentNode){
+        innerLoader.parentNode.removeChild(innerLoader);
+        // No matamos el iframe — solo quitamos el loader visual.
+      }
+    }, safetyMs);
+  }
+
+  function useNativeVideo_(){
     if(resolved) return;
 
     if(!direct){
-      useIframe_();
+      useIframe_(false);
       return;
     }
 
@@ -2541,43 +2645,34 @@ function ytSetupPlayer_(card, v){
     video.setAttribute('webkit-playsinline', '');
     video.preload = 'auto';
     video.setAttribute('controlsList', 'nodownload');
-    video.style.cssText = 'width:100%;height:100%;display:block;background:#000;object-fit:contain;';
+    video.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;display:block;background:#000;object-fit:contain;';
 
-    // En móvil: muted primero para garantizar que arranque, el usuario puede activar sonido
-    // En desktop: con sonido directo
-    if(isMobile){
-      video.muted = true;
-    }else{
-      video.muted = false;
-      video.volume = 1.0;
-    }
-
-    let loadFailed = false;
-    let loadTimeout = null;
+    // En desktop arrancamos con sonido
+    video.muted = false;
+    video.volume = 1.0;
 
     const onError = ()=>{
       if(resolved) return;
-      loadFailed = true;
       if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout = null; }
-      useIframe_();
+      // Si falla el video nativo, vamos a iframe
+      useIframe_(false);
     };
 
     const onCanPlay = ()=>{
       if(resolved) return;
       resolved = true;
       if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout = null; }
+      clearLoader_();
 
       const p = video.play();
       if(p && typeof p.catch === 'function'){
         p.catch(()=>{
-          // Si falla incluso con muted, fallback a iframe
-          if(!loadFailed){
-            try{
-              video.muted = true;
-              video.play().catch(()=> useIframe_());
-            }catch(_){
-              useIframe_();
-            }
+          // Si el navegador bloquea el play, intentar muteado
+          try{
+            video.muted = true;
+            video.play().catch(()=> useIframe_(false));
+          }catch(_){
+            useIframe_(false);
           }
         });
       }
@@ -2586,32 +2681,31 @@ function ytSetupPlayer_(card, v){
     video.addEventListener('error', onError, { once:true });
     video.addEventListener('canplay', onCanPlay, { once:true });
     video.addEventListener('loadedmetadata', ()=>{
-      // En desktop intentamos play apenas tengamos metadatos
-      if(!isMobile && !resolved){
-        onCanPlay();
-      }
+      if(!resolved){ onCanPlay(); }
     }, { once:true });
 
     video.src = direct;
     wrap.appendChild(video);
 
-    // Timeout más generoso: 6s en móvil, 4s en desktop
-    const timeoutMs = isMobile ? 6000 : 4000;
     loadTimeout = setTimeout(()=>{
       if(!resolved && video.readyState < 2){
         onError();
       }
-    }, timeoutMs);
+    }, 5000);
   }
 
-  // En móvil: usar directamente iframe de Drive (más confiable)
-  // En desktop: intentar video nativo, con fallback a iframe
+  // ─── ESTRATEGIA POR PLATAFORMA ───
+  // Móvil (Android/iOS): SIEMPRE iframe de Drive (más estable, sin autoplay forzado)
+  // Desktop: intento video nativo, con fallback a iframe
   if(isMobile){
-    useIframe_();
+    // En móvil, el iframe de Drive ya muestra su propio botón ▶
+    // No forzamos autoplay para evitar bloqueos
+    useIframe_(false);
   }else{
-    useVideo_();
+    useNativeVideo_();
   }
 }
+
 
 /* ===== Bind de acciones del estado expandido ===== */
 function ytBindExpandedActions_(card, v){
