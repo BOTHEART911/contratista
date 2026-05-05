@@ -1302,13 +1302,21 @@ button:active { transform: translateY(0); }
   aspect-ratio: 16 / 9;
   background: #000;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .yt-player-wrap video,
 .yt-player-wrap iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   display: block;
   border: 0;
+  object-fit: contain;
+  background: #000;
 }
 
 .yt-card-expanded-body {
