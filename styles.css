@@ -1296,15 +1296,14 @@ button:active { transform: translateY(0); }
   to { opacity: 1; }
 }
 
+/* ── Contenedor del reproductor ── */
 .yt-player-wrap {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #000;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
 }
 .yt-player-wrap video,
 .yt-player-wrap iframe {
@@ -1317,6 +1316,96 @@ button:active { transform: translateY(0); }
   border: 0;
   object-fit: contain;
   background: #000;
+}
+
+/* ── Loader del reproductor ── */
+.yt-player-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #000;
+  color: #fff;
+  z-index: 2;
+  pointer-events: none;
+}
+.yt-player-loader .yt-spinner {
+  border-color: rgba(255,255,255,.18);
+  border-top-color: #fff;
+}
+.yt-player-loader p {
+  margin: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  opacity: .9;
+}
+
+/* ── Fallback manual si autoplay falla ── */
+.yt-player-fallback {
+  position: absolute;
+  inset: 0;
+  background: #000 center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+.yt-player-fallback::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(0,0,0,.35), rgba(0,0,0,.75));
+}
+.yt-player-fallback-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.yt-player-fallback-msg {
+  margin: 0;
+  color: #fff;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: .9rem;
+  text-shadow: 0 2px 6px rgba(0,0,0,.6);
+}
+.yt-player-fallback-btn {
+  width: auto;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0a6644 0%, #06402B 100%);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,.35);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 800;
+  font-size: .95rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,.45);
+}
+.yt-player-fallback-btn:hover {
+  background: linear-gradient(135deg, #0d7a52 0%, #04281C 100%);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.yt-player-fallback-link {
+  color: #7de3ef;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: .82rem;
+  text-decoration: underline;
+  text-decoration-color: rgba(125,227,239,.5);
+}
+.yt-player-fallback-link:hover {
+  color: #a8f0f7;
 }
 
 .yt-card-expanded-body {
