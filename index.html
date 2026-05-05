@@ -1471,69 +1471,35 @@
 
     <!-- VISTA TUTORIALES -->
    <section id="view-tutoriales" class="view">
-  <div class="card">
-    <h2 style="color:var(--primary); text-shadow: 0 2px 2px #031732; margin-bottom:6px;">TUTORIALES DE USO</h2>
-    <p class="helper" style="text-align:justify; margin-top:0;">
-      Este es el manual de uso de esta poderosa herramienta. Este es un cambio pensado para facilitar tu trabajo y tu tiempo.
-      Cada trámite digital es un paso hacia procesos más simples, más confianza y un Flandes que cambia la historia contigo.
-      Gracias por ser parte de esta transformación digital.
-    </p>
-
-    <div style="text-align:center; margin:5px 0 6px;">
-      <img
-        src="https://res.cloudinary.com/dqqeavica/image/upload/v1770850107/girar_emelgh.gif"
-        alt="Girar para ver mejor"
-        style="width:80px; max-width:45vw; height:auto; display:block; margin:0 auto 8px; border-radius:10px;"
-      >
-      <div class="muted" style="font-weight:500;">
-        Puedes ampliar o girar cada<br>video para una mejor experiencia.
+  <div class="card yt-card">
+ 
+    <!-- HEADER -->
+    <div class="yt-header">
+      <h2 style="color:var(--primary); margin-bottom:6px;">TUTORIALES DE USO</h2>
+      <p class="helper" style="margin-top:0;">
+        Aprende a usar la App con cada uno de estos videos. Da like, comenta y comparte tus dudas.
+      </p>
+    </div>
+ 
+    <!-- TABS DE CATEGORÍAS (scroll horizontal) -->
+    <div class="yt-tabs-wrap" id="yt-tabs-wrap">
+      <div class="yt-tabs" id="yt-tabs">
+        <!-- Tabs inyectados por JS: [Todos] [Primera] [Personales] [Contrato]... -->
       </div>
     </div>
-
-    <!-- BOTONES (centrados, ancho según texto) -->
-    <div class="narrow" style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:10px;">
-      <!-- Botón 1 -->
-      <button class="chip tut-btn" data-tut="primera" style="width:auto; max-width:100%;">DOCUMENTOS PRIMERA CUENTA</button>
-      <div class="tut-videos" data-tut-box="primera" style="display:none; width:100%;"></div>
-
-      <!-- Botón 2 -->
-      <button class="chip tut-btn" data-tut="personales" style="width:auto; max-width:100%;">DATOS PERSONALES</button>
-      <div class="tut-videos" data-tut-box="personales" style="display:none; width:100%;"></div>
-
-      <!-- Botón 3 -->
-      <button class="chip tut-btn" data-tut="contrato" style="width:auto; max-width:100%;">DATOS DEL CONTRATO</button>
-      <div class="tut-videos" data-tut-box="contrato" style="display:none; width:100%;"></div>
-
-      <!-- Botón 4 -->
-      <button class="chip tut-btn" data-tut="borrador" style="width:auto; max-width:100%;">BORRADOR DE ACTIVIDADES</button>
-      <div class="tut-videos" data-tut-box="borrador" style="display:none; width:100%;"></div>
-
-      <!-- Botón 5 -->
-      <button class="chip tut-btn" data-tut="ingresar" style="width:auto; max-width:100%;">INGRESAR CUENTA</button>
-      <div class="tut-videos" data-tut-box="ingresar" style="display:none; width:100%;"></div>
-
-      <!-- Botón 6 -->
-      <button class="chip tut-btn" data-tut="corregir" style="width:auto; max-width:100%;">CORREGIR CUENTA</button>
-      <div class="tut-videos" data-tut-box="corregir" style="display:none; width:100%;"></div>
-
-      <!-- Botón 7 -->
-      <button class="chip tut-btn" data-tut="reportes" style="width:auto; max-width:100%;">REPORTES DE CUENTA Y PLAN DE PAGOS</button>
-      <div class="tut-videos" data-tut-box="reportes" style="display:none; width:100%;"></div>
-
-      <!-- Botón 8 -->
-      <button class="chip tut-btn" data-tut="estados" style="width:auto; max-width:100%;">ESTADOS DE CUENTA</button>
-      <div class="tut-videos" data-tut-box="estados" style="display:none; width:100%;"></div>
-
-      <!-- Botón 9 -->
-      <button class="chip tut-btn" data-tut="tramites" style="width:auto; max-width:100%;">TRAMITES Y SOLICITUDES</button>
-      <div class="tut-videos" data-tut-box="tramites" style="display:none; width:100%;"></div>
-
-      <!-- Botón 10 -->
-      <button class="chip tut-btn" data-tut="institucional" style="width:auto; max-width:100%;">INSTITUCIONAL</button>
-      <div class="tut-videos" data-tut-box="institucional" style="display:none; width:100%;"></div>
-
-      <!-- Regresar al final -->
-      <button id="tutoriales-volver" class="danger" style="width:auto; max-width:100%;">Regresar</button>
+ 
+    <!-- LISTA DE VIDEOS -->
+    <div id="yt-videos-list" class="yt-videos-list">
+      <!-- Cards inyectadas por JS -->
+      <div class="yt-loading">
+        <div class="yt-spinner"></div>
+        <p class="muted">Cargando tutoriales…</p>
+      </div>
+    </div>
+ 
+    <!-- BOTÓN REGRESAR -->
+    <div class="btn-row spaced">
+      <button id="tutoriales-volver" class="danger">Regresar</button>
     </div>
   </div>
 </section>
