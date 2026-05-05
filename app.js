@@ -2493,73 +2493,124 @@ function ytBuildExpandedHtml_(v){
   `;
 }
 
-/* ===== Setup del reproductor con autoplay con sonido ===== */
+/* ===== Setup del reproductor (optimizado para móvil) ===== */
 function ytSetupPlayer_(card, v){
   const wrap = card.querySelector('[data-player]');
   if(!wrap) return;
 
-  const direct = ytDriveDirectMp4_(v.drive);
   const preview = ytDrivePreviewUrl_(v.drive);
+  const direct  = ytDriveDirectMp4_(v.drive);
 
-  let fallbackDone = false;
+  // Detectar si estamos en móvil
+  const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || '');
 
-  function fallbackToIframe_(){
-    if(fallbackDone) return;
-    fallbackDone = true;
+  let resolved = false;
+
+  function useIframe_(){
+    if(resolved) return;
+    resolved = true;
     wrap.innerHTML = '';
     if(!preview){
-      wrap.innerHTML = '<div style="color:#fff;text-align:center;padding:20px;">No se pudo reproducir el video.</div>';
+      wrap.innerHTML = '<div style="color:#fff;text-align:center;padding:20px;font-family:sans-serif;">No se pudo reproducir el video.</div>';
       return;
     }
     const iframe = document.createElement('iframe');
-    // autoplay=1 para iframes de Drive
-    iframe.src = preview + (preview.includes('?') ? '&' : '?') + 'autoplay=1';
-    iframe.allow = 'autoplay; fullscreen';
+    // Drive preview ya maneja autoplay correctamente
+    const sep = preview.includes('?') ? '&' : '?';
+    iframe.src = preview + sep + 'autoplay=1';
+    iframe.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
     iframe.allowFullscreen = true;
     iframe.setAttribute('title', v.titulo || 'Video');
+    iframe.setAttribute('frameborder', '0');
+    iframe.style.cssText = 'width:100%;height:100%;border:0;display:block;background:#000;';
     wrap.appendChild(iframe);
   }
 
-  if(!direct){
-    fallbackToIframe_();
-    return;
+  function useVideo_(){
+    if(resolved) return;
+
+    if(!direct){
+      useIframe_();
+      return;
+    }
+
+    const video = document.createElement('video');
+    video.controls = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.preload = 'auto';
+    video.setAttribute('controlsList', 'nodownload');
+    video.style.cssText = 'width:100%;height:100%;display:block;background:#000;object-fit:contain;';
+
+    // En móvil: muted primero para garantizar que arranque, el usuario puede activar sonido
+    // En desktop: con sonido directo
+    if(isMobile){
+      video.muted = true;
+    }else{
+      video.muted = false;
+      video.volume = 1.0;
+    }
+
+    let loadFailed = false;
+    let loadTimeout = null;
+
+    const onError = ()=>{
+      if(resolved) return;
+      loadFailed = true;
+      if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout = null; }
+      useIframe_();
+    };
+
+    const onCanPlay = ()=>{
+      if(resolved) return;
+      resolved = true;
+      if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout = null; }
+
+      const p = video.play();
+      if(p && typeof p.catch === 'function'){
+        p.catch(()=>{
+          // Si falla incluso con muted, fallback a iframe
+          if(!loadFailed){
+            try{
+              video.muted = true;
+              video.play().catch(()=> useIframe_());
+            }catch(_){
+              useIframe_();
+            }
+          }
+        });
+      }
+    };
+
+    video.addEventListener('error', onError, { once:true });
+    video.addEventListener('canplay', onCanPlay, { once:true });
+    video.addEventListener('loadedmetadata', ()=>{
+      // En desktop intentamos play apenas tengamos metadatos
+      if(!isMobile && !resolved){
+        onCanPlay();
+      }
+    }, { once:true });
+
+    video.src = direct;
+    wrap.appendChild(video);
+
+    // Timeout más generoso: 6s en móvil, 4s en desktop
+    const timeoutMs = isMobile ? 6000 : 4000;
+    loadTimeout = setTimeout(()=>{
+      if(!resolved && video.readyState < 2){
+        onError();
+      }
+    }, timeoutMs);
   }
 
-  const video = document.createElement('video');
-  video.controls = true;
-  video.playsInline = true;
-  video.preload = 'metadata';
-  video.setAttribute('controlsList', 'nodownload');
-  // Autoplay con sonido (el click del usuario al expandir lo autoriza)
-  video.muted = false;
-  video.volume = 1.0;
-  video.src = direct;
-
-  video.addEventListener('error', fallbackToIframe_, { once:true });
-
-  wrap.appendChild(video);
-
-  const p = video.play();
-  if(p && typeof p.catch === 'function'){
-    p.catch(()=>{
-      // Si bloquean autoplay con sonido, intentar muteado
-      try{
-        video.muted = true;
-        video.play().catch(()=> fallbackToIframe_());
-      }catch(_){
-        fallbackToIframe_();
-      }
-    });
+  // En móvil: usar directamente iframe de Drive (más confiable)
+  // En desktop: intentar video nativo, con fallback a iframe
+  if(isMobile){
+    useIframe_();
+  }else{
+    useVideo_();
   }
-
-  // Si en 2.5s no carga, fallback
-  setTimeout(()=>{
-    try{
-      if(!fallbackDone && video.readyState < 2){
-        fallbackToIframe_();
-      }
-    }catch(_){}
-  }, 2500);
 }
 
 /* ===== Bind de acciones del estado expandido ===== */
