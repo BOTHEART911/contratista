@@ -8355,12 +8355,10 @@ if(!r.isConfirmed){
   }
 });
 
-  /* ================== REPORTAR PLAN DE PAGOS ================== */
+ /* ================== REPORTAR PLAN DE PAGOS (con modal previo) ================== */
 
- document.getElementById('go-reportar-plan')?.addEventListener('click', async ()=>{
-  playSoundOnce(SOUNDS.login);
-  overlay.classList.remove('open');
-
+// Función original de reporte de PLAN DE PAGOS (extraída tal cual estaba)
+async function ejecutarReportarPlanPagos_(){
   if(!currentUser){
     Swal.fire({icon:'warning', title:'Sesión inválida'});
     return;
@@ -8378,9 +8376,8 @@ if(!r.isConfirmed){
   }
 
   try{
-   const res = await apiGet('reportarPlanPagos', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+    const res = await apiGet('reportarPlanPagos', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
 
-    // Si NO encontró registros (o no encontró ninguna APROBADA)
     if(!res || res.found === false){
       Swal.fire({
         icon:'info',
@@ -8394,7 +8391,6 @@ if(!r.isConfirmed){
 
     const estado = String(res.estadoBJ||'').toUpperCase();
 
-    // Por seguridad (aunque backend ya devuelve solo APROBADA)
     if(estado !== 'APROBADA'){
       Swal.fire({
         icon:'info',
@@ -8406,14 +8402,12 @@ if(!r.isConfirmed){
       return;
     }
 
-    // Variables para el mensaje
     const informe = res.informe || '';
     const supervisor = res.supervisor || '';
     const grupo = res.grupo || '';
     const nombre = res.nombre || '';
     const contrato = res.contrato || '';
 
-    // BI (egreso): si viene vacío => "Primera Cuenta"
     let egreso = (res.egreso || '').toString().trim();
     if(!egreso) egreso = 'Primera Cuenta';
 
@@ -8427,28 +8421,191 @@ if(!r.isConfirmed){
       cancelButtonText:'CANCELAR'
       }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171802/plan_pagos_gq4wpb.mp3')
 );
-if(!r.isConfirmed){
-  showView('view-inicio');
-  return;
-}
+    if(!r.isConfirmed){
+      showView('view-inicio');
+      return;
+    }
 
     const msg =
-  '*🖥🖥🖥 PLAN DE PAGOS 🖥🖥🖥*\n' +
-  'Estimado(a) *'+supervisor+'*' + '\n\n' +
-  '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
-  '> Egreso: *'+egreso+'*' + '\n\n' +
-  'Ingresa a la App para visualizar\n' +
-  '> *============================*';
+      '*🖥🖥🖥 PLAN DE PAGOS 🖥🖥🖥*\n' +
+      'Estimado(a) *'+supervisor+'*' + '\n\n' +
+      '¡El contratista *'+nombre+'* ha reportado el *PLAN DE PAGOS de la Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n' +
+      '> Egreso: *'+egreso+'*' + '\n\n' +
+      'Ingresa a la App para visualizar\n' +
+      '> *============================*';
 
-if(grupo) sendBuilderbotMessage(grupo, msg);
+    if(grupo) sendBuilderbotMessage(grupo, msg);
 
-await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, supervisor: currentUser.supervisor || '', pago: egreso });
+    await apiPost('guardarPlanPagosReporte', { documento: currentUser.documento, supervisor: currentUser.supervisor || '', pago: egreso });
 
-await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
-showView('view-inicio');
+    await Swal.fire({icon:'success', title:'Plan de Pagos reportado', timer:2500, showConfirmButton:false});
+    showView('view-inicio');
   }catch(e){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
+}
+
+// Función para REPORTAR CORRECCIÓN DE PLAN DE PAGOS
+async function ejecutarReportarCorreccionPlan_(){
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+
+  if(!esHorarioHabilAhora()){
+    Swal.fire({
+      icon:'info',
+      title:'HORARIO NO HÁBIL',
+      text:'Debes Reportar entre 6:01 AM y 7:59 PM de Lunes a Viernes (No Festivos)',
+      timer:6000,
+      showConfirmButton:false
+    });
+    return;
+  }
+
+  try{
+    // Reutilizamos el mismo endpoint para obtener datos de la cuenta (devuelve estadoBJ real)
+    const res = await apiGet('getEstadoCuenta', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+
+    if(!res || res.found === false){
+      await Swal.fire({
+        icon:'info',
+        title:'OPCIÓN NO VÁLIDA',
+        text:'Cada opción tiene una justificación, no acciones por experimentar.',
+        timer:5000,
+        showConfirmButton:false
+      });
+      // Volver a mostrar el modal previo
+      mostrarModalPrevioPlanPagos_();
+      return;
+    }
+
+    const estado = String(res.estado||'').toUpperCase();
+
+    // Solo habilitado si BJ = PLAN DE PAGOS
+    if(estado !== 'PLAN DE PAGOS'){
+      await Swal.fire({
+        icon:'info',
+        title:'OPCIÓN NO VÁLIDA',
+        text:'Cada opción tiene una justificación, no acciones por experimentar.',
+        timer:5000,
+        showConfirmButton:false
+      });
+      // Volver a mostrar el modal previo
+      mostrarModalPrevioPlanPagos_();
+      return;
+    }
+
+    // BJ = PLAN DE PAGOS: mostrar confirmación
+    const informe   = res.informe || '';
+    const supervisor= res.supervisor || currentUser.supervisor || '';
+    const grupo     = res.grupo || '';
+    const nombre    = res.nombre || '';
+    const contrato  = res.contrato || '';
+
+    const r = await Swal.fire({
+      icon:'info',
+      title:'REPORTE DE CORRECCIÓN DE PLAN DE PAGOS',
+      html:'Si ya hiciste la corrección siguiendo al pie de la letra las indicaciones, haz clic en enviar',
+      showCancelButton:true,
+      confirmButtonText:'Enviar',
+      cancelButtonText:'Cancelar'
+    });
+
+    if(!r.isConfirmed){
+      // Volver a mostrar el modal previo
+      mostrarModalPrevioPlanPagos_();
+      return;
+    }
+
+    // Construir y enviar mensaje al mismo grupo
+    const msg =
+      '*❗ CORRECCIÓN PLAN DE PAGOS ❗*\n' +
+      'Estimado(a) *'+supervisor+'*' + '\n\n' +
+      '¡El contratista *'+nombre+'* ha reportado la *CORRECCIÓN* de su *PLAN DE PAGOS* de la *Cuenta N° '+informe+'* del Contrato *'+contrato+'*' + '\n\n' +
+      'Ingresa a la App para visualizar\n' +
+      '> *============================*';
+
+    if(grupo) sendBuilderbotMessage(grupo, msg);
+
+    // Alerta success con sonido
+    await Swal.fire({
+      icon:'success',
+      title:'¡REPORTE ENVIADO!',
+      text:'El Supervisor ha sido notificado',
+      timer:3000,
+      showConfirmButton:false
+    });
+
+    showView('view-inicio');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+}
+
+// Modal previo con 3 botones
+function mostrarModalPrevioPlanPagos_(){
+  Swal.fire({
+    icon:'info',
+    title:'PLAN DE PAGOS',
+    html:'Selecciona una opción',
+    showConfirmButton:false,
+    showCancelButton:false,
+    allowOutsideClick:true,
+    allowEscapeKey:true,
+    footer:`
+      <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+        <button id="ppm-reportar" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0;">
+          REPORTAR PLAN
+        </button>
+        <button id="ppm-correccion" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0; background:#0a6644;">
+          REPORTAR CORRECCIÓN
+        </button>
+        <button id="ppm-salir" class="swal2-cancel swal2-styled" style="display:block; width:100%; margin:0;">
+          SALIR
+        </button>
+      </div>
+    `,
+    didOpen: ()=>{
+      const btnReportar   = document.getElementById('ppm-reportar');
+      const btnCorreccion = document.getElementById('ppm-correccion');
+      const btnSalir      = document.getElementById('ppm-salir');
+
+      if(btnReportar){
+        btnReportar.addEventListener('click', async ()=>{
+          try{ playSoundOnce(SOUNDS.login); }catch(_){}
+          Swal.close();
+          await ejecutarReportarPlanPagos_();
+        });
+      }
+      if(btnCorreccion){
+        btnCorreccion.addEventListener('click', async ()=>{
+          try{ playSoundOnce(SOUNDS.login); }catch(_){}
+          Swal.close();
+          await ejecutarReportarCorreccionPlan_();
+        });
+      }
+      if(btnSalir){
+        btnSalir.addEventListener('click', ()=>{
+          try{ playSoundOnce(SOUNDS.back); }catch(_){}
+          Swal.close();
+        });
+      }
+    }
+  });
+}
+
+// Listener del botón del menú
+document.getElementById('go-reportar-plan')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+
+  mostrarModalPrevioPlanPagos_();
 });
 
 
