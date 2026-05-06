@@ -8284,11 +8284,10 @@ function esHorarioHabilAhora(){
   }
 });
 
-    /* ================== REPORTAR CUENTA DRIVE ================== */
+   /* ================== REPORTAR CUENTA DRIVE (con modal previo) ================== */
 
-  document.getElementById('go-reportar-drive')?.addEventListener('click', async ()=>{
-  playSoundOnce(SOUNDS.login);
-  overlay.classList.remove('open');
+// Función original de REPORTE de CUENTA (lógica intacta)
+async function ejecutarReportarCuenta_(){
   if(!currentUser){
     Swal.fire({icon:'warning', title:'Sesión inválida'}); 
     return;
@@ -8332,20 +8331,20 @@ function esHorarioHabilAhora(){
       'Ingresa a la App para visualizar\n' +
       '> *============================*';
 
-const r = await Swal.fire(
-  swalExtraSoundOnceAfterIcon_({
-    icon:'success',
-    title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
-    html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
-    showCancelButton: true,
-    confirmButtonText: 'REPORTAR',
-    cancelButtonText: 'CANCELAR'
-  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773792965/reportar_wyrkyf.mp3')
-);
-if(!r.isConfirmed){
-  showView('view-inicio');
-  return;
-}
+    const r = await Swal.fire(
+      swalExtraSoundOnceAfterIcon_({
+        icon:'success',
+        title: `ANTES DE REPORTAR TU CUENTA ${informe}`,
+        html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
+        showCancelButton: true,
+        confirmButtonText: 'REPORTAR',
+        cancelButtonText: 'CANCELAR'
+      }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773792965/reportar_wyrkyf.mp3')
+    );
+    if(!r.isConfirmed){
+      showView('view-inicio');
+      return;
+    }
     if(grupo) sendBuilderbotMessage(grupo, msg);
     await apiPost('marcarCuentaReportada', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
     await Swal.fire({icon:'success', title:'Cuenta reportada', timer:2500, showConfirmButton:false});
@@ -8353,6 +8352,154 @@ if(!r.isConfirmed){
   }catch(e){
     Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
+}
+
+// Función para REPORTAR CORRECCIÓN DE CUENTA
+async function ejecutarReportarCorreccionCuenta_(){
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'}); 
+    return;
+  }
+  if(!esHorarioHabilAhora()){
+    Swal.fire({
+      icon:'info',
+      title:'HORARIO NO HÁBIL',
+      text:'Debes Reportar entre 6:01 AM y 7:59 PM de Lunes a Viernes (No Festivos)',
+      timer:6000,
+      showConfirmButton:false
+    });
+    return;
+  }
+  try{
+    const res = await apiGet('reportarCuentaDrive', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+
+    if(!res || !res.found){
+      await Swal.fire({
+        icon:'info',
+        title:'OPCIÓN NO VÁLIDA',
+        text:'Cada opción tiene una justificación, no acciones por experimentar.',
+        timer:5000,
+        showConfirmButton:false
+      });
+      mostrarModalPrevioReportarCuenta_();
+      return;
+    }
+
+    const estado = String(res.estadoBJ||'').toUpperCase();
+
+    // Solo habilitado si BJ = INGRESADA
+    if(estado !== 'INGRESADA'){
+      await Swal.fire({
+        icon:'info',
+        title:'OPCIÓN NO VÁLIDA',
+        text:'Cada opción tiene una justificación, no acciones por experimentar.',
+        timer:5000,
+        showConfirmButton:false
+      });
+      mostrarModalPrevioReportarCuenta_();
+      return;
+    }
+
+    const informe   = res.informe || '';
+    const supervisor= res.supervisor || '';
+    const grupo     = res.grupo || '';
+    const nombre    = res.nombre || '';
+    const contrato  = res.contrato || '';
+
+    const msg =
+      '*🔄 REPORTE CORRECCIÓN DE CUENTA 🔄*\n' +
+      'Estimado(a) *'+supervisor+'*' + '\n\n' +
+      '¡El contratista *'+nombre+'* ha reportado LA CORRECIÓN DE la *Cuenta N° '+informe+'* del *Contrato '+contrato+'*' + '\n\n' +
+      'Ingresa a la App para visualizar\n' +
+      '> *============================*';
+
+    const r = await Swal.fire(
+      swalExtraSoundOnceAfterIcon_({
+        icon:'success',
+        title: `ANTES DE REPORTAR LA CORRECIÓN DE TU CUENTA ${informe}`,
+        html: `Corrobora que tus Documentos estén:<br><br>Completos (Incluyendo Planilla, Baucher de Pago, Documentos anexos solicitados Si Aplica)<br><br>Revisados uno a uno para evitar reprocesos (No Resportes sin Revisar)`,
+        showCancelButton: true,
+        confirmButtonText: 'REPORTAR',
+        cancelButtonText: 'CANCELAR'
+      }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773792965/reportar_wyrkyf.mp3')
+    );
+    if(!r.isConfirmed){
+      mostrarModalPrevioReportarCuenta_();
+      return;
+    }
+
+    if(grupo) sendBuilderbotMessage(grupo, msg);
+    await apiPost('marcarCuentaReportada', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+    await Swal.fire({icon:'success', title:'Corrección reportada', timer:2500, showConfirmButton:false});
+    showView('view-inicio');
+  }catch(e){
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+  }
+}
+
+// Modal previo con 3 botones para REPORTAR CUENTA
+function mostrarModalPrevioReportarCuenta_(){
+  Swal.fire({
+    icon:'info',
+    title:'REPORTAR CUENTA',
+    html:'Selecciona una opción',
+    showConfirmButton:false,
+    showCancelButton:false,
+    allowOutsideClick:true,
+    allowEscapeKey:true,
+    footer:`
+      <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+        <button id="rcm-reporte" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0;">
+          REPORTE
+        </button>
+        <button id="rcm-correccion" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0; background:#0a6644;">
+          CORRECCIÓN
+        </button>
+        <button id="rcm-salir" class="swal2-cancel swal2-styled" style="display:block; width:100%; margin:0;">
+          SALIR
+        </button>
+      </div>
+    `,
+    didOpen: ()=>{
+      const btnReporte    = document.getElementById('rcm-reporte');
+      const btnCorreccion = document.getElementById('rcm-correccion');
+      const btnSalir      = document.getElementById('rcm-salir');
+
+      if(btnReporte){
+        btnReporte.addEventListener('click', async ()=>{
+          try{ playSoundOnce(SOUNDS.login); }catch(_){}
+          Swal.close();
+          await ejecutarReportarCuenta_();
+        });
+      }
+      if(btnCorreccion){
+        btnCorreccion.addEventListener('click', async ()=>{
+          try{ playSoundOnce(SOUNDS.login); }catch(_){}
+          Swal.close();
+          await ejecutarReportarCorreccionCuenta_();
+        });
+      }
+      if(btnSalir){
+        btnSalir.addEventListener('click', ()=>{
+          try{ playSoundOnce(SOUNDS.back); }catch(_){}
+          Swal.close();
+        });
+      }
+    }
+  });
+}
+
+// Listener del botón del menú
+document.getElementById('go-reportar-drive')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser){
+    Swal.fire({icon:'warning', title:'Sesión inválida'});
+    return;
+  }
+
+  mostrarModalPrevioReportarCuenta_();
 });
 
  /* ================== REPORTAR PLAN DE PAGOS (con modal previo) ================== */
