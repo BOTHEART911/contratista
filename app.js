@@ -1,5 +1,7 @@
 /* ================== CONFIGURACIÓN ================== */
 const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec';
+const BUILDERBOT_ENDPOINT = 'https://app.builderbot.cloud/api/v2/ff37a123-12b0-4fdc-9866-f3e2daf389fb/messages';
+const BUILDERBOT_API_KEY  = 'bb-7f9ef630-5cfc-4ba4-9258-5e7cecbb4f65';
 
   const DATA_POLICY_LOGO = 'https://res.cloudinary.com/dqqeavica/image/upload/v1746906622/Logo_hzevh9.png';
 const DATA_POLICY_BANNER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif';
@@ -920,17 +922,29 @@ function normalizeNumber57(raw){
   if(!(num.length === 12 && num.startsWith('57'))) return '';
   return num;
 }
-// MENSAJE WHATSAPP A GRUPO / CONTACTO (vía backend, API key oculta)
+// MENSAJE WHATSAPP A GRUPO / CONTACTO
 function sendBuilderbotMessage(destino, mensaje){
-  const destinoStr = String(destino || '').trim();
-  const mensajeStr = String(mensaje || '').trim();
-  if(!destinoStr || !mensajeStr) return;
+  // Acepta IDs de grupo (alfanuméricos) o teléfonos.
+  let numberField = String(destino || '').trim();
+  if(!numberField) return;
 
-  // Llama al backend; el backend tiene la API key segura y se encarga del envío
-  apiPost('sendWhatsAppRelay', {
-    destino: destinoStr,
-    mensaje: mensajeStr
-  }).catch(err => console.warn('Error WhatsApp relay', err));
+  // Si parece teléfono, normaliza a 57 + 10 dígitos
+  if(/^\d{10}$/.test(numberField)){
+    numberField = '57' + numberField;
+  } else if(/^57\d{10}$/.test(numberField)){
+    // ya viene con 57, se deja igual
+  }
+  // Si es alfanumérico (ID de grupo), se envía tal cual.
+
+  fetch(BUILDERBOT_ENDPOINT, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-api-builderbot':BUILDERBOT_API_KEY },
+    body: JSON.stringify({
+      messages: { content: mensaje },
+      number: numberField,
+      checkIfExists: false
+    })
+  }).catch(err => console.warn('Error BuilderBot', err));
 }
 
 /* ================== ESTADO ================== */
