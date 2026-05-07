@@ -5925,402 +5925,390 @@ function getDeletionSummary_(){
 
 /* Guardar con resumen + backend saveNuevaCuenta + generación de documentos */
 document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
-  if(!currentUser){ Swal.fire({icon:'warning',title:'Sesión inválida'}); return; }
-  if(window.__icSaving){ return; }  // anti doble-click
+  if(window.__icSaving){ return; }
   window.__icSaving = true;
 
-  // Validar actividades obligatorias
-  {
-  const n = Math.max(1, IC_STATE.obligaciones.length);
-  for (let i = 1; i <= Math.min(26, n); i++) {
-    const el = document.getElementById('ic-act-' + i);
-    const v = (el && el.value) ? el.value.trim() : '';
-    if (!v) {
-      await Swal.fire({
-        icon: 'warning',
-        title: `Faltan actividades`,
-        text: `Debes diligenciar la actividad para la obligación ${i}.`
-      });
-      return;
-    }
-  }
-}
+  // Helper para liberar el flag en cualquier salida temprana
+  const releaseAndReturn = () => { window.__icSaving = false; };
 
-    if(IC_MODE !== 'correccion'){
-    const banc = document.getElementById('bancaria');
-    const b1   = document.getElementById('baucher1');
-    const p1   = document.getElementById('planaporte1');
-
-    const fBanc = banc && banc.files && banc.files[0] ? banc.files[0] : null;
-    const fB1   = b1 && b1.files && b1.files[0] ? b1.files[0] : null;
-    const fP1   = p1 && p1.files && p1.files[0] ? p1.files[0] : null;
-
-    if(!fBanc || !fB1 || !fP1){
-      Swal.fire({ icon:'warning', title:'Faltan PDFs requeridos', text:'Debes cargar Certificación Bancaria, Baucher Planilla y Planilla.' });
-      return;
-    }
-  }
-
-  // ✅ VALIDACIÓN: El campo "Número de Factura Electrónica" puede ir vacío,
-  // pero si se diligencia NO puede contener "NO" / "no" ni frases que empiecen por "NO".
-  {
-    const facEl = document.getElementById('ic-facturaNum');
-    const raw = String(facEl?.value || '').trim();
-
-    // Detecta: "NO", "no", "No ..." o frase que empiece por NO (ignorando espacios)
-    // Ejemplos bloqueados: "NO", "no", "No aplica", "  no tengo"
-    const startsWithNo = /^\s*no(\s|$)/i.test(raw);
-
-    if (raw && startsWithNo) {
-      await Swal.fire({
-        icon: 'info',
-        title: 'DEBES LEER BIEN EN TODO MOMENTO',
-        text: 'Si no manejas factura digital, deja el campo vacio como dice la instrucción',
-      });
-      facEl?.focus();
-      return;
-    }
-  }
-  
-  // ✅ Validación pedagógica: lista exactamente qué campos faltan (Ingreso y Corrección)
-  const REQUIRED_FIELDS = [
-    { id:'ic-inicio',       label:'Inicio de Periodo Relacionado' },
-    { id:'ic-fin',          label:'Fin de Periodo Relacionado' },
-    { id:'ic-radicado',     label:'Fecha de Radicación' },
-    { id:'ic-saldo',        label:'Saldo Actual' },
-    { id:'ic-cobro',        label:'Valor por Cobrar' },
-    { id:'ic-planilla',     label:'N° de Planilla' },
-    { id:'ic-mesPlanilla',  label:'Mes Relacionado en la Planilla' },
-    { id:'ic-base',         label:'Base de Cotización' },
-    { id:'ic-salud',        label:'Aportes a Salud' },
-    { id:'ic-fondo',        label:'Aportes a Pensión' },
-    { id:'ic-riesgos',      label:'Aportes a ARL' }
-  ];
-
-  const missing = [];
-  let firstMissingId = '';
-
-  for(const f of REQUIRED_FIELDS){
-    const el = document.getElementById(f.id);
-    const value = String(el?.value || '').trim();
-
-    // si el input está vacío, lo marcamos como faltante
-    if(!value){
-      missing.push(f.label);
-      if(!firstMissingId) firstMissingId = f.id;
-    }
-  }
-
-  if(missing.length){
-    await Swal.fire({
-      icon:'warning',
-      title:'Te faltan campos por diligenciar',
-      html: `
-        <div style="text-align:left; line-height:1.35;">
-          <b>Por favor completa los siguientes campos requeridos:</b>
-          <ul style="margin:10px 0 0; padding-left:18px;">
-            ${missing.map(x => `<li>${x}</li>`).join('')}
-          </ul>
-        </div>
-      `
-    });
-
-    // Enfoca el primer campo faltante para guiar al usuario
-    const first = document.getElementById(firstMissingId);
-    if(first){
-      try{ first.scrollIntoView({ behavior:'smooth', block:'center' }); }catch(_){}
-      try{ first.focus(); }catch(_){}
+  try {
+    if(!currentUser){
+      Swal.fire({icon:'warning',title:'Sesión inválida'});
+      return releaseAndReturn();
     }
 
-    return;
-  }
-
-  // Mantengo tu objeto required por si lo usas después en cálculos
-  const required = {
-    inicio: document.getElementById('ic-inicio').value,
-    fin: document.getElementById('ic-fin').value,
-    radicado: document.getElementById('ic-radicado').value,
-    saldo: document.getElementById('ic-saldo').value,
-    cobro: document.getElementById('ic-cobro').value,
-    planilla: document.getElementById('ic-planilla').value,
-    mesPlanilla: document.getElementById('ic-mesPlanilla').value,
-    base: document.getElementById('ic-base').value,
-    salud: document.getElementById('ic-salud').value,
-    fondo: document.getElementById('ic-fondo').value,
-    riesgos: document.getElementById('ic-riesgos').value
-  };
-
-  
-
-  // Actividades
-  const n = Math.max(1, IC_STATE.obligaciones.length);
-  const actividades = [];
-  for(let i=1;i<=Math.min(26,n);i++){
-    const el = document.getElementById('ic-act-'+i);
-    actividades.push((el && el.value) ? el.value.trim() : '');
-  }
-
- // Evidencias (1 por obligación) → SOLO enviamos dataURL nuevas.
-// Si está vacío, el backend conservará la URL existente de BK..CJ.
-const evidenciasData = [];
-for(let i=0;i<Math.min(26,n);i++){
-  const dataUrl = IC_STATE.evidData[i] || '';
-  const sz = IC_STATE.evidSizes[i] || 0;
-  const wantsDelete = !!(IC_STATE.evidDeleteFlags && IC_STATE.evidDeleteFlags[i]);
-
-  if(dataUrl && sz > MAX_IMAGE_MB){
-    await Swal.fire({
-      icon:'warning',
-      title:`Evidencia ${i+1} supera ${MAX_IMAGE_MB} MB`,
-      text:'Vuelve a cargarla con menor peso.'
-    });
-    return;
-  }
-
-  if(dataUrl){
-    evidenciasData.push(dataUrl);                  // reemplaza
-  }else if(wantsDelete && IC_MODE === 'correccion'){
-    evidenciasData.push('__DELETE__');             // eliminar la existente
-  }else{
-    evidenciasData.push('');                       // sin cambio
-  }
-}
-  
-  // Cálculos
-  const saldo = numPure(required.saldo);
-  const cobro = numPure(required.cobro);
-  const nuevoSaldo = saldo - cobro;
-  const base = numPure(required.base);
-  const solidario = base>=IC_SOLIDARIO_UMBRAL ? Math.round(base*0.01) : 0;
-  const aporte = base>=IC_SOLIDARIO_UMBRAL ? 'COL PENSIONES' : '-';
-
-  const base2 = numPure(document.getElementById('ic-base2').value||'');
-  const solidario2 = base2>=IC_SOLIDARIO_UMBRAL ? Math.round(base2*0.01) : 0;
-  const aporte2 = base2>=IC_SOLIDARIO_UMBRAL ? 'COL PENSIONES' : '-';
-
-  // Fuerza dos dígitos para días desde los inputs ocultos
-  const diaRadicar  = pad2(document.getElementById('ic-diaRad').value||'');
-  const diaRat1     = pad2(document.getElementById('ic-diaRat1').value||'');
-  const diaRat2     = pad2(document.getElementById('ic-diaRat2').value||'');
-
-  const total = String(document.getElementById('ic-total')?.value || '').trim();
-if(!total){
-  await Swal.fire({ icon:'warning', title:'Campo requerido', text:'Debes diligenciar el campo TOTAL.' });
-  document.getElementById('ic-total')?.focus();
-  return;
-}
-  
-const caja1 = numPure(document.getElementById('caja1').value);
-const sena1 = numPure(document.getElementById('sena1').value);
-const icbf1 = numPure(document.getElementById('icbf1').value);
-
-const caja2 = numPure(document.getElementById('caja2').value);
-const sena2 = numPure(document.getElementById('sena2').value);
-const icbf2 = numPure(document.getElementById('icbf2').value);
-  
-  const novedadesPdfs = await collectNovedadesPdfsBase64_();
-
-
-  const body = {
-    documento: currentUser.documento,
-    secretaria: currentUser.secretaria || '',
-    nombre: IC_STATE.nombre || '',
-    contrato: IC_STATE.contrato || '',
-    supervisor: document.getElementById('ic-supervisor').value || '',
-    editorEmail: document.getElementById('ic-editor-email').value || '',
-    informe: IC_STATE.informe || 1,
-    total: String(document.getElementById('ic-total').value||''),
-    fechaRadicar: document.getElementById('ic-radicado').value,
-    diaRadicar: diaRadicar,            // 2 dígitos
-    mesRadicar: document.getElementById('ic-mesRad').value,
-    inicioRatificar: document.getElementById('ic-inicio').value,
-    diaRatificar1: diaRat1,            // 2 dígitos
-    mesRatificar1: document.getElementById('ic-mesRat1').value,
-    finRatificar: document.getElementById('ic-fin').value,
-    diaRatificar2: diaRat2,            // 2 dígitos
-    mesRatificar2: document.getElementById('ic-mesRat2').value,
-    saldoActual: String(saldo),
-    cobro: String(cobro),
-    nuevoSaldo: String(nuevoSaldo),
-    facturaNum: String(document.getElementById('ic-facturaNum')?.value || '').trim(),
-    planilla: String(numPure(document.getElementById('ic-planilla').value)),
-    mesPlanilla: document.getElementById('ic-mesPlanilla').value,
-    base: String(base),
-    salud: String(numPure(document.getElementById('ic-salud').value)),
-    fondo: String(numPure(document.getElementById('ic-fondo').value)),
-    riesgos: String(numPure(document.getElementById('ic-riesgos').value)),
-    caja1: emptyIfZero(document.getElementById('caja1').value||''),
-    sena1: emptyIfZero(document.getElementById('sena1').value||''),
-    icbf1: emptyIfZero(document.getElementById('icbf1').value||''),
-    solidario: String(solidario),
-    aporte: aporte,
-    planilla2: emptyIfZero(document.getElementById('ic-planilla2').value||''),
-    mesPlanilla2: document.getElementById('ic-mesPlanilla2').value || '',
-    base2: emptyIfZero(document.getElementById('ic-base2').value||''),
-    salud2: emptyIfZero(document.getElementById('ic-salud2').value||''),
-    fondo2: emptyIfZero(document.getElementById('ic-fondo2').value||''),
-    riesgos2: emptyIfZero(document.getElementById('ic-riesgos2').value||''),
-    caja2: emptyIfZero(document.getElementById('caja2').value||''),
-    sena2: emptyIfZero(document.getElementById('sena2').value||''),
-    icbf2: emptyIfZero(document.getElementById('icbf2').value||''),
-    solidario2: emptyIfZero(document.getElementById('ic-solidario2').value||''),
-    aporte2: aporte2,
-    actividades,
-    evidenciasData,
-    bankPlanPdfs: await collectBankPlanPdfsBase64_(),
-    novedadesPdfs: novedadesPdfs,
-    novedadesMeta: { maxMb: MAX_NOVEDADES_MB },
-    bankPlanMeta: { maxMb: MAX_PDF_MB },
-    overwrite: !IC_STATE.nextMode && IC_STATE.cuentaExiste
-  };
-
-  // Resumen breve para confirmar
-    // Resumen breve para confirmar (incluye campos visibles, excepto actividades/evidencias)
-  const resumenParts = [
-    `<b>Informe:</b> ${body.informe} de ${body.total}`,
-    `<b>Periodo:</b> ${body.inicioRatificar} — ${body.finRatificar}`,
-    `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`,
-    `<b>Saldo Actual:</b> ${formatCOPView(body.saldoActual)}`,
-    `<b>Valor por Cobrar:</b> ${formatCOPView(body.cobro)}`,
-    `<b>Nuevo Saldo:</b> ${formatCOPView(body.nuevoSaldo)}`,
-    `<b>Planilla:</b> ${body.planilla || '-'}`,
-    `<b>Mes Planilla:</b> ${body.mesPlanilla || '-'}`,
-    `<b>Base de Cotización:</b> ${formatCOPView(body.base)}`,
-    `<b>Aportes Salud:</b> ${formatCOPView(body.salud)}`,
-    `<b>Aportes Pensión:</b> ${formatCOPView(body.fondo)}`,
-    `<b>Aportes ARL:</b> ${formatCOPView(body.riesgos)}`,
-    `<b>Aportes Caja:</b> ${body.caja1 ? formatCOPView(body.caja1) : '-'}`,
-    `<b>Aportes SENA:</b> ${body.sena1 ? formatCOPView(body.sena1) : '-'}`,
-    `<b>Aportes ICBF:</b> ${body.icbf1 ? formatCOPView(body.icbf1) : '-'}`,
-    `<b>Aporte Solidario:</b> ${formatCOPView(body.solidario)}`,
-    `<b>Aporte (entidad):</b> ${body.aporte || '-'}`
-  ];
-
-  // Solo mostrar campos de Planilla Anexa si tienen algún valor
-  if (body.facturaNum || body.planilla2 || body.mesPlanilla2 || body.base2 || body.salud2 || body.fondo2 || body.riesgos2 || body.caja2 || body.sena2 || body.icbf2 || body.solidario2 || body.aporte2) {
-    if(body.facturaNum) resumenParts.push(`<b>Número de Factura Electrónica:</b> ${body.facturaNum}`);
-    if (body.planilla2)     resumenParts.push(`<b>Planilla Anexa:</b> ${body.planilla2}`);
-    if (body.mesPlanilla2)  resumenParts.push(`<b>Mes Planilla Anexa:</b> ${body.mesPlanilla2}`);
-    if (body.base2)         resumenParts.push(`<b>Base Anexa:</b> ${formatCOPView(body.base2)}`);
-    if (body.salud2)        resumenParts.push(`<b>Salud Anexa:</b> ${formatCOPView(body.salud2)}`);
-    if (body.fondo2)        resumenParts.push(`<b>Pensión Anexa:</b> ${formatCOPView(body.fondo2)}`);
-    if (body.riesgos2)      resumenParts.push(`<b>ARL Anexa:</b> ${formatCOPView(body.riesgos2)}`);
-    if (body.caja2)   resumenParts.push(`<b>Caja Anexa:</b> ${formatCOPView(body.caja2)}`);
-    if (body.sena2)   resumenParts.push(`<b>SENA Anexa:</b> ${formatCOPView(body.sena2)}`);
-    if (body.icbf2)   resumenParts.push(`<b>ICBF Anexa:</b> ${formatCOPView(body.icbf2)}`);
-    if (body.solidario2)    resumenParts.push(`<b>Aporte Solidario Anexo:</b> ${formatCOPView(body.solidario2)}`);
-    if (body.aporte2)       resumenParts.push(`<b>Aporte Anexo (entidad):</b> ${body.aporte2}`);
-  }
-
- const deletionsList = getDeletionSummary_();
-let deletionHtml = '';
-if(deletionsList.length){
-  deletionHtml = `
-    <div class="delete-summary-list">
-      <b>⚠ ARCHIVOS QUE SERÁN ELIMINADOS:</b>
-      <ul>
-        ${deletionsList.map(d => `<li>${d}</li>`).join('')}
-      </ul>
-      <div style="margin-top:6px; color:#7f1d1d; font-weight:700;">
-        Esta acción no se puede deshacer una vez confirmes.
-      </div>
-    </div>
-  `;
-}
-
-const resumen = deletionHtml + resumenParts.join('<br>');
-
-const rs = await Swal.fire({
-  icon: deletionsList.length ? 'warning' : 'info',
-  title: deletionsList.length ? 'Resumen — Hay archivos a eliminar' : (IC_MODE==='correccion' ? 'Resumen de Corrección' : 'Resumen de Ingreso'),
-  html: resumen,
-  showCancelButton:true,
-  confirmButtonText: deletionsList.length ? 'Confirmar y Eliminar' : 'Confirmar',
-  cancelButtonText:'Editar'
-});
-if(!rs.isConfirmed) return;
-
-  // Suprime el loader nativo durante este flujo
-  suppressLoader = true;
-  loadingCount = 0;
-  if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
-
-  const prevLoaderDisplay = loader?.style.display;
-  if(loader){ loader.classList.add('hidden'); loader.style.display = 'none'; }
-
-  // Texto distinto según sea ingreso o corrección
-const isCorrection = (IC_MODE === 'correccion');
-const waitSwal = Swal.fire(
-  swalExtraSoundOnceAfterIcon_({
-    title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
-    html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: () => { Swal.showLoading(); }
-  }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3')
-);
-
-  try{
-    const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
-    const r = await apiPost(action, body);
-    await Swal.close();
-
-    // === Cuenta ya existía (reintento tras fallo de Drive) ===
-    if(r && r.duplicate === true){
-      await Swal.fire({
-        icon: 'info',
-        title: 'TU CUENTA YA SE CREÓ',
-        html: 'Toma la opción <b>REPORTAR CUENTA</b>',
-        confirmButtonText: 'OK'
-      });
-      resetIngresarCuentaView();
-      showView('view-inicio');
-      return;
-    }
-
-   if(r && r.success){
-  const isCorrection = (IC_MODE === 'correccion');
-  if(r && r.success){
-  const isCorrection = (IC_MODE === 'correccion');
-  Swal.fire({
-    icon:'success',
-    title:'PROCESO FINALIZADO',
-    html: `
-      <div style="text-align:center; margin:10px 0 12px;">
-        <img
-          src="https://res.cloudinary.com/dqqeavica/image/upload/v1770141576/cuenta_drive_guoj5w.gif"
-          alt="Cuenta Drive"
-          style="width:220px; max-width:80vw; height:auto; display:block; margin:0 auto;"
-        >
-      </div>
-      ${
-        isCorrection
-          ? 'La cuenta quedó <b>CORREGIDA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Corregidos'
-          : 'La cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Creados'
+    // === Validar actividades obligatorias ===
+    {
+      const n = Math.max(1, IC_STATE.obligaciones.length);
+      for (let i = 1; i <= Math.min(26, n); i++) {
+        const el = document.getElementById('ic-act-' + i);
+        const v = (el && el.value) ? el.value.trim() : '';
+        if (!v) {
+          await Swal.fire({
+            icon: 'warning',
+            title: `Faltan actividades`,
+            text: `Debes diligenciar la actividad para la obligación ${i}.`
+          });
+          return releaseAndReturn();
+        }
       }
-    `,
-    timer: 7000,
-    showConfirmButton: false
-  });
-  }
-  resetIngresarCuentaView();
-  showView('view-inicio');
-} else {
-  Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
-}
-  }catch(e){
-    await Swal.close();
-    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
-  }finally{
-    window.__icSaving = false;  // libera el bloqueo
-    // Restablece el loader y el flag
-    suppressLoader = false;
+    }
+
+    // === Validar PDFs requeridos en modo ingreso ===
+    if(IC_MODE !== 'correccion'){
+      const banc = document.getElementById('bancaria');
+      const b1   = document.getElementById('baucher1');
+      const p1   = document.getElementById('planaporte1');
+      const fBanc = banc && banc.files && banc.files[0] ? banc.files[0] : null;
+      const fB1   = b1 && b1.files && b1.files[0] ? b1.files[0] : null;
+      const fP1   = p1 && p1.files && p1.files[0] ? p1.files[0] : null;
+
+      if(!fBanc || !fB1 || !fP1){
+        Swal.fire({ icon:'warning', title:'Faltan PDFs requeridos', text:'Debes cargar Certificación Bancaria, Baucher Planilla y Planilla.' });
+        return releaseAndReturn();
+      }
+    }
+
+    // === Validar factura ===
+    {
+      const facEl = document.getElementById('ic-facturaNum');
+      const raw = String(facEl?.value || '').trim();
+      const startsWithNo = /^\s*no(\s|$)/i.test(raw);
+      if (raw && startsWithNo) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'DEBES LEER BIEN EN TODO MOMENTO',
+          text: 'Si no manejas factura digital, deja el campo vacio como dice la instrucción',
+        });
+        facEl?.focus();
+        return releaseAndReturn();
+      }
+    }
+
+    // === Validación de campos requeridos ===
+    const REQUIRED_FIELDS = [
+      { id:'ic-inicio',       label:'Inicio de Periodo Relacionado' },
+      { id:'ic-fin',          label:'Fin de Periodo Relacionado' },
+      { id:'ic-radicado',     label:'Fecha de Radicación' },
+      { id:'ic-saldo',        label:'Saldo Actual' },
+      { id:'ic-cobro',        label:'Valor por Cobrar' },
+      { id:'ic-planilla',     label:'N° de Planilla' },
+      { id:'ic-mesPlanilla',  label:'Mes Relacionado en la Planilla' },
+      { id:'ic-base',         label:'Base de Cotización' },
+      { id:'ic-salud',        label:'Aportes a Salud' },
+      { id:'ic-fondo',        label:'Aportes a Pensión' },
+      { id:'ic-riesgos',      label:'Aportes a ARL' }
+    ];
+
+    const missing = [];
+    let firstMissingId = '';
+    for(const f of REQUIRED_FIELDS){
+      const el = document.getElementById(f.id);
+      const value = String(el?.value || '').trim();
+      if(!value){
+        missing.push(f.label);
+        if(!firstMissingId) firstMissingId = f.id;
+      }
+    }
+
+    if(missing.length){
+      await Swal.fire({
+        icon:'warning',
+        title:'Te faltan campos por diligenciar',
+        html: `
+          <div style="text-align:left; line-height:1.35;">
+            <b>Por favor completa los siguientes campos requeridos:</b>
+            <ul style="margin:10px 0 0; padding-left:18px;">
+              ${missing.map(x => `<li>${x}</li>`).join('')}
+            </ul>
+          </div>
+        `
+      });
+      const first = document.getElementById(firstMissingId);
+      if(first){
+        try{ first.scrollIntoView({ behavior:'smooth', block:'center' }); }catch(_){}
+        try{ first.focus(); }catch(_){}
+      }
+      return releaseAndReturn();
+    }
+
+    const required = {
+      inicio: document.getElementById('ic-inicio').value,
+      fin: document.getElementById('ic-fin').value,
+      radicado: document.getElementById('ic-radicado').value,
+      saldo: document.getElementById('ic-saldo').value,
+      cobro: document.getElementById('ic-cobro').value,
+      planilla: document.getElementById('ic-planilla').value,
+      mesPlanilla: document.getElementById('ic-mesPlanilla').value,
+      base: document.getElementById('ic-base').value,
+      salud: document.getElementById('ic-salud').value,
+      fondo: document.getElementById('ic-fondo').value,
+      riesgos: document.getElementById('ic-riesgos').value
+    };
+
+    // Actividades
+    const n = Math.max(1, IC_STATE.obligaciones.length);
+    const actividades = [];
+    for(let i=1;i<=Math.min(26,n);i++){
+      const el = document.getElementById('ic-act-'+i);
+      actividades.push((el && el.value) ? el.value.trim() : '');
+    }
+
+    // Evidencias
+    const evidenciasData = [];
+    for(let i=0;i<Math.min(26,n);i++){
+      const dataUrl = IC_STATE.evidData[i] || '';
+      const sz = IC_STATE.evidSizes[i] || 0;
+      const wantsDelete = !!(IC_STATE.evidDeleteFlags && IC_STATE.evidDeleteFlags[i]);
+
+      if(dataUrl && sz > MAX_IMAGE_MB){
+        await Swal.fire({
+          icon:'warning',
+          title:`Evidencia ${i+1} supera ${MAX_IMAGE_MB} MB`,
+          text:'Vuelve a cargarla con menor peso.'
+        });
+        return releaseAndReturn();
+      }
+
+      if(dataUrl){
+        evidenciasData.push(dataUrl);
+      }else if(wantsDelete && IC_MODE === 'correccion'){
+        evidenciasData.push('__DELETE__');
+      }else{
+        evidenciasData.push('');
+      }
+    }
+
+    // Cálculos
+    const saldo = numPure(required.saldo);
+    const cobro = numPure(required.cobro);
+    const nuevoSaldo = saldo - cobro;
+    const base = numPure(required.base);
+    const solidario = base>=IC_SOLIDARIO_UMBRAL ? Math.round(base*0.01) : 0;
+    const aporte = base>=IC_SOLIDARIO_UMBRAL ? 'COL PENSIONES' : '-';
+    const base2 = numPure(document.getElementById('ic-base2').value||'');
+    const solidario2 = base2>=IC_SOLIDARIO_UMBRAL ? Math.round(base2*0.01) : 0;
+    const aporte2 = base2>=IC_SOLIDARIO_UMBRAL ? 'COL PENSIONES' : '-';
+
+    const diaRadicar  = pad2(document.getElementById('ic-diaRad').value||'');
+    const diaRat1     = pad2(document.getElementById('ic-diaRat1').value||'');
+    const diaRat2     = pad2(document.getElementById('ic-diaRat2').value||'');
+
+    const total = String(document.getElementById('ic-total')?.value || '').trim();
+    if(!total){
+      await Swal.fire({ icon:'warning', title:'Campo requerido', text:'Debes diligenciar el campo TOTAL.' });
+      document.getElementById('ic-total')?.focus();
+      return releaseAndReturn();
+    }
+
+    const caja1 = numPure(document.getElementById('caja1').value);
+    const sena1 = numPure(document.getElementById('sena1').value);
+    const icbf1 = numPure(document.getElementById('icbf1').value);
+    const caja2 = numPure(document.getElementById('caja2').value);
+    const sena2 = numPure(document.getElementById('sena2').value);
+    const icbf2 = numPure(document.getElementById('icbf2').value);
+
+    const novedadesPdfs = await collectNovedadesPdfsBase64_();
+
+    const body = {
+      documento: currentUser.documento,
+      secretaria: currentUser.secretaria || '',
+      nombre: IC_STATE.nombre || '',
+      contrato: IC_STATE.contrato || '',
+      supervisor: document.getElementById('ic-supervisor').value || '',
+      editorEmail: document.getElementById('ic-editor-email').value || '',
+      informe: IC_STATE.informe || 1,
+      total: String(document.getElementById('ic-total').value||''),
+      fechaRadicar: document.getElementById('ic-radicado').value,
+      diaRadicar: diaRadicar,
+      mesRadicar: document.getElementById('ic-mesRad').value,
+      inicioRatificar: document.getElementById('ic-inicio').value,
+      diaRatificar1: diaRat1,
+      mesRatificar1: document.getElementById('ic-mesRat1').value,
+      finRatificar: document.getElementById('ic-fin').value,
+      diaRatificar2: diaRat2,
+      mesRatificar2: document.getElementById('ic-mesRat2').value,
+      saldoActual: String(saldo),
+      cobro: String(cobro),
+      nuevoSaldo: String(nuevoSaldo),
+      facturaNum: String(document.getElementById('ic-facturaNum')?.value || '').trim(),
+      planilla: String(numPure(document.getElementById('ic-planilla').value)),
+      mesPlanilla: document.getElementById('ic-mesPlanilla').value,
+      base: String(base),
+      salud: String(numPure(document.getElementById('ic-salud').value)),
+      fondo: String(numPure(document.getElementById('ic-fondo').value)),
+      riesgos: String(numPure(document.getElementById('ic-riesgos').value)),
+      caja1: emptyIfZero(document.getElementById('caja1').value||''),
+      sena1: emptyIfZero(document.getElementById('sena1').value||''),
+      icbf1: emptyIfZero(document.getElementById('icbf1').value||''),
+      solidario: String(solidario),
+      aporte: aporte,
+      planilla2: emptyIfZero(document.getElementById('ic-planilla2').value||''),
+      mesPlanilla2: document.getElementById('ic-mesPlanilla2').value || '',
+      base2: emptyIfZero(document.getElementById('ic-base2').value||''),
+      salud2: emptyIfZero(document.getElementById('ic-salud2').value||''),
+      fondo2: emptyIfZero(document.getElementById('ic-fondo2').value||''),
+      riesgos2: emptyIfZero(document.getElementById('ic-riesgos2').value||''),
+      caja2: emptyIfZero(document.getElementById('caja2').value||''),
+      sena2: emptyIfZero(document.getElementById('sena2').value||''),
+      icbf2: emptyIfZero(document.getElementById('icbf2').value||''),
+      solidario2: emptyIfZero(document.getElementById('ic-solidario2').value||''),
+      aporte2: aporte2,
+      actividades,
+      evidenciasData,
+      bankPlanPdfs: await collectBankPlanPdfsBase64_(),
+      novedadesPdfs: novedadesPdfs,
+      novedadesMeta: { maxMb: MAX_NOVEDADES_MB },
+      bankPlanMeta: { maxMb: MAX_PDF_MB },
+      overwrite: !IC_STATE.nextMode && IC_STATE.cuentaExiste
+    };
+
+    // Resumen para confirmar
+    const resumenParts = [
+      `<b>Informe:</b> ${body.informe} de ${body.total}`,
+      `<b>Periodo:</b> ${body.inicioRatificar} — ${body.finRatificar}`,
+      `<b>Radicación:</b> ${body.fechaRadicar} (${body.diaRadicar} / ${body.mesRadicar})`,
+      `<b>Saldo Actual:</b> ${formatCOPView(body.saldoActual)}`,
+      `<b>Valor por Cobrar:</b> ${formatCOPView(body.cobro)}`,
+      `<b>Nuevo Saldo:</b> ${formatCOPView(body.nuevoSaldo)}`,
+      `<b>Planilla:</b> ${body.planilla || '-'}`,
+      `<b>Mes Planilla:</b> ${body.mesPlanilla || '-'}`,
+      `<b>Base de Cotización:</b> ${formatCOPView(body.base)}`,
+      `<b>Aportes Salud:</b> ${formatCOPView(body.salud)}`,
+      `<b>Aportes Pensión:</b> ${formatCOPView(body.fondo)}`,
+      `<b>Aportes ARL:</b> ${formatCOPView(body.riesgos)}`,
+      `<b>Aportes Caja:</b> ${body.caja1 ? formatCOPView(body.caja1) : '-'}`,
+      `<b>Aportes SENA:</b> ${body.sena1 ? formatCOPView(body.sena1) : '-'}`,
+      `<b>Aportes ICBF:</b> ${body.icbf1 ? formatCOPView(body.icbf1) : '-'}`,
+      `<b>Aporte Solidario:</b> ${formatCOPView(body.solidario)}`,
+      `<b>Aporte (entidad):</b> ${body.aporte || '-'}`
+    ];
+
+    if (body.facturaNum || body.planilla2 || body.mesPlanilla2 || body.base2 || body.salud2 || body.fondo2 || body.riesgos2 || body.caja2 || body.sena2 || body.icbf2 || body.solidario2 || body.aporte2) {
+      if(body.facturaNum) resumenParts.push(`<b>Número de Factura Electrónica:</b> ${body.facturaNum}`);
+      if (body.planilla2)     resumenParts.push(`<b>Planilla Anexa:</b> ${body.planilla2}`);
+      if (body.mesPlanilla2)  resumenParts.push(`<b>Mes Planilla Anexa:</b> ${body.mesPlanilla2}`);
+      if (body.base2)         resumenParts.push(`<b>Base Anexa:</b> ${formatCOPView(body.base2)}`);
+      if (body.salud2)        resumenParts.push(`<b>Salud Anexa:</b> ${formatCOPView(body.salud2)}`);
+      if (body.fondo2)        resumenParts.push(`<b>Pensión Anexa:</b> ${formatCOPView(body.fondo2)}`);
+      if (body.riesgos2)      resumenParts.push(`<b>ARL Anexa:</b> ${formatCOPView(body.riesgos2)}`);
+      if (body.caja2)   resumenParts.push(`<b>Caja Anexa:</b> ${formatCOPView(body.caja2)}`);
+      if (body.sena2)   resumenParts.push(`<b>SENA Anexa:</b> ${formatCOPView(body.sena2)}`);
+      if (body.icbf2)   resumenParts.push(`<b>ICBF Anexa:</b> ${formatCOPView(body.icbf2)}`);
+      if (body.solidario2)    resumenParts.push(`<b>Aporte Solidario Anexo:</b> ${formatCOPView(body.solidario2)}`);
+      if (body.aporte2)       resumenParts.push(`<b>Aporte Anexo (entidad):</b> ${body.aporte2}`);
+    }
+
+    const deletionsList = getDeletionSummary_();
+    let deletionHtml = '';
+    if(deletionsList.length){
+      deletionHtml = `
+        <div class="delete-summary-list">
+          <b>⚠ ARCHIVOS QUE SERÁN ELIMINADOS:</b>
+          <ul>
+            ${deletionsList.map(d => `<li>${d}</li>`).join('')}
+          </ul>
+          <div style="margin-top:6px; color:#7f1d1d; font-weight:700;">
+            Esta acción no se puede deshacer una vez confirmes.
+          </div>
+        </div>
+      `;
+    }
+
+    const resumen = deletionHtml + resumenParts.join('<br>');
+
+    const rs = await Swal.fire({
+      icon: deletionsList.length ? 'warning' : 'info',
+      title: deletionsList.length ? 'Resumen — Hay archivos a eliminar' : (IC_MODE==='correccion' ? 'Resumen de Corrección' : 'Resumen de Ingreso'),
+      html: resumen,
+      showCancelButton:true,
+      confirmButtonText: deletionsList.length ? 'Confirmar y Eliminar' : 'Confirmar',
+      cancelButtonText:'Editar'
+    });
+    if(!rs.isConfirmed) return releaseAndReturn();
+
+    // === A partir de aquí va el bloque del loader y apiPost ===
+    suppressLoader = true;
     loadingCount = 0;
     if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
-    if(loader){
-      loader.style.display = prevLoaderDisplay || '';
-      loader.classList.add('hidden');
+
+    const prevLoaderDisplay = loader?.style.display;
+    if(loader){ loader.classList.add('hidden'); loader.style.display = 'none'; }
+
+    const isCorrection = (IC_MODE === 'correccion');
+    const waitSwal = Swal.fire(
+      swalExtraSoundOnceAfterIcon_({
+        title: isCorrection ? 'REGENERANDO TUS DOCUMENTOS...' : 'CREANDO TUS DOCUMENTOS...',
+        html: 'Por favor espera un par de minutos mientras termina el proceso.<br><br><b>Entre 1.50 y 2.30 Minutos Aprox.</b> Estamos haciendo todo por ti 💚<br><br>No salgas de la App.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => { Swal.showLoading(); }
+      }, 'https://res.cloudinary.com/dqqeavica/video/upload/v1773171612/recomendacion_qr4gc6.mp3')
+    );
+
+    try{
+      const action = (IC_MODE === 'correccion') ? 'saveCorreccionCuenta' : 'saveNuevaCuenta';
+      const r = await apiPost(action, body);
+      await Swal.close();
+
+      if(r && r.duplicate === true){
+        await Swal.fire({
+          icon: 'info',
+          title: 'TU CUENTA YA SE CREÓ',
+          html: 'Toma la opción <b>REPORTAR CUENTA</b>',
+          confirmButtonText: 'OK'
+        });
+        resetIngresarCuentaView();
+        showView('view-inicio');
+        return;
+      }
+
+      if(r && r.success){
+        const isCorrection = (IC_MODE === 'correccion');
+        Swal.fire({
+          icon:'success',
+          title:'PROCESO FINALIZADO',
+          html: `
+            <div style="text-align:center; margin:10px 0 12px;">
+              <img
+                src="https://res.cloudinary.com/dqqeavica/image/upload/v1770141576/cuenta_drive_guoj5w.gif"
+                alt="Cuenta Drive"
+                style="width:220px; max-width:80vw; height:auto; display:block; margin:0 auto;"
+              >
+            </div>
+            ${
+              isCorrection
+                ? 'La cuenta quedó <b>CORREGIDA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Corregidos'
+                : 'La cuenta quedó <b>INGRESADA</b>.<br><br>Toma la opción <b>MI CUENTA DRIVE</b> en el Menú Principal para revisar los Documentos Creados'
+            }
+          `,
+          timer: 7000,
+          showConfirmButton: false
+        });
+        resetIngresarCuentaView();
+        showView('view-inicio');
+      } else {
+        Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
+      }
+    }catch(e){
+      await Swal.close();
+      Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+    }finally{
+      suppressLoader = false;
+      loadingCount = 0;
+      if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
+      if(loader){
+        loader.style.display = prevLoaderDisplay || '';
+        loader.classList.add('hidden');
+      }
     }
+  } catch(outerErr) {
+    // Cualquier error inesperado en validaciones
+    console.error('Error en ic-guardar:', outerErr);
+    Swal.fire({ icon:'error', title:'Error inesperado', text: String(outerErr.message || outerErr) });
+  } finally {
+    // SIEMPRE liberar el flag, pase lo que pase
+    window.__icSaving = false;
   }
 });
 
@@ -7519,8 +7507,14 @@ function abrirPickerCumplePersonales(){
   if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
 function cancelarPickerCumplePersonales(){
-  const m=document.getElementById('pCumpleModal');
-  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
+  const m = document.getElementById('pCumpleModal');
+  if(m){
+    if(m.contains(document.activeElement)){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+    m.style.display='none';
+    m.setAttribute('aria-hidden','true');
+  }
 }
 function confirmarPickerCumplePersonales(){
   const dSel=document.getElementById('pCumpleDia')?.value||'01';
@@ -7558,8 +7552,14 @@ function abrirPickerCumple(){
   if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
 function cancelarPickerCumple(){
-  const m=document.getElementById('cumpleModal');
-  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
+  const m = document.getElementById('cumpleModal');
+  if(m){
+    if(m.contains(document.activeElement)){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+    m.style.display='none';
+    m.setAttribute('aria-hidden','true');
+  }
 }
 function confirmarPickerCumple(){
   const dSel=document.getElementById('cumpleDia')?.value||'01';
@@ -7581,10 +7581,18 @@ function abrirPickerContrato(target){
   const m=document.getElementById('contratoFechaModal');
   if(m){ m.style.display='flex'; m.setAttribute('aria-hidden','false'); }
 }
+
 function cancelarPickerContrato(){
-  const m=document.getElementById('contratoFechaModal');
-  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
+  const m = document.getElementById('contratoFechaModal');
+  if(m){
+    if(m.contains(document.activeElement)){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+    m.style.display='none';
+    m.setAttribute('aria-hidden','true');
+  }
 }
+
 function confirmarPickerContrato(){
   const dSel=document.getElementById('contratoDia')?.value||'01';
   const mSel=document.getElementById('contratoMes')?.value||'01';
@@ -7778,7 +7786,13 @@ function icAbrirFin(){
 // ===== Cancelar / Confirmar Inicio =====
 function icCancelarInicio(){
   const modal = document.getElementById('icInicioModal');
-  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+  if(modal){
+    if(modal.contains(document.activeElement)){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+    modal.style.display='none';
+    modal.setAttribute('aria-hidden','true');
+  }
 }
 
 function icConfirmarInicio(){
@@ -7822,7 +7836,13 @@ function icConfirmarInicio(){
 // ===== Cancelar / Confirmar Fin =====
 function icCancelarFin(){
   const modal = document.getElementById('icFinModal');
-  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+  if(modal){
+    if(modal.contains(document.activeElement)){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+    modal.style.display='none';
+    modal.setAttribute('aria-hidden','true');
+  }
 }
 
 function icConfirmarFin(){
@@ -8072,8 +8092,14 @@ function icAbrirRadicado(){
   
 function icCancelarRadicado(){
   stopRadAudio_();
-  const m=document.getElementById('icRadicadoModal');
-  if(m){ m.style.display='none'; m.setAttribute('aria-hidden','true'); }
+  const m = document.getElementById('icRadicadoModal');
+  if(m){
+    if(m.contains(document.activeElement)){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+    m.style.display='none';
+    m.setAttribute('aria-hidden','true');
+  }
 }
   
 async function icConfirmarRadicado(){
@@ -8154,8 +8180,14 @@ function abrirPickerPago(){
   if(modal){ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); }
 }
 function cancelarPickerPago(){
-  const modal=document.getElementById('pagoModal');
-  if(modal){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+  const modal = document.getElementById('pagoModal');
+  if(modal){
+    if(modal.contains(document.activeElement)){
+      try{ document.activeElement.blur(); }catch(_){}
+    }
+    modal.style.display='none';
+    modal.setAttribute('aria-hidden','true');
+  }
 }
 function confirmarPickerPago(){
   const dSel=document.getElementById('pagoDia')?.value||'01';
