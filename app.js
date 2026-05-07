@@ -7683,7 +7683,14 @@ function icRellenarPickerLimitado_(prefix){
 
     // Día máximo según mes elegido
     let topeDia;
-    if(mesElegido === maxMonth){
+
+    // Excepción especial: en el picker de Fin de Periodo, si estamos en diciembre,
+    // permitir TODOS los días del mes (incluso futuros del mismo diciembre).
+    const esFinEnDiciembre = (prefix === 'icFin') && (mesElegido === 11) && (maxMonth === 11);
+
+    if(esFinEnDiciembre){
+      topeDia = icDiasEnMes_(maxYear, mesElegido); // 31 días completos
+    }else if(mesElegido === maxMonth){
       topeDia = maxDay;
     }else{
       topeDia = icDiasEnMes_(maxYear, mesElegido);
@@ -7894,7 +7901,7 @@ function icConfirmarFin(){
 }
 
 // 3) Radicado (hoy + 2 hábiles; feriados no hábiles, excepción diciembre habilita todos excepto feriados)
-const IC_FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026']);
+const IC_FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026','01/01/2027']);
 function icEsHabil(d){
   const dd = icPad2(d.getDate());
   const mm = icPad2(d.getMonth() + 1);
@@ -7996,11 +8003,29 @@ function icAbrirRadicado(){
   const dInicio   = parseDMY_(inicioVal);
   const dFin      = parseDMY_(finVal);
 
-  // ===== Decidir conjunto de opciones =====
+ // ===== Decidir conjunto de opciones =====
   let opciones = [];
 
-  if(todayDay >= 27){
-    // ───── CASO A: HOY >= 27 → siempre primeros 2 hábiles del siguiente mes
+  // Día de corte por mes (0-based: enero=0 ... diciembre=11)
+  // A partir de este día (inclusive), las opciones saltan al siguiente mes.
+  const CORTES_POR_MES = {
+    1:  24, // Febrero
+    2:  26, // Marzo
+    3:  27, // Abril
+    4:  26, // Mayo
+    5:  24, // Junio
+    6:  28, // Julio
+    7:  26, // Agosto
+    8:  25, // Septiembre
+    9:  27, // Octubre
+    10: 25, // Noviembre
+    11: 28  // Diciembre
+  };
+  const corteHoy = CORTES_POR_MES[todayMonth];
+  const aplicaCorte = (typeof corteHoy === 'number') && (todayDay >= corteHoy);
+
+  if(aplicaCorte){
+    // ───── CASO A: HOY alcanzó el día de corte del mes → primeros 2 hábiles del siguiente mes
     const nextMonthStart = new Date(hoy0.getFullYear(), hoy0.getMonth() + 1, 1);
     opciones = addHabilDaysFrom_(nextMonthStart, 2);
   } else {
