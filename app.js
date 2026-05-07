@@ -4069,7 +4069,7 @@ function mostrarEstadoCuenta(res){
    case 'DEVUELTA': {
       const motivo = String(res.motivoDevolucion || '').trim();
       const motivoBlock = motivo
-        ? `<br><br>Fue DEVUELTA por las siguientes razones:<br><div style="text-align:center; font-weight:700; margin-top:6px;">${escapeHtml_(motivo)}</div><br>Debes tomar la opción <b>CORREGIR CUENTA</b>, una vez corregida, debes Reportarla nuevamente.`
+        ? `<br><br>Por las siguientes razones:<br><div style="text-align:center; font-weight:700; margin-top:6px;">${escapeHtml_(motivo)}</div><br>Debes tomar la opción <b>CORREGIR CUENTA</b>, una vez corregida, debes Reportarla nuevamente.`
         : `<br><br>Debes corregirla y volver a Reportarla`;
 
       Swal.fire({
