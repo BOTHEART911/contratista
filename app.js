@@ -5924,7 +5924,7 @@ function getDeletionSummary_(){
 }
 
 /* Guardar con resumen + backend saveNuevaCuenta + generación de documentos */
-document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
+async function icGuardarHandler_(){
   if(!currentUser){ Swal.fire({icon:'warning',title:'Sesión inválida'}); return; }
   if(window.__icSaving){ return; }  // anti doble-click
   window.__icSaving = true;
@@ -6322,8 +6322,53 @@ const waitSwal = Swal.fire(
       loader.classList.add('hidden');
     }
   }
-});
+}
 
+// Fallback global usado por el onclick inline del botón
+window.icGuardarFallback = function(ev){
+  try{
+    const btn = document.getElementById('ic-guardar');
+    if(btn) btn.dataset.clicked = '1';
+    icGuardarHandler_();
+  }catch(e){
+    Swal.fire({
+      icon:'error',
+      title:'No se pudo procesar',
+      html:'Detectamos que una <b>extensión del navegador</b> (como Monica, Scribbr, Smallppt o similares) está bloqueando el botón Guardar.<br><br><b>Solución:</b><br>1. Desactiva las extensiones desde el ícono de extensiones de Chrome.<br>2. O usa una <b>ventana de incógnito</b>.<br>3. Recarga la página e intenta de nuevo.',
+      confirmButtonText:'Entendido'
+    });
+  }
+};
+
+// Listener normal + watchdog
+(function bindIcGuardarConWatchdog_(){
+  const btn = document.getElementById('ic-guardar');
+  if(!btn) return;
+
+  btn.addEventListener('click', async ()=>{
+    btn.dataset.clicked = '1';
+    await icGuardarHandler_();
+  });
+
+  btn.addEventListener('mousedown', ()=>{
+    btn.dataset.clicked = '0';
+    setTimeout(()=>{
+      if(btn.dataset.clicked === '0' && !window.__icSaving){
+        Swal.fire({
+          icon:'warning',
+          title:'El botón no responde',
+          html:`Parece que algo está bloqueando el botón <b>Guardar</b>.<br><br>
+                Esto suele ocurrir por <b>extensiones del navegador</b> instaladas (Monica AI, Scribbr, Smallppt, traductores, bloqueadores).<br><br>
+                <b>Qué hacer:</b><br>
+                • Desactiva las extensiones temporalmente<br>
+                • O abre la app en una <b>ventana de incógnito</b><br>
+                • Recarga la página (Ctrl+F5) y vuelve a intentar`,
+          confirmButtonText:'OK'
+        });
+      }
+    }, 800);
+  });
+})();
 
 /* ================== REGISTRO ================== */
 let regFirmaDataUrl = '';
