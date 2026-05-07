@@ -1,7 +1,5 @@
 /* ================== CONFIGURACIÓN ================== */
 const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec';
-const BUILDERBOT_ENDPOINT = 'https://app.builderbot.cloud/api/v2/ff37a123-12b0-4fdc-9866-f3e2daf389fb/messages';
-const BUILDERBOT_API_KEY  = 'bb-7f9ef630-5cfc-4ba4-9258-5e7cecbb4f65';
 
   const DATA_POLICY_LOGO = 'https://res.cloudinary.com/dqqeavica/image/upload/v1746906622/Logo_hzevh9.png';
 const DATA_POLICY_BANNER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif';
@@ -922,29 +920,30 @@ function normalizeNumber57(raw){
   if(!(num.length === 12 && num.startsWith('57'))) return '';
   return num;
 }
-// MENSAJE WHATSAPP A GRUPO / CONTACTO
+// MENSAJE WHATSAPP A GRUPO / CONTACTO (vía backend GS, credenciales protegidas)
 function sendBuilderbotMessage(destino, mensaje){
   // Acepta IDs de grupo (alfanuméricos) o teléfonos.
   let numberField = String(destino || '').trim();
   if(!numberField) return;
 
-  // Si parece teléfono, normaliza a 57 + 10 dígitos
+  // Si parece teléfono COL de 10 dígitos, anteponer 57 (la misma normalización
+  // ocurre también en el backend, pero la dejamos aquí para mantener el comportamiento)
   if(/^\d{10}$/.test(numberField)){
     numberField = '57' + numberField;
-  } else if(/^57\d{10}$/.test(numberField)){
-    // ya viene con 57, se deja igual
   }
-  // Si es alfanumérico (ID de grupo), se envía tal cual.
+  // Si ya viene con 57+10 o es un ID alfanumérico, se envía tal cual.
 
-  fetch(BUILDERBOT_ENDPOINT, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'x-api-builderbot':BUILDERBOT_API_KEY },
+  // Llamada silenciosa al backend (sin pasar por apiPost para NO activar el loader global).
+  // Usamos text/plain para evitar el preflight CORS, igual que en apiPost.
+  const url = API_BASE + '?action=sendwhatsapp';
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({
-      messages: { content: mensaje },
-      number: numberField,
-      checkIfExists: false
+      destino: numberField,
+      mensaje: String(mensaje || '')
     })
-  }).catch(err => console.warn('Error BuilderBot', err));
+  }).catch(err => console.warn('Error envío WhatsApp (backend)', err));
 }
 
 /* ================== ESTADO ================== */
