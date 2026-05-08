@@ -1384,54 +1384,56 @@ document.getElementById('bannerModal')?.addEventListener('click', (e)=>{
 })();
 
 /* ================== LOGIN ================== */
-const loginDoc = document.getElementById('login-doc');
-document.getElementById('toggle-doc').addEventListener('click', ()=>{
-  const oculto = loginDoc.type === 'password';
-  loginDoc.type = oculto ? 'text' : 'password';
+const loginCC  = document.getElementById('login-cc');
+const loginPwd = document.getElementById('login-pwd');
+
+// Toggle visibilidad de la contraseña
+document.getElementById('toggle-pwd').addEventListener('click', ()=>{
+  const oculto = loginPwd.type === 'password';
+  loginPwd.type = oculto ? 'text' : 'password';
   const src = oculto
     ? 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Ocultar_lgdxpd.png'
     : 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png';
-  document.getElementById('toggle-doc-img').src = src;
-  document.getElementById('toggle-doc').setAttribute('aria-label', (oculto?'Ocultar':'Mostrar') + ' documento');
+  document.getElementById('toggle-pwd-img').src = src;
+  document.getElementById('toggle-pwd').setAttribute('aria-label', (oculto?'Ocultar':'Mostrar') + ' contraseña');
 });
-bindNumericSanitizer('login-doc', 10);
+
+// Solo dígitos en el campo de documento
+bindNumericSanitizer('login-cc', 10);
 
 document.getElementById('btn-login').addEventListener('click', async ()=>{
-
-  // === LOADER ÚNICO SOBRE TODO EL LOGIN (no parpadea) ===
-  // Requiere que existan showConnectingLoginLoader_() y hideConnectingLoginLoader_()
-  // (ponlas en tu bloque de LOADER, antes de la sección LOGIN).
   showConnectingLoginLoader_();
 
-  const documento = (loginDoc.value||'').trim();
-  if(documento === ''){
+  const documento = (loginCC.value||'').trim();
+  const password  = (loginPwd.value||'').trim();
+
+  if(!documento || !password){
     hideConnectingLoginLoader_();
-    Swal.fire({ icon:'question', title:'¿Deseas comenzar?', text:'Ingresa un Documento para validar.', timer:3000 });
+    Swal.fire({ icon:'question', title:'Faltan datos', text:'Ingresa tu Documento y Contraseña.', timer:3000 });
     return;
   }
   if(!/^\d{6,10}$/.test(documento)){
     hideConnectingLoginLoader_();
     Swal.fire({
       icon:'error',
-      title:'CONTRASEÑA INCORRECTA',
-      text:'La contraseña contiene entre 6 y 10 digitos numéricos.',
-      timer:3000,
-      showConfirmButton:false
+      title:'DOCUMENTO INVÁLIDO',
+      text:'El documento debe tener entre 6 y 10 dígitos numéricos.',
+      timer:3000, showConfirmButton:false
     });
     return;
   }
 
   try{
-    const res = await apiGet('loginContratista', { documento });
+    // ⬇⬇ AHORA enviamos documento + password
+    const res = await apiGet('loginContratista', { documento, password });
 
     if(!res?.existe){
       hideConnectingLoginLoader_();
       await Swal.fire({
-        icon:'info',
-        title:'NO TIENES ACCESO AÚN',
-        text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-        timer:6000,
-        showConfirmButton:false
+        icon:'error',
+        title:'CREDENCIALES INCORRECTAS',
+        text:'Documento o contraseña incorrectos. Si olvidaste tu contraseña, usa el botón "Olvidé mi Contraseña".',
+        timer:5000, showConfirmButton:false
       });
       return;
     }
@@ -1442,8 +1444,7 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
         icon:'info',
         title:'NO TIENES ACCESO AÚN',
         text:'Una vez sea ingresada la información de tu contrato podrás acceder.',
-        timer:6000,
-        showConfirmButton:false
+        timer:6000, showConfirmButton:false
       });
       return;
     }
@@ -1548,7 +1549,8 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
       const accepted = await showDataPolicyAlert();
       if(!accepted){
         currentUser = null;
-        loginDoc.value = '';
+        if(loginCC)  loginCC.value  = '';
+        if(loginPwd) loginPwd.value = '';
         showView('view-login');
         return;
       }
@@ -1602,6 +1604,62 @@ document.getElementById('btn-login').addEventListener('click', async ()=>{
   }catch(e){
     hideConnectingLoginLoader_();
     Swal.fire({ icon:'error', title:'Error', text:e.message });
+  }
+});
+
+/* ================== OLVIDÉ MI CONTRASEÑA ================== */
+document.getElementById('btn-forgot-pwd')?.addEventListener('click', async ()=>{
+  try{ playSoundOnce(SOUNDS.menu); }catch(_){}
+
+  const r = await Swal.fire({
+    icon:'question',
+    title:'RECUPERAR CONTRASEÑA',
+    html: `
+      <div style="text-align:left; font-weight:700; margin-bottom:8px;">
+        Ingresa tu documento. Si estás ACTIVO recibirás tu contraseña por WhatsApp.
+      </div>
+      <input id="forgot-doc" class="swal2-input" type="tel" inputmode="numeric"
+             maxlength="10" placeholder="Documento" />
+    `,
+    showCancelButton:true,
+    confirmButtonText:'Recuperar',
+    cancelButtonText:'Cerrar',
+    focusConfirm:false,
+    didOpen: ()=>{
+      const inp = document.getElementById('forgot-doc');
+      if(inp){ inp.addEventListener('input', ()=>{ inp.value = inp.value.replace(/\D/g,'').slice(0,10); }); inp.focus(); }
+    },
+    preConfirm: ()=>{
+      const v = (document.getElementById('forgot-doc')?.value || '').trim();
+      if(!/^\d{6,10}$/.test(v)){
+        Swal.showValidationMessage('Documento inválido (6 a 10 dígitos).');
+        return false;
+      }
+      return v;
+    }
+  });
+
+  if(!r.isConfirmed) return;
+  const documento = String(r.value || '').trim();
+
+  try{
+    const res = await apiPost('recuperarPassword', { documento });
+    if(!res || res.found !== true){
+      await Swal.fire({
+        icon:'warning',
+        title:'DOCUMENTO NO ENCONTRADO',
+        html:'Esta opción es para Contratistas <b>ACTIVOS</b>.<br>Valida el documento antes de tocar la opción Recuperar.'
+      });
+      return;
+    }
+    await Swal.fire({
+      icon:'success',
+      title:'¡CONTRASEÑA ENVIADA!',
+      text:'Revisa tu WhatsApp registrado.',
+      timer:3500, showConfirmButton:false
+    });
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }
 });
 
@@ -1754,8 +1812,111 @@ document.getElementById('btn-logout').addEventListener('click', ()=>{
   try{ pFirmaDataUrl=''; revokeObjUrl(pPreviewUrl); pPreviewUrl=''; }catch(_){}
   try{ __cumpleISO=''; __cumpleISO_personales=''; }catch(_){}
 
-  loginDoc.value = '';
+  if(loginCC)  loginCC.value  = '';
+if(loginPwd) loginPwd.value = '';
   showView('view-login');
+});
+
+/* ================== ACTUALIZAR CONTRASEÑA ================== */
+function passwordCumpleReglas_(p){
+  if(typeof p !== 'string' || p.length < 8) return false;
+  if(!/[A-Za-z]/.test(p)) return false;
+  if(!/\d/.test(p)) return false;
+  if(!/[^A-Za-z0-9]/.test(p)) return false; // al menos un caracter especial
+  return true;
+}
+
+document.getElementById('go-update-password')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.login);
+  overlay.classList.remove('open');
+
+  if(!currentUser || !currentUser.documento){
+    Swal.fire({ icon:'warning', title:'Sesión inválida' });
+    return;
+  }
+
+  const r = await Swal.fire({
+    icon:'info',
+    title:'ACTUALIZACIÓN DE CONTRASEÑA',
+    html: `
+      <div style="text-align:left; font-weight:700; margin-bottom:6px;">Contraseña antigua</div>
+      <input id="up-old"  class="swal2-input" type="password" placeholder="Contraseña actual" autocomplete="current-password" />
+
+      <div style="text-align:left; font-weight:700; margin:8px 0 6px;">Nueva contraseña</div>
+      <input id="up-new"  class="swal2-input" type="password" placeholder="Mín 8, con letra, número y carácter especial" autocomplete="new-password" />
+
+      <div style="text-align:left; font-weight:700; margin:8px 0 6px;">Confirmar nueva contraseña</div>
+      <input id="up-new2" class="swal2-input" type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password" />
+
+      <div class="muted" style="text-align:left; margin-top:8px; font-size:.78rem;">
+        Reglas: mínimo 8 caracteres, al menos una letra, un número y un carácter especial. Ej: <b>Pablito1311@</b>
+      </div>
+    `,
+    showCancelButton:true,
+    confirmButtonText:'Actualizar',
+    cancelButtonText:'Salir',
+    focusConfirm:false,
+    preConfirm: ()=>{
+      const oldP  = (document.getElementById('up-old')?.value  || '').trim();
+      const newP  = (document.getElementById('up-new')?.value  || '').trim();
+      const newP2 = (document.getElementById('up-new2')?.value || '').trim();
+
+      if(!oldP || !newP || !newP2){
+        Swal.showValidationMessage('Todos los campos son requeridos.'); return false;
+      }
+      if(newP !== newP2){
+        Swal.showValidationMessage('La nueva contraseña no coincide en la confirmación.'); return false;
+      }
+      if(!passwordCumpleReglas_(newP)){
+        Swal.showValidationMessage('La nueva contraseña no cumple las reglas (8+ chars, letra, número y especial).'); return false;
+      }
+      if(newP === oldP){
+        Swal.showValidationMessage('La nueva contraseña debe ser distinta de la actual.'); return false;
+      }
+      return { oldP, newP };
+    }
+  });
+
+  if(!r.isConfirmed) return;
+
+  const { oldP, newP } = r.value || {};
+
+  try{
+    const res = await apiPost('actualizarPassword', {
+      documento: currentUser.documento,
+      oldPassword: oldP,
+      newPassword: newP
+    });
+
+    if(!res || res.success !== true){
+      const reason = res && res.reason ? String(res.reason) : '';
+      if(reason === 'mismatch'){
+        await Swal.fire({
+          icon:'warning',
+          title:'CONTRASEÑA ANTIGUA INCORRECTA',
+          text:'Verifica e intenta de nuevo.',
+          timer:3500, showConfirmButton:false
+        });
+        // Reabrir modal para que reintente
+        document.getElementById('go-update-password')?.click();
+        return;
+      }
+      Swal.fire({ icon:'error', title:'No se pudo actualizar', text:'Intenta nuevamente.' });
+      return;
+    }
+
+    await Swal.fire({
+      icon:'success',
+      title:'¡CONTRASEÑA ACTUALIZADA!',
+      text:'Te enviamos confirmación por WhatsApp. Inicia sesión nuevamente con tu nueva contraseña.',
+      timer:5000, showConfirmButton:false
+    });
+
+    // Forzar logout
+    document.getElementById('btn-logout')?.click();
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
 });
 
 /* ================== MENÚ ================== */
