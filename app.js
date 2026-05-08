@@ -1835,27 +1835,76 @@ document.getElementById('go-update-password')?.addEventListener('click', async (
     return;
   }
 
+  const eyeShow = 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png';
+  const eyeHide = 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Ocultar_lgdxpd.png';
+
   const r = await Swal.fire({
     icon:'info',
     title:'ACTUALIZACIÓN DE CONTRASEÑA',
     html: `
       <div style="text-align:left; font-weight:700; margin-bottom:6px;">Contraseña antigua</div>
-      <input id="up-old"  class="swal2-input" type="password" placeholder="Contraseña actual" autocomplete="current-password" />
+      <div style="position:relative; margin-bottom:8px;">
+        <input id="up-old" class="swal2-input" type="password" placeholder="Contraseña actual"
+               autocomplete="current-password"
+               style="margin:0; padding-right:42px; width:100%; box-sizing:border-box;" />
+        <button type="button" data-toggle="up-old" aria-label="Mostrar"
+                style="position:absolute; top:50%; right:8px; transform:translateY(-50%);
+                       background:transparent; border:0; padding:0; width:28px; height:28px;
+                       display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:6px;">
+          <img src="${eyeShow}" alt="Mostrar" style="width:22px; height:22px;" />
+        </button>
+      </div>
 
       <div style="text-align:left; font-weight:700; margin:8px 0 6px;">Nueva contraseña</div>
-      <input id="up-new"  class="swal2-input" type="password" placeholder="Mín 8, con letra, número y carácter especial" autocomplete="new-password" />
+      <div style="position:relative; margin-bottom:8px;">
+        <input id="up-new" class="swal2-input" type="password" placeholder="Mín 8, con letra, número y carácter especial"
+               autocomplete="new-password"
+               style="margin:0; padding-right:42px; width:100%; box-sizing:border-box;" />
+        <button type="button" data-toggle="up-new" aria-label="Mostrar"
+                style="position:absolute; top:50%; right:8px; transform:translateY(-50%);
+                       background:transparent; border:0; padding:0; width:28px; height:28px;
+                       display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:6px;">
+          <img src="${eyeShow}" alt="Mostrar" style="width:22px; height:22px;" />
+        </button>
+      </div>
 
       <div style="text-align:left; font-weight:700; margin:8px 0 6px;">Confirmar nueva contraseña</div>
-      <input id="up-new2" class="swal2-input" type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password" />
+      <div style="position:relative; margin-bottom:8px;">
+        <input id="up-new2" class="swal2-input" type="password" placeholder="Repite la nueva contraseña"
+               autocomplete="new-password"
+               style="margin:0; padding-right:42px; width:100%; box-sizing:border-box;" />
+        <button type="button" data-toggle="up-new2" aria-label="Mostrar"
+                style="position:absolute; top:50%; right:8px; transform:translateY(-50%);
+                       background:transparent; border:0; padding:0; width:28px; height:28px;
+                       display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:6px;">
+          <img src="${eyeShow}" alt="Mostrar" style="width:22px; height:22px;" />
+        </button>
+      </div>
 
       <div class="muted" style="text-align:left; margin-top:8px; font-size:.78rem;">
-        Reglas: mínimo 8 caracteres, al menos una letra, un número y un carácter especial. Ej: <b>Juan2112@</b>
+        Reglas: mínimo 8 caracteres, al menos una letra, un número y un carácter especial. Ej: <b>Juan1230@</b>
       </div>
     `,
     showCancelButton:true,
     confirmButtonText:'Actualizar',
     cancelButtonText:'Salir',
     focusConfirm:false,
+    didOpen: ()=>{
+      const container = Swal.getHtmlContainer();
+      if(!container) return;
+      container.querySelectorAll('button[data-toggle]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.getAttribute('data-toggle');
+          const inp = document.getElementById(id);
+          const img = btn.querySelector('img');
+          if(!inp || !img) return;
+          const oculto = inp.type === 'password';
+          inp.type = oculto ? 'text' : 'password';
+          img.src = oculto ? eyeHide : eyeShow;
+          btn.setAttribute('aria-label', oculto ? 'Ocultar' : 'Mostrar');
+        });
+      });
+    },
     preConfirm: ()=>{
       const oldP  = (document.getElementById('up-old')?.value  || '').trim();
       const newP  = (document.getElementById('up-new')?.value  || '').trim();
@@ -1897,7 +1946,6 @@ document.getElementById('go-update-password')?.addEventListener('click', async (
           text:'Verifica e intenta de nuevo.',
           timer:3500, showConfirmButton:false
         });
-        // Reabrir modal para que reintente
         document.getElementById('go-update-password')?.click();
         return;
       }
@@ -1912,7 +1960,6 @@ document.getElementById('go-update-password')?.addEventListener('click', async (
       timer:5000, showConfirmButton:false
     });
 
-    // Forzar logout
     document.getElementById('btn-logout')?.click();
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
