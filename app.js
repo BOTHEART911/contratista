@@ -1849,7 +1849,7 @@ document.getElementById('go-update-password')?.addEventListener('click', async (
       <input id="up-new2" class="swal2-input" type="password" placeholder="Repite la nueva contraseña" autocomplete="new-password" />
 
       <div class="muted" style="text-align:left; margin-top:8px; font-size:.78rem;">
-        Reglas: mínimo 8 caracteres, al menos una letra, un número y un carácter especial. Ej: <b>Pablito1311@</b>
+        Reglas: mínimo 8 caracteres, al menos una letra, un número y un carácter especial. Ej: <b>Juan2112@</b>
       </div>
     `,
     showCancelButton:true,
