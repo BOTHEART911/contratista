@@ -159,22 +159,35 @@
         <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">CONTRATISTA</h1>
          <p class="helper"><b>Al usar esta aplicación, aceptas voluntariamente el tratamiento tus datos Personales.</b><br><i>Art. 5 Ley 1581 de 2012 y Decreto 1074 de 2015</i></p>
 
-        <label>Contraseña</label>
-        <div class="pwd-wrapper" style="position:relative;">
-          <input id="login-doc" type="password" inputmode="numeric" autocomplete="off" placeholder="Sin puntos ni espacios" />
-          <button type="button" id="toggle-doc" aria-label="Mostrar documento" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:transparent;border:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;">
-            <img id="toggle-doc-img" src="https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png" alt="Mostrar" style="width:22px;height:22px;">
-          </button>
-        </div>
+        <label>Documento</label>
+<input id="login-cc" type="tel" inputmode="numeric" autocomplete="username"
+       placeholder="Sin puntos ni espacios" maxlength="10" />
 
-      <div class="btn-row spaced">
-        <button class="btn-primary" id="btn-login">Iniciar Sesión</button>
-      
-        <button id="btn-compartir" class="btn-with-icon">
-          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766267125/compartir_szoxv7.webp" alt="" aria-hidden="true">
-          <span>Instala la App en tu móvil 📲</span>
-        </button>
-      </div>
+<label>Contraseña</label>
+<div class="pwd-wrapper" style="position:relative;">
+  <input id="login-pwd" type="password" autocomplete="current-password"
+         placeholder="Tu contraseña" />
+  <button type="button" id="toggle-pwd" aria-label="Mostrar contraseña"
+          style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:transparent;border:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;">
+    <img id="toggle-pwd-img"
+         src="https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png"
+         alt="Mostrar" style="width:22px;height:22px;">
+  </button>
+</div>
+
+<div class="btn-row spaced">
+  <button class="btn-primary" id="btn-login">Iniciar Sesión</button>
+
+  <button id="btn-compartir" class="btn-with-icon">
+    <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1766267125/compartir_szoxv7.webp" alt="" aria-hidden="true">
+    <span>Instala la App en tu móvil 📲</span>
+  </button>
+</div>
+
+<!-- NUEVO: enlace olvidé contraseña -->
+<div class="btn-row" style="margin-top:8px; justify-content:center;">
+  <button id="btn-forgot-pwd" class="chip" style="width:auto;">Olvidé mi Contraseña</button>
+</div>
 
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
