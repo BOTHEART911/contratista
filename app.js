@@ -8882,8 +8882,8 @@ async function ejecutarReportarCorreccionPlan_(){
   }
 
   try{
-    // Usamos el mismo endpoint que reporta Plan de Pagos (devuelve grupo, egreso, supervisor, etc.)
-    const res = await apiGet('reportarPlanPagos', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+    // Reutilizamos el mismo endpoint para obtener datos de la cuenta (devuelve estadoBJ real)
+    const res = await apiGet('getEstadoCuenta', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
 
     if(!res || res.found === false){
       await Swal.fire({
@@ -8920,8 +8920,6 @@ async function ejecutarReportarCorreccionPlan_(){
     const grupo     = res.grupo || '';
     const nombre    = res.nombre || '';
     const contrato  = res.contrato || '';
-    let egreso      = (res.egreso || '').toString().trim();
-    if(!egreso) egreso = 'Primera Cuenta';
 
     const r = await Swal.fire({
       icon:'info',
@@ -8938,17 +8936,16 @@ async function ejecutarReportarCorreccionPlan_(){
       return;
     }
 
-    // Construir y enviar mensaje al mismo grupo (mismo formato que PLAN DE PAGOS)
+    // Construir y enviar mensaje al mismo grupo
     const msg =
-      '*🖥🖥🖥 CORRECCIÓN PLAN DE PAGOS 🖥🖥🖥*\n' +
+      '*❗ CORRECCIÓN PLAN DE PAGOS ❗*\n' +
       'Estimado(a) *'+supervisor+'*' + '\n\n' +
-      '¡El contratista *'+nombre+'* ha CORREGIDO el *PLAN DE PAGOS* de la *Cuenta N° '+informe+'* del Contrato *'+contrato+'*' + '\n' +
-      '> Egreso: *'+egreso+'*' + '\n\n' +
+      '¡El contratista *'+nombre+'* ha reportado la *CORRECCIÓN* de su *PLAN DE PAGOS* de la *Cuenta N° '+informe+'* del Contrato *'+contrato+'*' + '\n\n' +
       'Ingresa a la App para visualizar\n' +
       '> *============================*';
 
     if(grupo) sendBuilderbotMessage(grupo, msg);
-    
+
     // Alerta success con sonido
     await Swal.fire({
       icon:'success',
