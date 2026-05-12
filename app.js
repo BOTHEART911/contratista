@@ -8935,8 +8935,7 @@ async function ejecutarReportarCorreccionPlan_(){
       mostrarModalPrevioPlanPagos_();
       return;
     }
-
-    // Construir y enviar mensaje al mismo grupo
+// Construir y enviar mensaje al mismo grupo
     const msg =
       '*❗ CORRECCIÓN PLAN DE PAGOS ❗*\n' +
       'Estimado(a) *'+supervisor+'*' + '\n\n' +
@@ -8944,7 +8943,20 @@ async function ejecutarReportarCorreccionPlan_(){
       'Ingresa a la App para visualizar\n' +
       '> *============================*';
 
-    if(grupo) sendBuilderbotMessage(grupo, msg);
+    console.log('[CORRECCION PLAN] grupo:', grupo, 'estado:', estado, 'res completo:', res);
+
+    if(grupo){
+      sendBuilderbotMessage(grupo, msg);
+    } else {
+      await Swal.fire({
+        icon:'warning',
+        title:'No se pudo notificar al Supervisor',
+        text:'No se encontró el grupo de WhatsApp asociado. Contacta a soporte.',
+        timer:4000,
+        showConfirmButton:false
+      });
+      return;
+    }
 
     // Alerta success con sonido
     await Swal.fire({
