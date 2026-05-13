@@ -8882,8 +8882,8 @@ async function ejecutarReportarCorreccionPlan_(){
   }
 
   try{
-    // Usamos el endpoint que SÍ devuelve grupo, nombre, contrato, supervisor y estadoBJ
-    const res = await apiGet('reportarPlanPagos', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+    // Reutilizamos el mismo endpoint para obtener datos de la cuenta (devuelve estadoBJ real)
+    const res = await apiGet('getEstadoCuenta', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
 
     if(!res || res.found === false){
       await Swal.fire({
@@ -8898,7 +8898,7 @@ async function ejecutarReportarCorreccionPlan_(){
       return;
     }
 
-    const estado = String(res.estadoBJ||'').toUpperCase();
+    const estado = String(res.estado||'').toUpperCase();
 
     // Solo habilitado si BJ = PLAN DE PAGOS
     if(estado !== 'PLAN DE PAGOS'){
@@ -8935,7 +8935,8 @@ async function ejecutarReportarCorreccionPlan_(){
       mostrarModalPrevioPlanPagos_();
       return;
     }
-// Construir y enviar mensaje al mismo grupo
+
+    // Construir y enviar mensaje al mismo grupo
     const msg =
       '*❗ CORRECCIÓN PLAN DE PAGOS ❗*\n' +
       'Estimado(a) *'+supervisor+'*' + '\n\n' +
@@ -8943,20 +8944,7 @@ async function ejecutarReportarCorreccionPlan_(){
       'Ingresa a la App para visualizar\n' +
       '> *============================*';
 
-    console.log('[CORRECCION PLAN] grupo:', grupo, 'estado:', estado, 'res completo:', res);
-
-    if(grupo){
-      sendBuilderbotMessage(grupo, msg);
-    } else {
-      await Swal.fire({
-        icon:'warning',
-        title:'No se pudo notificar al Supervisor',
-        text:'No se encontró el grupo de WhatsApp asociado. Contacta a soporte.',
-        timer:4000,
-        showConfirmButton:false
-      });
-      return;
-    }
+    if(grupo) sendBuilderbotMessage(grupo, msg);
 
     // Alerta success con sonido
     await Swal.fire({
