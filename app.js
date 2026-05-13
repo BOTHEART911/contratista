@@ -8882,8 +8882,8 @@ async function ejecutarReportarCorreccionPlan_(){
   }
 
   try{
-    // Reutilizamos el mismo endpoint para obtener datos de la cuenta (devuelve estadoBJ real)
-    const res = await apiGet('getEstadoCuenta', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
+    // Usamos el mismo endpoint que las demás funciones de reporte (devuelve grupo, supervisor, nombre, contrato, etc.)
+    const res = await apiGet('reportarCuentaDrive', { documento: currentUser.documento, supervisor: currentUser.supervisor || '' });
 
     if(!res || res.found === false){
       await Swal.fire({
@@ -8893,12 +8893,11 @@ async function ejecutarReportarCorreccionPlan_(){
         timer:5000,
         showConfirmButton:false
       });
-      // Volver a mostrar el modal previo
       mostrarModalPrevioPlanPagos_();
       return;
     }
 
-    const estado = String(res.estado||'').toUpperCase();
+    const estado = String(res.estadoBJ||'').toUpperCase();
 
     // Solo habilitado si BJ = PLAN DE PAGOS
     if(estado !== 'PLAN DE PAGOS'){
@@ -8909,7 +8908,6 @@ async function ejecutarReportarCorreccionPlan_(){
         timer:5000,
         showConfirmButton:false
       });
-      // Volver a mostrar el modal previo
       mostrarModalPrevioPlanPagos_();
       return;
     }
