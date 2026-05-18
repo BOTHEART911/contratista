@@ -966,7 +966,7 @@ function resetVistas(){
   const rf = document.getElementById('reg-firma-preview'); if(rf){ rf.src=''; rf.style.display='none'; }
 
   // Campos de contrato
-  ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-rpAdicion','c-regimen','c-factura','c-costos'].forEach(id=>{
+  ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-rpAdicion','c-rpAdicion2','c-regimen','c-factura','c-costos'].forEach(id=>{
     const el=document.getElementById(id); 
     if(el){ el.value=''; }
   });
@@ -6888,6 +6888,7 @@ bindNumericSanitizer('c-meses', 3);
 bindNumericSanitizer('c-dias', 3);
 bindNumericSanitizer('c-rp', 10);
 bindNumericSanitizer('c-rpAdicion', 10);
+bindNumericSanitizer('c-rpAdicion2', 10);
 bindNumericSanitizer('numP', 3);
 
 
@@ -6986,6 +6987,16 @@ document.getElementById('c-rp').addEventListener('input', ()=>{
   }
 });
 
+document.getElementById('c-rpAdicion2').addEventListener('input', ()=>{
+  const el = document.getElementById('c-rpAdicion2');
+  const raw = (el.value||'').replace(/\D/g,'').slice(0,10);
+  el.value = raw;
+  el.style.border = '';
+  if(raw.length===10 && raw.startsWith('2026')){
+    el.style.border = '2px solid green';
+  }
+});
+
 document.getElementById('c-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
   const fechaInicioISO = __fechaInicioISO || '';
@@ -7015,13 +7026,14 @@ const numP = numPraw.padStart(3,'0').slice(-3);
     ejecucion: document.getElementById('c-ejecucion').value||'',
     rp: (document.getElementById('c-rp').value||'').replace(/\D/g,''),
     rpAdicion: (document.getElementById('c-rpAdicion').value||'').replace(/\D/g,''),
+    rpAdicion2: (document.getElementById('c-rpAdicion2').value||'').replace(/\D/g,''),
     regimen: document.getElementById('c-regimen').value||'',
     factura: document.getElementById('c-factura').value||'',
     costos: document.getElementById('c-costos').value||''
   };
 
   const hayCambiosContrato =
-  !!(body.numP || body.fechaInicioISO || body.fechaTerminoISO || body.rp || body.rpAdicion || body.costos || body.regimen || body.factura) ||
+  !!(body.numP || body.fechaInicioISO || body.fechaTerminoISO || body.rp || body.rpAdicion || body.rpAdicion2 || body.costos || body.regimen || body.factura) ||
   (!!body.meses && String(body.meses) !== '0') ||
   (!!body.dias  && String(body.dias)  !== '0') ||
   !!body.ejecucion;
@@ -7041,7 +7053,8 @@ if (!hayCambiosContrato) {
   }
   if(body.ejecucion) resumen.push(`<b>Tiempo de Ejecución:</b> ${body.ejecucion}`);
   if(body.rp) resumen.push(`<b>RP:</b> ${body.rp}`);
-  if(body.rpAdicion) resumen.push(`<b>RP Adición:</b> ${body.rpAdicion}`);
+  if(body.rpAdicion) resumen.push(`<b>RP 1ra Adición:</b> ${body.rpAdicion}`);
+  if(body.rpAdicion2) resumen.push(`<b>RP 2da Adición:</b> ${body.rpAdicion2}`);
   if(body.regimen) resumen.push(`<b>Régimen Simple:</b> ${body.regimen}`);
   if(body.factura) resumen.push(`<b>Factura electrónica:</b> ${body.factura}`);
   if(body.costos) resumen.push(`<b>Costos y deducciones:</b> ${body.costos}`);
@@ -7237,8 +7250,11 @@ async function cargarContratoLectura(){
     `<b>Valor Final:</b> ${d.valorFinal||''}`,
     `<b>CDP:</b> ${d.cdp||''}`,
     `<b>RP:</b> ${d.rp||''}`,
-    `<b>CDP Adición:</b> ${d.cdpAdicion||''}`,
-    `<b>RP Adición:</b> ${d.rpAdicion||''}`,
+    `<b>Contractual:</b> ${d.contractual||''}`,
+    `<b>CDP 1ra Adición:</b> ${d.cdpAdicion||''}`,
+    `<b>RP 1ra Adición:</b> ${d.rpAdicion||''}`,
+    `<b>CDP 2da Adición:</b> ${d.cdpAdicion2||''}`,
+    `<b>RP 2da Adición:</b> ${d.rpAdicion2||''}`,
     `<b>Regimen Simple:</b> ${d.regimen||''}`,
 
     `<b>Factura Electrónica:</b> ${d.factura||''}`,
