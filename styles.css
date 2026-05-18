@@ -1796,3 +1796,30 @@ button:active { transform: translateY(0); }
     font-size: .78rem;
   }
 }
+
+/* ── Botones selector de pagos (Modal Adición) ── */
+.adi-pago-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  border: 2px solid rgba(6,64,43,.28);
+  background: rgba(255,255,255,.85);
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: #06402B;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, transform .08s ease;
+}
+.adi-pago-btn:hover {
+  background: rgba(6,64,43,.10);
+  color: #06402B;
+  box-shadow: none;
+  transform: none;
+}
+.adi-pago-btn.active {
+  background: linear-gradient(135deg, #0a6644 0%, #06402B 100%);
+  color: #fff;
+  border-color: #04281C;
+  box-shadow: 0 4px 14px rgba(6,64,43,.30);
+}
