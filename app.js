@@ -4925,6 +4925,162 @@ let IC_STATE = {
   supervisor: ''
 };
 
+/* ================== MODAL ADICIÓN DE CONTRATO ================== */
+/* Se muestra al entrar a INGRESAR o CORREGIR CUENTA, SOLO cuando el
+   N° de informe actual coincide con el Total de Informes (última cuenta).
+   Suma pagos al Total de Informes y el valor de la Adición al Saldo Actual. */
+async function checkAdicionContrato_(){
+  const informeEl = document.getElementById('ic-informe');
+  const totalEl   = document.getElementById('ic-total');
+  if(!informeEl || !totalEl) return;
+
+  const informeNum = numPure(informeEl.textContent || '');
+  const totalNum   = numPure(totalEl.value || '');
+
+  // Si informe NO coincide con total, no aplica adición → vista normal
+  if(!informeNum || !totalNum || informeNum !== totalNum) return;
+
+  // ---- PASO 1: ¿Habrá adición? ----
+  const paso1 = await Swal.fire({
+    icon:'question',
+    title:'¿TU CONTRATO TENDRÁ ADICIÓN?',
+    html:`
+      <div style="text-align:left; line-height:1.5; font-size:.95rem;">
+        <p style="margin:0 0 8px;">
+          Estás en tu <b>última cuenta</b> según el Total de Informes
+          (<b>${informeNum} de ${totalNum}</b>).
+        </p>
+        <div style="background:#f8fafc; border:2px solid #e5e7eb; border-radius:12px; padding:10px; font-weight:700; color:#111;">
+          Si tu contrato fue <b>adicionado</b> (más tiempo y/o más valor),
+          configúralo aquí para que la App calcule correctamente tus próximas cuentas.
+        </div>
+        <p style="margin:8px 0 0;">Si <b>NO</b> tienes Adición, continúa con normalidad.</p>
+      </div>
+    `,
+    showCancelButton:true,
+    confirmButtonText:'SÍ, tendrá Adición',
+    cancelButtonText:'NO',
+    allowOutsideClick:false,
+    allowEscapeKey:false
+  });
+
+  // NO → cerrar y seguir la vista normal
+  if(!paso1.isConfirmed) return;
+
+  // ---- PASO 2: cantidad de pagos + valor de la adición ----
+  let __adiPagos = 0;
+
+  const paso2 = await Swal.fire({
+    icon:'info',
+    title:'CONFIGURA TU ADICIÓN',
+    html:`
+      <div style="text-align:left; line-height:1.5; font-size:.95rem;">
+        <label style="display:block; font-weight:800; color:#06402B; margin-bottom:6px;">
+          ¿Cuántos pagos tendrá la Adición?
+        </label>
+        <div id="adi-pagos-group" style="display:flex; gap:10px; justify-content:center; margin:4px 0 14px;">
+          <button type="button" class="adi-pago-btn" data-pago="1">1</button>
+          <button type="button" class="adi-pago-btn" data-pago="2">2</button>
+          <button type="button" class="adi-pago-btn" data-pago="3">3</button>
+        </div>
+
+        <label style="display:block; font-weight:800; color:#06402B; margin-bottom:6px;">
+          ¿Cuál es el valor de la Adición?
+        </label>
+        <input id="adi-valor" type="tel" inputmode="numeric" class="swal2-input"
+               placeholder="$ 0" style="margin:0; width:100%; box-sizing:border-box;" />
+
+        <div style="background:#fff7ed; border:2px solid #fed7aa; border-radius:12px; padding:10px; margin-top:12px; font-weight:700; color:#9a3412;">
+          📌 Recuerda que antes de guardar la cuenta debes Actualizar los Datos del
+          Contrato para ingresar el <b>N° de RP de Adición</b>.
+        </div>
+      </div>
+    `,
+    showCancelButton:true,
+    confirmButtonText:'Confirmar',
+    cancelButtonText:'Cancelar',
+    allowOutsideClick:false,
+    allowEscapeKey:false,
+    didOpen: ()=>{
+      const cont = Swal.getHtmlContainer();
+      if(!cont) return;
+
+      // Selector de pagos (1 / 2 / 3)
+      const btns = cont.querySelectorAll('.adi-pago-btn');
+      btns.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          __adiPagos = parseInt(btn.getAttribute('data-pago'), 10) || 0;
+          btns.forEach(b=> b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      // Formato de pesos en el valor de la adición
+      const valEl = cont.querySelector('#adi-valor');
+      if(valEl){
+        valEl.value = '$ ';
+        valEl.addEventListener('input', ()=>{
+          const raw = numPure(valEl.value);
+          valEl.value = raw ? formatCOPView(raw) : '$ ';
+        });
+      }
+    },
+    preConfirm: ()=>{
+      const valEl = document.getElementById('adi-valor');
+      const valor = valEl ? numPure(valEl.value) : 0;
+      if(!__adiPagos){
+        Swal.showValidationMessage('Selecciona cuántos pagos tendrá la Adición.');
+        return false;
+      }
+      if(!valor){
+        Swal.showValidationMessage('Ingresa el valor de la Adición.');
+        return false;
+      }
+      return { pagos: __adiPagos, valor: valor };
+    }
+  });
+
+  // Cancelar → advertencia y seguir la vista normal
+  if(!paso2.isConfirmed){
+    await Swal.fire({
+      icon:'warning',
+      title:'ADICIÓN SIN CONFIGURAR',
+      html:`Si tu contrato tiene Adición y no la configuras,
+            tu cuenta podría ser <b>DEVUELTA</b>.<br><br>
+            Puedes volver a entrar a esta opción para configurarla.`
+    });
+    return;
+  }
+
+  // ---- Confirmar: aplicar los cambios en la vista ----
+  const pagos = Number(paso2.value?.pagos || 0);
+  const valor = Number(paso2.value?.valor || 0);
+
+  // 1) Sumar pagos al Total de Informes
+  const nuevoTotal = totalNum + pagos;
+  totalEl.value  = String(nuevoTotal);
+  IC_STATE.total = String(nuevoTotal);
+
+  // 2) Sumar valor de la Adición al Saldo Actual (recalcula Nuevo Saldo)
+  const saldoEl = document.getElementById('ic-saldo');
+  if(saldoEl){
+    const nuevoSaldoActual = numPure(saldoEl.value) + valor;
+    saldoEl.value   = formatCOPView(nuevoSaldoActual);
+    IC_STATE.saldoQ = String(nuevoSaldoActual);
+    // Dispara listeners ya enlazados: formato COP + recálculo de "Nuevo Saldo"
+    try{ saldoEl.dispatchEvent(new Event('input', { bubbles:true })); }catch(_){}
+  }
+
+  await Swal.fire({
+    icon:'success',
+    title:'ADICIÓN CONFIGURADA',
+    html:`Se sumaron <b>${pagos}</b> pago(s) al Total de Informes (ahora <b>${nuevoTotal}</b>)
+          y <b>${formatCOPView(valor)}</b> al Saldo Actual.<br><br>
+          No olvides Actualizar los Datos del Contrato con el <b>RP de Adición</b>.`,
+    confirmButtonText:'Entendido'
+  });
+}
+
 /* Botón menú: CORREGIR CUENTA */
 document.getElementById('go-corregir-cuenta')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.login);
@@ -5135,9 +5291,12 @@ try{
   })();
 }catch(_){}
 
-    showView('view-ingresar-cuenta');
+showView('view-ingresar-cuenta');
+
+    // === NUEVO: Modal de Adición de Contrato ===
+    await checkAdicionContrato_();
   }catch(e){
-    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
+    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
   }
 });
 
@@ -5291,9 +5450,12 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
       }
     }
 
-    showView('view-ingresar-cuenta');
+showView('view-ingresar-cuenta');
+
+    // === NUEVO: Modal de Adición de Contrato ===
+    await checkAdicionContrato_();
   }catch(e){
-    Swal.fire({icon:'error',title:'Error',text:String(e.message||e)});
+    Swal.fire({icon:'error', title:'Error', text:String(e.message||e)});
   }
 });
   
