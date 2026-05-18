@@ -949,6 +949,8 @@ function sendBuilderbotMessage(destino, mensaje){
 /* ================== ESTADO ================== */
 let currentUser = null; 
 // currentUser = { documento: '...', secretaria: '...', supervisor: '...' }
+/* Indica si el contrato ya tiene los datos obligatorios diligenciados al menos una vez */
+let contratoYaDiligenciado = false;
 
 /* ================== VISTAS ================== */
 function resetVistas(){
@@ -7004,11 +7006,25 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
   const mesesVal = document.getElementById('c-meses').value || '';
   const diasVal  = document.getElementById('c-dias').value  || '';
   const numPraw = (document.getElementById('numP')?.value || '').replace(/\D/g,'');
-if(!numPraw || numPraw.length < 1 || numPraw.length > 3){
-  await Swal.fire({ icon:'warning', title:'Campo requerido', text:'Debes ingresar el N° de Proceso SECOP II (3 dígitos). Ej: 021' });
-  document.getElementById('numP')?.focus();
-  return;
+
+// El N° de Proceso solo es obligatorio en el primer diligenciamiento.
+// Si el contrato ya fue diligenciado antes, se permite dejarlo vacío
+// (para corregir un dato suelto o agregar un RP de adición).
+if(!contratoYaDiligenciado){
+  if(!numPraw || numPraw.length < 1 || numPraw.length > 3){
+    await Swal.fire({ icon:'warning', title:'Campo requerido', text:'Debes ingresar el N° de Proceso SECOP II (3 dígitos). Ej: 021' });
+    document.getElementById('numP')?.focus();
+    return;
+  }
+}else{
+  // Ya diligenciado: si escribió algo en numP, validar formato; si lo dejó vacío, se permite.
+  if(numPraw && numPraw.length > 3){
+    await Swal.fire({ icon:'warning', title:'N° de Proceso inválido', text:'El N° de Proceso SECOP II debe tener máximo 3 dígitos. Ej: 021' });
+    document.getElementById('numP')?.focus();
+    return;
+  }
 }
+
 const numP = numPraw.padStart(3,'0').slice(-3);
 
   const body = {
@@ -7032,7 +7048,7 @@ const numP = numPraw.padStart(3,'0').slice(-3);
     costos: document.getElementById('c-costos').value||''
   };
 
-  const hayCambiosContrato =
+const hayCambiosContrato =
   !!(body.numP || body.fechaInicioISO || body.fechaTerminoISO || body.rp || body.rpAdicion || body.rpAdicion2 || body.costos || body.regimen || body.factura) ||
   (!!body.meses && String(body.meses) !== '0') ||
   (!!body.dias  && String(body.dias)  !== '0') ||
@@ -7041,6 +7057,39 @@ const numP = numPraw.padStart(3,'0').slice(-3);
 if (!hayCambiosContrato) {
   Swal.fire({ icon:'info', title:'Sin cambios', text:'No hay campos editados para guardar.' });
   return;
+}
+
+// === Validación de requeridos SOLO en el primer diligenciamiento ===
+// Si el contrato ya fue diligenciado antes, se permite editar cualquier
+// subconjunto (corregir un dato suelto o agregar un RP de adición).
+if(!contratoYaDiligenciado){
+  const faltantesContrato = [];
+  if(!body.numP)            faltantesContrato.push('N° de Proceso SECOP II');
+  if(!body.fechaInicioISO)  faltantesContrato.push('Fecha de Inicio');
+  if(!body.fechaTerminoISO) faltantesContrato.push('Fecha de Terminación');
+  if(!body.rp)              faltantesContrato.push('Registro Presupuestal (RP)');
+  if(!body.regimen)         faltantesContrato.push('Régimen Simple de Tributación');
+  if(!body.factura)         faltantesContrato.push('Facturación Electrónica');
+  if(!body.costos)          faltantesContrato.push('Costos y Deducciones');
+
+  if(faltantesContrato.length){
+    await Swal.fire({
+      icon:'warning',
+      title:'COMPLETA LOS DATOS DEL CONTRATO',
+      html: `
+        <div style="text-align:left; line-height:1.4;">
+          <b>Como es la primera vez que diligencias tu contrato, debes completar todos los campos requeridos:</b>
+          <ul style="margin:10px 0 0; padding-left:18px;">
+            ${faltantesContrato.map(x => `<li>${x}</li>`).join('')}
+          </ul>
+          <div style="margin-top:10px; color:#06402B; font-weight:700;">
+            Los campos RP 1ra y 2da Adición son opcionales.
+          </div>
+        </div>
+      `
+    });
+    return;
+  }
 }
 
   // Resumen: solo campos editados (no vacíos)
@@ -7235,6 +7284,17 @@ async function cargarContratoLectura(){
   if(!currentUser) return;
   const d = await apiGet('getDatosContrato', { documento: currentUser.documento, secretaria: currentUser.secretaria });
   const box = document.getElementById('contrato-lectura');
+
+  // ¿El contrato ya fue diligenciado alguna vez? (datos obligatorios presentes en la hoja)
+  contratoYaDiligenciado = !!(
+    String(d.numProceso||'').trim() &&
+    String(d.fechaInicio||'').trim() &&
+    String(d.fechaTermino||'').trim() &&
+    String(d.rp||'').trim() &&
+    String(d.regimen||'').trim() &&
+    String(d.factura||'').trim() &&
+    String(d.costos||'').trim()
+  );
 
   const lines = [
     `<b>Secretaría:</b> ${d.secretaria||''}`,
