@@ -7306,7 +7306,7 @@ async function cargarContratoLectura(){
     `<b>Fecha de Inicio:</b> ${d.fechaInicio||''}`,
     `<b>Fecha de Terminación:</b> ${d.fechaTermino||''}`,
     `<b>Valor Inicial:</b> ${d.valor||''}`,
-    `<b>MRA:</b> ${d.mar||''}`,
+    `<b>MRA:</b> ${d.mra||''}`,
     `<b>Valor Final:</b> ${d.valorFinal||''}`,
     `<b>CDP:</b> ${d.cdp||''}`,
     `<b>RP:</b> ${d.rp||''}`,
