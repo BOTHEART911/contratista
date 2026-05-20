@@ -4694,6 +4694,12 @@ if (String(data.estado||'').toUpperCase() === 'DEVUELTA'){
         showConfirmButton:false
       });
     }
+    // 🚫 BLOQUEO: si ya completó todos los informes (ej: 5 de 4)
+    if(informesCompletados_(data && data.informe, data && data.total)){
+      await mostrarAlertaInformesCompletados_();
+      return;
+    }
+
     BA_STATE = data || BA_STATE;
     renderBorradorActividades();
     showView('view-borrador');
@@ -4895,6 +4901,36 @@ function numPure(s){ return Number(String(s||'').replace(/\D/g,''))||0; }
 function monthNameDMY(dmy){
   const m = (String(dmy).split('/')[1]||'01'); const idx = Math.max(1,Math.min(12,parseInt(m,10))) - 1;
   return MESES_LIT[idx];
+}
+
+/* ================== BLOQUEO: INFORMES COMPLETADOS ================== */
+function informesCompletados_(informe, total){
+  const inf = parseInt(String(informe||'').replace(/\D/g,''), 10) || 0;
+  const tot = parseInt(String(total  ||'').replace(/\D/g,''), 10) || 0;
+  if(!inf || !tot) return false;   // si no hay total configurado, no bloquea
+  return inf > tot;
+}
+
+async function mostrarAlertaInformesCompletados_(){
+  const r = await Swal.fire({
+    icon:'warning',
+    title:'NO PUEDES REGISTRAR MÁS CUENTAS',
+    html:
+      'Haz completado los informes de tu contrato.<br><br>' +
+      'Mientras no se te asigne uno nuevo, estas opciones están deshabilitadas.<br><br>' +
+      '<b>Puedes generar una certificación de tu contrato.</b>',
+    showCancelButton:true,
+    confirmButtonText:'Generar Certificación',
+    cancelButtonText:'Cerrar',
+    allowOutsideClick:false,
+    allowEscapeKey:false
+  });
+
+  if(r.isConfirmed){
+    document.getElementById('go-certificacion-contrato')?.click();
+  }else{
+    showView('view-inicio');
+  }
 }
 
 function emptyIfZero(n){
@@ -5129,6 +5165,12 @@ if(base.corregible === false){
   return;
 }
 
+    // 🚫 BLOQUEO: si ya completó todos los informes (ej: 5 de 4)
+    if(informesCompletados_(base && base.informe, base && base.totalInforme)){
+      await mostrarAlertaInformesCompletados_();
+      return;
+    }
+    
     // Corregible: INGRESADA, DEVUELTA o INCOMPLETA
     IC_EDIT_ROW = base.rowIndex || null;
 
@@ -5389,6 +5431,12 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
         showConfirmButton:false
       });
       showView('view-inicio');
+      return;
+    }
+
+   // 🚫 BLOQUEO: si ya completó todos los informes (ej: 5 de 4)
+    if(informesCompletados_(base && base.informe, base && base.total)){
+      await mostrarAlertaInformesCompletados_();
       return;
     }
 
