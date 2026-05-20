@@ -5020,10 +5020,11 @@ async function checkAdicionContrato_(){
           <button type="button" class="adi-pago-btn" data-pago="1">1</button>
           <button type="button" class="adi-pago-btn" data-pago="2">2</button>
           <button type="button" class="adi-pago-btn" data-pago="3">3</button>
+           <button type="button" class="adi-pago-btn" data-pago="4">4</button>
         </div>
 
         <label style="display:block; font-weight:800; color:#06402B; margin-bottom:6px;">
-          ¿Cuál es el valor de la Adición?
+          Ingresa correctamente el valor de la Adición, ¡No el valor a cobrar!
         </label>
         <input id="adi-valor" type="tel" inputmode="numeric" class="swal2-input"
                placeholder="$ 0" style="margin:0; width:100%; box-sizing:border-box;" />
