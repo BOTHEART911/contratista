@@ -4975,8 +4975,10 @@ async function checkAdicionContrato_(){
   const informeNum = numPure(informeEl.textContent || '');
   const totalNum   = numPure(totalEl.value || '');
 
-  // Si informe NO coincide con total, no aplica adición → vista normal
-  if(!informeNum || !totalNum || informeNum !== totalNum) return;
+  // Aplica adición en la última cuenta (4 de 4, 6 de 6, 8 de 8)
+  // y también en la penúltima (3 de 4, 5 de 6, 7 de 8).
+  const diff = totalNum - informeNum;
+  if(!informeNum || !totalNum || diff < 0 || diff > 1) return;
 
   // ---- PASO 1: ¿Habrá adición? ----
   const paso1 = await Swal.fire({
@@ -4984,10 +4986,10 @@ async function checkAdicionContrato_(){
     title:'¿TU CONTRATO TENDRÁ ADICIÓN?',
     html:`
       <div style="text-align:left; line-height:1.5; font-size:.95rem;">
-        <p style="margin:0 0 8px;">
-          Estás en tu <b>última cuenta</b> según el Total de Informes
-          (<b>${informeNum} de ${totalNum}</b>).
-        </p>
+       <p style="margin:0 0 8px;">
+  Estás ${diff === 0 ? 'en tu <b>última cuenta</b>' : 'a una cuenta de finalizar'} 
+  según el Total de Informes (<b>${informeNum} de ${totalNum}</b>).
+</p>
         <div style="background:#f8fafc; border:2px solid #e5e7eb; border-radius:12px; padding:10px; font-weight:700; color:#111;">
           Si tu contrato fue <b>adicionado</b> (más tiempo y/o más valor),
           configúralo aquí para que la App calcule correctamente tus próximas cuentas.
