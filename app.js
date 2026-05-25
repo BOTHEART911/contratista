@@ -5005,7 +5005,108 @@ async function checkAdicionContrato_(){
   // NO → cerrar y seguir la vista normal
   if(!paso1.isConfirmed) return;
 
-  // ---- PASO 2: cantidad de pagos + valor de la adición ----
+  // ---- PASO 1.5: ¿Primera o Segunda Adición? (con loop para botón Atrás) ----
+  let tipoAdicion = '';
+  while(true){
+    const pasoTipo = await Swal.fire({
+      icon:'info',
+      title:'SELECCIONA UNA OPCIÓN',
+      html:`
+        <div style="text-align:center; font-size:.95rem; margin-bottom:8px;">
+          Indica qué tipo de adición tiene tu contrato:
+        </div>
+      `,
+      showConfirmButton:false,
+      showCancelButton:false,
+      allowOutsideClick:false,
+      allowEscapeKey:false,
+      footer:`
+        <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+          <button id="adi-tipo-primera" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0;">
+            Primera Adición
+          </button>
+          <button id="adi-tipo-segunda" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0; background:#0a6644;">
+            Segunda Adición
+          </button>
+          <button id="adi-tipo-atras" class="swal2-cancel swal2-styled" style="display:block; width:100%; margin:0;">
+            Atrás
+          </button>
+        </div>
+      `,
+      didOpen: ()=>{
+        const btnP = document.getElementById('adi-tipo-primera');
+        const btnS = document.getElementById('adi-tipo-segunda');
+        const btnA = document.getElementById('adi-tipo-atras');
+
+        if(btnP) btnP.addEventListener('click', ()=> Swal.close({ isConfirmed:true, value:'primera' }));
+        if(btnS) btnS.addEventListener('click', ()=> Swal.close({ isConfirmed:true, value:'segunda' }));
+        if(btnA) btnA.addEventListener('click', ()=> Swal.close({ isConfirmed:true, value:'atras' }));
+      }
+    });
+
+    const sel = String(pasoTipo.value || '');
+
+    if(sel === 'atras'){
+      // Volver a preguntar si tendrá adición
+      const reintento = await Swal.fire({
+        icon:'question',
+        title:'¿TU CONTRATO TENDRÁ ADICIÓN?',
+        html:`
+          <div style="text-align:left; line-height:1.5; font-size:.95rem;">
+            <p style="margin:0 0 8px;">
+              Estás en tu <b>última cuenta</b>
+              (<b>${informeNum} de ${totalNum}</b>).
+            </p>
+            <p>Si <b>NO</b> tienes Adición, continúa con normalidad.</p>
+          </div>
+        `,
+        showCancelButton:true,
+        confirmButtonText:'SÍ, tendrá Adición',
+        cancelButtonText:'NO',
+        allowOutsideClick:false,
+        allowEscapeKey:false
+      });
+      if(!reintento.isConfirmed) return; // cancela todo el flujo
+      continue; // vuelve a mostrar el selector de tipo
+    }
+
+    if(sel === 'primera' || sel === 'segunda'){
+      tipoAdicion = sel;
+      break;
+    }
+
+    // Si por algún motivo no hubo selección válida, salir
+    return;
+  }
+
+  // ---- PASO 1.6: Validar contra el backend si AR (primera) o CF (segunda) tienen valor ----
+  try{
+    const chk = await apiGet('checkAdicionDisponible', {
+      documento:  currentUser.documento,
+      supervisor: currentUser.supervisor || '',
+      contrato:   IC_STATE.contrato || '',
+      tipo:       tipoAdicion
+    });
+
+    if(!chk || chk.hasValue !== true){
+      // No tiene valor en la columna correspondiente → bloquear
+      await Swal.fire({
+        icon:'info',
+        title:'NO PUEDES INGRESAR CUENTA',
+        html:'Para esta cuenta de transición, debes esperar a que Contratación haga el ajuste en la App y te notifique a través de WhatsApp.',
+        confirmButtonText:'OK',
+        allowOutsideClick:false,
+        allowEscapeKey:false
+      });
+      showView('view-inicio');
+      return;
+    }
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+    return;
+  }
+
+  // ---- PASO 2: cantidad de pagos + valor de la adición (igual que antes) ----
   let __adiPagos = 0;
 
   const paso2 = await Swal.fire({
@@ -5044,7 +5145,6 @@ async function checkAdicionContrato_(){
       const cont = Swal.getHtmlContainer();
       if(!cont) return;
 
-      // Selector de pagos (1 / 2 / 3)
       const btns = cont.querySelectorAll('.adi-pago-btn');
       btns.forEach(btn=>{
         btn.addEventListener('click', ()=>{
@@ -5054,7 +5154,6 @@ async function checkAdicionContrato_(){
         });
       });
 
-      // Formato de pesos en el valor de la adición
       const valEl = cont.querySelector('#adi-valor');
       if(valEl){
         valEl.value = '$ ';
@@ -5079,7 +5178,6 @@ async function checkAdicionContrato_(){
     }
   });
 
-  // Cancelar → advertencia y seguir la vista normal
   if(!paso2.isConfirmed){
     await Swal.fire({
       icon:'warning',
@@ -5100,13 +5198,12 @@ async function checkAdicionContrato_(){
   totalEl.value  = String(nuevoTotal);
   IC_STATE.total = String(nuevoTotal);
 
-  // 2) Sumar valor de la Adición al Saldo Actual (recalcula Nuevo Saldo)
+  // 2) Sumar valor de la Adición al Saldo Actual
   const saldoEl = document.getElementById('ic-saldo');
   if(saldoEl){
     const nuevoSaldoActual = numPure(saldoEl.value) + valor;
     saldoEl.value   = formatCOPView(nuevoSaldoActual);
     IC_STATE.saldoQ = String(nuevoSaldoActual);
-    // Dispara listeners ya enlazados: formato COP + recálculo de "Nuevo Saldo"
     try{ saldoEl.dispatchEvent(new Event('input', { bubbles:true })); }catch(_){}
   }
 
@@ -7108,6 +7205,41 @@ if (!hayCambiosContrato) {
   return;
 }
 
+  // === Validación: TODOS los RP (si vienen) deben tener exactamente 10 dígitos ===
+const rpFields = [
+  { key: 'rp',         label: 'Registro Presupuestal (RP)' },
+  { key: 'rpAdicion',  label: 'RP 1ra Adición' },
+  { key: 'rpAdicion2', label: 'RP 2da Adición' }
+];
+
+const rpInvalidos = [];
+for (const f of rpFields) {
+  const val = String(body[f.key] || '').trim();
+  // Solo validar si el usuario escribió algo
+  if (val && val.length !== 10) {
+    rpInvalidos.push(f.label);
+  }
+}
+
+if (rpInvalidos.length) {
+  await Swal.fire({
+    icon: 'warning',
+    title: 'RP INVÁLIDO',
+    html: `
+      <div style="text-align:left; line-height:1.4;">
+        <b>Los siguientes campos deben tener exactamente 10 dígitos:</b>
+        <ul style="margin:10px 0 0; padding-left:18px;">
+          ${rpInvalidos.map(x => `<li>${x}</li>`).join('')}
+        </ul>
+        <div style="margin-top:10px; color:#b91c1c; font-weight:700;">
+          Corrige los valores antes de guardar.
+        </div>
+      </div>
+    `
+  });
+  return;
+}
+
 // === Validación de requeridos SOLO en el primer diligenciamiento ===
 // Si el contrato ya fue diligenciado antes, se permite editar cualquier
 // subconjunto (corregir un dato suelto o agregar un RP de adición).
@@ -8513,13 +8645,13 @@ function icAbrirRadicado(){
     1:  24, // Febrero
     2:  26, // Marzo
     3:  27, // Abril
-    4:  26, // Mayo
+    4:  27, // Mayo
     5:  24, // Junio
-    6:  28, // Julio
+    6:  29, // Julio
     7:  26, // Agosto
-    8:  25, // Septiembre
-    9:  27, // Octubre
-    10: 25, // Noviembre
+    8:  28, // Septiembre
+    9:  28, // Octubre
+    10: 26, // Noviembre
     11: 28  // Diciembre
   };
   const corteHoy = CORTES_POR_MES[todayMonth];
