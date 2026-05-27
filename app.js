@@ -5306,6 +5306,7 @@ IC_STATE.bankPlanUrls = {
   planaporte2: String(base.planaporte2Url || ''),
   rutsg:       String(base.rutsgUrl || ''),
   factElect:   String(base.factElectUrl || ''),
+  otroPdf:     String(base.otroPdfUrl || ''),
   noafp:       String(base.noafpUrl || ''),
   actAnexos:   String(base.actAnexosUrl || '')
 };
@@ -6818,10 +6819,23 @@ document.getElementById('ic-guardar')?.addEventListener('click', async ()=>{
       } else {
         Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
       }
-    }catch(e){
-      await Swal.close();
-      Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
-    }finally{
+ }catch(e){
+  await Swal.close();
+  const errMsg = String(e.message||e);
+  
+  // Detección específica del error de columna inválida (problema backend de mapeo)
+  if(/columna inicial del intervalo|column.*range/i.test(errMsg)){
+    Swal.fire({
+      icon:'error',
+      title:'No se pudo procesar uno de los archivos',
+      html:'Hubo un problema al eliminar uno de los archivos que quitaste. '
+         + 'Por favor reporta este caso a Gobierno Digital con el detalle de qué archivo intentaste eliminar.<br><br>'
+         + '<small>Detalle técnico: ' + escapeHtml_(errMsg) + '</small>'
+    });
+  }else{
+    Swal.fire({ icon:'error', title:'Error', text: errMsg });
+  }
+}finally{
       suppressLoader = false;
       loadingCount = 0;
       if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
