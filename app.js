@@ -2266,7 +2266,9 @@ function openComunicadoDetalle(it){
   if(thumb){ thumb.src = thumbByIdNoticias(it.imagenId); }
   if(title) title.textContent = it.titulo || '';
   if(sub)   sub.textContent   = it.subtitulo || '';
-  if(desc)  desc.textContent  = it.contenido || '';
+  if(desc) {
+  desc.innerHTML = escapeHtml_(it.contenido || '').replace(/\n/g, '<br>');
+}
 
   const first = String(it.first_link||'').trim();
   if(link){
