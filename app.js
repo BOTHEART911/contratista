@@ -4269,6 +4269,15 @@ function mostrarEstadoCuenta(res){
   const valorCOP = formatCOPView(res.valor || 0);
 
   switch(estado){
+      case 'BORRADOR':
+      Swal.fire({
+        icon:'info',
+        title:'BORRADOR CREADO',
+        html:`Tu <b>Cuenta ${informe}</b> apenas está esta en BORRADOR<br><br>Debes tomat la opción INGRESAR CUENTA para complementarla y posteriormente Reportarla a tu supervisor(a)`,
+        timer:8000,
+        showConfirmButton:false
+      });
+      break;
       case 'INGRESADA':
       Swal.fire({
         icon:'info',
@@ -9016,7 +9025,20 @@ async function ejecutarReportarCuenta_(){
       Swal.fire({icon:'info', title:'NO PUEDES REPORTAR', text:'Primero debes Ingresar un Cuenta', timer:3000, showConfirmButton:false});
       return;
     }
-    const estado = String(res.estadoBJ||'').toUpperCase();
+ const estado = String(res.estadoBJ||'').toUpperCase();
+
+    // NUEVO: si la cuenta ya está REPORTADA, aviso específico
+    if(estado === 'REPORTADA'){
+      await Swal.fire({
+        icon:'info',
+        title:'TU CUENTA YA ESTÁ REPORTADA',
+        html:'Ya reportaste esta cuenta.<br><br>Ahora debes <b>esperar la revisión de tu Supervisor(a)</b>.',
+        timer:6000,
+        showConfirmButton:false
+      });
+      return;
+    }
+
     if(['INGRESADA','INCOMPLETA'].indexOf(estado) === -1){
       Swal.fire({
         icon:'info',
