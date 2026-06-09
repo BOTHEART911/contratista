@@ -9172,7 +9172,7 @@ function mostrarModalPrevioReportarCuenta_(){
   Swal.fire({
     icon:'info',
     title:'REPORTAR CUENTA',
-    html:'Si tu cuenta ya ha sido <b>Devuelta por tu SUPERVISIOR o CONTRATACIÓN</b>, con honestidad toma la opción CORRECCIÓN para dinamizar la nueva revisión<br><br>Si no habías reportado antes esta cuenta, toma la opción REPORTE',
+    html:'Si tu cuenta <b>ya ha sido Devuelta por tu SUPERVISOR o CONTRATACIÓN</b>, con honestidad toma la opción CORRECCIÓN para dinamizar la nueva revisión<br><br><b>Si no habías reportado antes esta cuenta</b>, toma la opción REPORTE INICIAL',
     showConfirmButton:false,
     showCancelButton:false,
     allowOutsideClick:true,
@@ -9180,7 +9180,7 @@ function mostrarModalPrevioReportarCuenta_(){
     footer:`
       <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
         <button id="rcm-reporte" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0;">
-          REPORTE
+          REPORTE INICIAL
         </button>
         <button id="rcm-correccion" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0; background:#0a6644;">
           CORRECCIÓN
