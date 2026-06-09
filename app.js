@@ -9172,7 +9172,7 @@ function mostrarModalPrevioReportarCuenta_(){
   Swal.fire({
     icon:'info',
     title:'REPORTAR CUENTA',
-    html:'Selecciona una opción',
+    html:'Si tu cuenta ya ha sido <b>Devuelta por tu SUPERVISIOR o CONTRATACIÓN</b>, con honestidad toma la opción CORRECCIÓN para dinamizar la nueva revisión<br><br>Si no habías reportado antes esta cuenta, toma la opción REPORTE',
     showConfirmButton:false,
     showCancelButton:false,
     allowOutsideClick:true,
