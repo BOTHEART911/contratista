@@ -5009,25 +5009,41 @@ async function checkAdicionContrato_(){
   const diff = totalNum - informeNum;
   if(!informeNum || !totalNum || diff < 0 || diff > 1) return;
 
-  // ---- PASO 1: ¿Habrá adición? ----
+  // ---- Determinar el tipo de adición a partir del valor contractual (columna CI) ----
+  // PRIMARIO / vacío  -> se pregunta por la PRIMERA adición
+  // 1RA ADICIÓN       -> se pregunta por la SEGUNDA adición
+  // 2DA ADICIÓN       -> ya tiene el máximo: NO se muestra el modal
+  const contractualVal = String(IC_STATE.contractual || '').toUpperCase();
+  let tipoAdicion  = 'primera';
+  let ordinalLabel = 'PRIMERA';
+
+  if(/2DA|SEGUNDA/.test(contractualVal)){
+    // El contrato ya tiene Segunda Adición: no aplica configurar otra
+    return;
+  }else if(/1RA|PRIMERA/.test(contractualVal)){
+    tipoAdicion  = 'segunda';
+    ordinalLabel = 'SEGUNDA';
+  }
+
+  // ---- PASO 1: pregunta dirigida (Sí/No) según el ordinal deducido ----
   const paso1 = await Swal.fire({
     icon:'question',
-    title:'¿TU CONTRATO TENDRÁ ADICIÓN?',
+    title:`¿TU CONTRATO TENDRÁ ${ordinalLabel} ADICIÓN?`,
     html:`
       <div style="text-align:left; line-height:1.5; font-size:.95rem;">
-       <p style="margin:0 0 8px;">
-  Estás ${diff === 0 ? 'en tu <b>última cuenta</b>' : 'a una cuenta de finalizar'} 
-  según el Total de Informes (<b>${informeNum} de ${totalNum}</b>).
-</p>
+        <p style="margin:0 0 8px;">
+          Estás ${diff === 0 ? 'en tu <b>última cuenta</b>' : 'a una cuenta de finalizar'}
+          según el Total de Informes (<b>${informeNum} de ${totalNum}</b>).
+        </p>
         <div style="background:#f8fafc; border:2px solid #e5e7eb; border-radius:12px; padding:10px; font-weight:700; color:#111;">
-          Si tu contrato fue <b>adicionado</b> (más tiempo y/o más valor),
+          Si tu contrato fue <b>adicionado</b> por <b>${ordinalLabel.toLowerCase()} vez</b> (más tiempo y/o más valor),
           configúralo aquí para que la App calcule correctamente tus próximas cuentas.
         </div>
-        <p style="margin:8px 0 0;">Si <b>NO</b> tienes Adición, continúa con normalidad.</p>
+        <p style="margin:8px 0 0;">Si <b>NO</b> tienes ${ordinalLabel.toLowerCase()} Adición, continúa con normalidad.</p>
       </div>
     `,
     showCancelButton:true,
-    confirmButtonText:'SÍ, tendrá Adición',
+    confirmButtonText:`SÍ, tendrá ${ordinalLabel} Adición`,
     cancelButtonText:'NO',
     allowOutsideClick:false,
     allowEscapeKey:false
@@ -5036,81 +5052,7 @@ async function checkAdicionContrato_(){
   // NO → cerrar y seguir la vista normal
   if(!paso1.isConfirmed) return;
 
-  // ---- PASO 1.5: ¿Primera o Segunda Adición? (con loop para botón Atrás) ----
-  let tipoAdicion = '';
-  while(true){
-    const pasoTipo = await Swal.fire({
-      icon:'info',
-      title:'SELECCIONA UNA OPCIÓN',
-      html:`
-        <div style="text-align:center; font-size:.95rem; margin-bottom:8px;">
-          Indica qué tipo de adición tiene tu contrato:
-        </div>
-      `,
-      showConfirmButton:false,
-      showCancelButton:false,
-      allowOutsideClick:false,
-      allowEscapeKey:false,
-      footer:`
-        <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
-          <button id="adi-tipo-primera" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0;">
-            Primera Adición
-          </button>
-          <button id="adi-tipo-segunda" class="swal2-confirm swal2-styled" style="display:block; width:100%; margin:0; background:#0a6644;">
-            Segunda Adición
-          </button>
-          <button id="adi-tipo-atras" class="swal2-cancel swal2-styled" style="display:block; width:100%; margin:0;">
-            Atrás
-          </button>
-        </div>
-      `,
-      didOpen: ()=>{
-        const btnP = document.getElementById('adi-tipo-primera');
-        const btnS = document.getElementById('adi-tipo-segunda');
-        const btnA = document.getElementById('adi-tipo-atras');
-
-        if(btnP) btnP.addEventListener('click', ()=> Swal.close({ isConfirmed:true, value:'primera' }));
-        if(btnS) btnS.addEventListener('click', ()=> Swal.close({ isConfirmed:true, value:'segunda' }));
-        if(btnA) btnA.addEventListener('click', ()=> Swal.close({ isConfirmed:true, value:'atras' }));
-      }
-    });
-
-    const sel = String(pasoTipo.value || '');
-
-    if(sel === 'atras'){
-      // Volver a preguntar si tendrá adición
-      const reintento = await Swal.fire({
-        icon:'question',
-        title:'¿TU CONTRATO TENDRÁ ADICIÓN?',
-        html:`
-          <div style="text-align:left; line-height:1.5; font-size:.95rem;">
-            <p style="margin:0 0 8px;">
-              Estás en tu <b>última cuenta</b>
-              (<b>${informeNum} de ${totalNum}</b>).
-            </p>
-            <p>Si <b>NO</b> tienes Adición, continúa con normalidad.</p>
-          </div>
-        `,
-        showCancelButton:true,
-        confirmButtonText:'SÍ, tendrá Adición',
-        cancelButtonText:'NO',
-        allowOutsideClick:false,
-        allowEscapeKey:false
-      });
-      if(!reintento.isConfirmed) return; // cancela todo el flujo
-      continue; // vuelve a mostrar el selector de tipo
-    }
-
-    if(sel === 'primera' || sel === 'segunda'){
-      tipoAdicion = sel;
-      break;
-    }
-
-    // Si por algún motivo no hubo selección válida, salir
-    return;
-  }
-
-  // ---- PASO 1.6: Validar contra el backend si AR (primera) o CF (segunda) tienen valor ----
+  // ---- Validar contra el backend si AR (primera) o CF (segunda) tienen valor ----
   try{
     const chk = await apiGet('checkAdicionDisponible', {
       documento:  currentUser.documento,
@@ -5120,7 +5062,6 @@ async function checkAdicionContrato_(){
     });
 
     if(!chk || chk.hasValue !== true){
-      // No tiene valor en la columna correspondiente → bloquear
       await Swal.fire({
         icon:'info',
         title:'NO PUEDES INGRESAR CUENTA',
@@ -5136,7 +5077,6 @@ async function checkAdicionContrato_(){
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
     return;
   }
-
   // ---- PASO 2: cantidad de pagos + valor de la adición (igual que antes) ----
   let __adiPagos = 0;
 
@@ -5317,6 +5257,7 @@ if(base.corregible === false){
     IC_STATE.nombre     = ''; // no se necesita para corrección en esta vista
     IC_STATE.supervisor = '';
     IC_STATE.editorEmail = '';
+    IC_STATE.contractual = String(base.contractual||'').trim();
 
    // Guardar evidencias existentes (urls) tal cual vienen de BK..CJ
 IC_STATE.evidOriginalUrls = Array.isArray(base.evidencias) ? base.evidencias.slice() : [];
@@ -5579,10 +5520,11 @@ document.getElementById('go-ingresar-cuenta')?.addEventListener('click', async (
     IC_STATE.actividades   = Array.isArray(base.actividades) ? base.actividades : [];
     IC_STATE.cuentaExiste  = !!base.cuentaExiste;
     IC_STATE.nextMode      = !!base.nextMode;
-    IC_STATE.contrato      = String(base.contrato||'').trim();
+  IC_STATE.contrato      = String(base.contrato||'').trim();
     IC_STATE.nombre        = String(base.nombre||'').trim();
     IC_STATE.supervisor    = String(base.supervisor||'').trim();
     IC_STATE.editorEmail   = String(base.editorEmail||'').trim();
+    IC_STATE.contractual   = String(base.contractual||'').trim();
 
     // Pintar vista
     renderIngresarCuenta();
