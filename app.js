@@ -7016,6 +7016,17 @@ document.getElementById('reg-volver').addEventListener('click', ()=>{ playSoundO
 document.getElementById('contrato-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
 document.getElementById('contrato-editar').addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.login);
+
+  // CEDIDO: el contrato ya está configurado, no se permite actualizar
+  if(/CEDIDO/.test(String(contratoContractual || '').toUpperCase())){
+    Swal.fire({
+      icon:'info',
+      title:'CONTRATO CEDIDO',
+      text:'Ya los datos del contrato están configurados.'
+    });
+    return;
+  }
+
   aplicarVisibilidadContrato_(contratoContractual);
   document.getElementById('contrato-form').classList.remove('hidden');
 });
