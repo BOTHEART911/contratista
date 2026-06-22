@@ -951,6 +951,24 @@ let currentUser = null;
 // currentUser = { documento: '...', secretaria: '...', supervisor: '...' }
 /* Indica si el contrato ya tiene los datos obligatorios diligenciados al menos una vez */
 let contratoYaDiligenciado = false;
+/* Valor contractual (columna CI): 'PRIMARIO' | '1RA ADICIÓN' | '2DA ADICIÓN' */
+let contratoContractual = '';
+/* Modo de edición del contrato calculado a partir de lo anterior */
+let contratoModoEdicion = 'primario';
+
+function aplicarVisibilidadContrato_(contractual){
+  const c = String(contractual || '').toUpperCase();
+  let modo = 'primario';
+  if(/2DA|SEGUNDA/.test(c))      modo = 'adicion2';
+  else if(/1RA|PRIMERA/.test(c)) modo = 'adicion1';
+
+  contratoModoEdicion = modo;
+
+  document.querySelectorAll('#contrato-form .cf-group').forEach(g=>{
+    g.style.display = (g.getAttribute('data-cf') === modo) ? '' : 'none';
+  });
+  return modo;
+}
 
 /* ================== VISTAS ================== */
 function resetVistas(){
@@ -7056,6 +7074,7 @@ document.getElementById('reg-volver').addEventListener('click', ()=>{ playSoundO
 document.getElementById('contrato-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
 document.getElementById('contrato-editar').addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.login);
+  aplicarVisibilidadContrato_(contratoContractual);
   document.getElementById('contrato-form').classList.remove('hidden');
 });
 
@@ -7174,6 +7193,50 @@ document.getElementById('c-rpAdicion2').addEventListener('input', ()=>{
 
 document.getElementById('c-guardar').addEventListener('click', async ()=>{
   if(!currentUser){ Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
+
+  // === MODO ADICIÓN: solo se guarda el RP correspondiente ===
+  const modoC = contratoModoEdicion || 'primario';
+  if(modoC === 'adicion1' || modoC === 'adicion2'){
+    const esPrimera = (modoC === 'adicion1');
+    const rpId  = esPrimera ? 'c-rpAdicion' : 'c-rpAdicion2';
+    const rpLbl = esPrimera ? 'RP 1ra Adición' : 'RP 2da Adición';
+    const rpVal = (document.getElementById(rpId)?.value || '').replace(/\D/g,'');
+
+    if(!rpVal || rpVal.length !== 10){
+      await Swal.fire({ icon:'warning', title:'RP INVÁLIDO', text:`El ${rpLbl} debe tener exactamente 10 dígitos.` });
+      document.getElementById(rpId)?.focus();
+      return;
+    }
+
+    const rs = await Swal.fire({
+      icon:'info', title:'Resumen de Cambios',
+      html:`<b>${rpLbl}:</b> ${rpVal}`,
+      showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar', soundTag:'resumen'
+    });
+    if(!rs.isConfirmed) return;
+
+    try{
+      const body = {
+        documento: currentUser.documento,
+        secretaria: currentUser.secretaria || '',
+        modo: modoC
+      };
+      if(esPrimera) body.rpAdicion = rpVal; else body.rpAdicion2 = rpVal;
+
+      const r = await apiPost('saveDatosContrato', body);
+      if(r && r.success){
+        await Swal.fire({ icon:'success', title:'Actualización Exitosa', timer:1600, showConfirmButton:false });
+        await cargarContratoLectura();
+        document.getElementById('contrato-form').classList.add('hidden');
+      }else{
+        Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
+      }
+    }catch(e){
+      Swal.fire({ icon:'error', title:'Error', text:e.message });
+    }
+    return;
+  }
+
   const fechaInicioISO = __fechaInicioISO || '';
   const fechaTerminoISO = __fechaTerminoISO || '';
   const mesesVal = document.getElementById('c-meses').value || '';
@@ -7203,6 +7266,7 @@ const numP = numPraw.padStart(3,'0').slice(-3);
   const body = {
     documento: currentUser.documento,
     secretaria: currentUser.secretaria || '',
+    modo: 'primario',
     numP: (document.getElementById('numP')?.value || '').trim(),
     fechaInicioISO: fechaInicioISO,
     diaInicio: document.getElementById('c-diaInicio').value||'',
@@ -7492,6 +7556,9 @@ async function cargarContratoLectura(){
   if(!currentUser) return;
   const d = await apiGet('getDatosContrato', { documento: currentUser.documento, secretaria: currentUser.secretaria });
   const box = document.getElementById('contrato-lectura');
+
+  // Guardar el valor contractual (columna CI) para decidir qué campos mostrar/guardar
+  contratoContractual = String(d.contractual || '').trim();
 
   // ¿El contrato ya fue diligenciado alguna vez? (datos obligatorios presentes en la hoja)
   contratoYaDiligenciado = !!(
