@@ -509,114 +509,112 @@
         </div>
 
         <div id="contrato-form" class="hidden" style="margin-top:10px;">
-          <label>N° de Proceso SECOP II</label>
-          <div class="muted" style="margin:6px 0 8px;">
-            <b>En el Clausulado</b> Toma solo el número que está CPS-(Aquí)-2026 para digitarlo
-          </div>
-          <input id="numP" type="tel" inputmode="numeric" placeholder="Ej: 021" maxlength="3">
-          
-          <!-- Fecha Inicio (ruleta año fijo 2026) -->
-          <label>Fecha de Inicio</label>
-          <div class="muted" style="margin:6px 0 8px;"><b>FECHA DE ACTA DE INICIO</b></div>
-          <input id="c-fechaInicio" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerContrato('inicio')">
-          <input id="c-diaInicio" type="text" readonly style="display:none;">
-          <input id="c-mesInicio" type="text" readonly style="display:none;">
 
-          <label>Fecha de Terminación</label>
-          <div class="muted" style="margin:6px 0 8px;">Corrobora esta fecha en el ACTA DE INICIO</div>
-          <input id="c-fechaTermino" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerContrato('termino')">
-          <input id="c-diaTermino" type="text" readonly style="display:none;">
-          <input id="c-mesTermino" type="text" readonly style="display:none;">
+  <!-- ===================== GRUPO PRIMARIO ===================== -->
+  <div class="cf-group" data-cf="primario">
+    <label>N° de Proceso SECOP II</label>
+    <div class="muted" style="margin:6px 0 8px;">
+      <b>En el Clausulado</b> Toma solo el número que está CPS-(Aquí)-2026 para digitarlo
+    </div>
+    <input id="numP" type="tel" inputmode="numeric" placeholder="Ej: 021" maxlength="3">
 
-          <!-- Modal Picker (año fijo 2026) -->
-          <div id="contratoFechaModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
-            <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
-              <h3 style="margin:0 0 8px 0;">Selecciona la fecha</h3>
-              <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
-                <div>
-                  <small>Día</small>
-                  <select id="contratoDia" size="10"></select>
-                </div>
-                <div>
-                  <small>Mes</small>
-                  <select id="contratoMes" size="12"></select>
-                </div>
-                <div>
-                  <small>Año</small>
-                  <select id="contratoAnio" size="3" disabled>
-                    <option selected>2026</option>
-                  </select>
-                </div>
-              </div>
-              <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
-                <button type="button" class="btn btn-cancel" onclick="cancelarPickerContrato()">Cancelar</button>
-                <button type="button" class="btn btn-ok" onclick="confirmarPickerContrato()">Ok</button>
-              </div>
-            </div>
-          </div>
+    <label>Fecha de Inicio</label>
+    <div class="muted" style="margin:6px 0 8px;"><b>FECHA DE ACTA DE INICIO</b></div>
+    <input id="c-fechaInicio" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerContrato('inicio')">
+    <input id="c-diaInicio" type="text" readonly style="display:none;">
+    <input id="c-mesInicio" type="text" readonly style="display:none;">
 
-          <label>Meses de contrato</label>
-<div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
-<input id="c-meses" type="tel" inputmode="numeric" placeholder="Automático">
+    <label>Fecha de Terminación</label>
+    <div class="muted" style="margin:6px 0 8px;">Corrobora esta fecha en el ACTA DE INICIO</div>
+    <input id="c-fechaTermino" type="text" placeholder="dd/mm/2026" readonly onclick="abrirPickerContrato('termino')">
+    <input id="c-diaTermino" type="text" readonly style="display:none;">
+    <input id="c-mesTermino" type="text" readonly style="display:none;">
 
-<label>Días de complemento si Aplica</label>
-<div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
-<input id="c-dias" type="tel" inputmode="numeric" placeholder="Automático">
+    <label>Meses de contrato</label>
+    <div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
+    <input id="c-meses" type="tel" inputmode="numeric" placeholder="Automático">
 
-<label>Tiempo de ejecución</label>
-<input id="c-ejecucion" type="text" readonly>
+    <label>Días de complemento si Aplica</label>
+    <div class="muted" style="margin:6px 0 8px;">Edita <b>solo si NO coincide</b> con el Acta de Inicio</div>
+    <input id="c-dias" type="tel" inputmode="numeric" placeholder="Automático">
 
-          <label>Registro Presupuestal (RP)</label>
-          <input id="c-rp" type="tel" inputmode="numeric" placeholder="N° de RP" maxlength="10" style="border:1.5px solid #ccc;">
+    <label>Tiempo de ejecución</label>
+    <input id="c-ejecucion" type="text" readonly>
 
-                   <label>Registro Presupuestal 1ra Adición (RP 1ra Adición)</label>
-           <div class="muted" style="margin:6px 0 8px;"><b>Edita solo si ya tienes Adición de Contrato</b></div>
-          <input id="c-rpAdicion" type="tel" inputmode="numeric" placeholder="N° de RP 1ra Adición" maxlength="10" style="border:1.5px solid #ccc;">
+    <label>Registro Presupuestal (RP)</label>
+    <input id="c-rp" type="tel" inputmode="numeric" placeholder="N° de RP" maxlength="10" style="border:1.5px solid #ccc;">
 
-          <label>Registro Presupuestal 2da Adición (RP 2da Adición)</label>
-          <div class="muted" style="margin:6px 0 8px;"><b>Edita solo si ya tienes Segunda Adición de Contrato</b></div>
-          <input id="c-rpAdicion2" type="tel" inputmode="numeric" placeholder="N° de RP 2da Adición" maxlength="10" style="border:1.5px solid #ccc;">
+    <label>¿Perteneces al Régimen Simple de Tributación (SIMPLE)?</label>
+    <div class="muted" style="margin:6px 0 8px;">
+      <b>¿Cómo saberlo?</b><br>
+      Revisa tu RUT. Si aparece que perteneces al “Régimen Simple de Tributación”, debes marcar <b>Sí.</b><br>
+      Si no aparece, marca <b>No.</b>
+    </div>
+    <select id="c-regimen">
+      <option value="" disabled selected>Selecciona</option>
+      <option value="SI pertenezco al Régimen Simple.">SI</option>
+      <option value="NO pertenezco al Régimen Simple.">NO</option>
+    </select>
 
-         <label>¿Perteneces al Régimen Simple de Tributación (SIMPLE)?</label>
-<div class="muted" style="margin:6px 0 8px;">
-  <b>¿Cómo saberlo?</b><br>
-  Revisa tu RUT. Si aparece que perteneces al “Régimen Simple de Tributación”, debes marcar <b>Sí.</b><br>
-  Si no aparece, marca <b>No.</b>
-</div>
-<select id="c-regimen">
-  <option value="" disabled selected>Selecciona</option>
-  <option value="SI pertenezco al Régimen Simple.">SI</option>
-  <option value="NO pertenezco al Régimen Simple.">NO</option>
-</select>
+    <label>¿Estás obligado a facturar electrónicamente?</label>
+    <div class="muted" style="margin:6px 0 8px;">
+      <b>¿Cómo saberlo?</b><br>
+      Revisa tu RUT. Si allí indica que estás obligado a facturar electrónicamente o ya manejas facturación electrónica ante la DIAN, marca <b>Sí.</b>
+    </div>
+    <select id="c-factura">
+      <option value="" disabled selected>Selecciona</option>
+      <option value="SI facturo electrónicamente.">SI</option>
+      <option value="NO facturo electrónicamente.">NO</option>
+    </select>
 
-<label>¿Estás obligado a facturar electrónicamente?</label>
-<div class="muted" style="margin:6px 0 8px;">
-  <b>¿Cómo saberlo?</b><br>
-  Revisa tu RUT. Si allí indica que estás obligado a facturar electrónicamente o ya manejas facturación electrónica ante la DIAN, marca <b>Sí.</b>
-</div>
-<select id="c-factura">
-  <option value="" disabled selected>Selecciona</option>
-  <option value="SI facturo electrónicamente.">SI</option>
-  <option value="NO facturo electrónicamente.">NO</option>
-</select>
+    <label>¿Tomarás costos y deducciones en tu declaración de renta por este contrato?</label>
+    <div class="muted" style="margin:6px 0 8px;">
+      <b>¿Qué significa esta pregunta?</b><br>
+      Se refiere a si vas a descontar gastos relacionados con este contrato en tu declaración de renta, como por ejemplo: Arriendo de oficina, Internet, Equipos, Transporte, Software, Personal de apoyo.
+    </div>
+    <select id="c-costos">
+      <option value="" disabled selected>Selecciona</option>
+      <option value="SI tomaré costos o deducciones.">SI</option>
+      <option value="NO tomaré costos o deducciones.">NO</option>
+    </select>
+  </div>
 
-<label>¿Tomarás costos y deducciones en tu declaración de renta por este contrato?</label>
-<div class="muted" style="margin:6px 0 8px;">
-  <b>¿Qué significa esta pregunta?</b><br>
-  Se refiere a si vas a descontar gastos relacionados con este contrato en tu declaración de renta, como por ejemplo: Arriendo de oficina, Internet, Equipos, Transporte, Software, Personal de apoyo.
-</div>
-<select id="c-costos">
-  <option value="" disabled selected>Selecciona</option>
-  <option value="SI tomaré costos o deducciones.">SI</option>
-  <option value="NO tomaré costos o deducciones.">NO</option>
-</select>
+  <!-- ===================== GRUPO 1RA ADICIÓN ===================== -->
+  <div class="cf-group" data-cf="adicion1">
+    <label>Registro Presupuestal 1ra Adición (RP 1ra Adición)</label>
+    <div class="muted" style="margin:6px 0 8px;"><b>Edita solo si ya tienes Adición de Contrato</b></div>
+    <input id="c-rpAdicion" type="tel" inputmode="numeric" placeholder="N° de RP 1ra Adición" maxlength="10" style="border:1.5px solid #ccc;">
+  </div>
 
-          <div class="btn-row spaced" style="margin-top:12px;">
-            <button id="c-guardar" class="btn-primary">Guardar Cambios</button>
-            <button id="c-cancelar" class="danger">Cancelar</button>
-          </div>
-        </div>
+  <!-- ===================== GRUPO 2DA ADICIÓN ===================== -->
+  <div class="cf-group" data-cf="adicion2">
+    <label>Registro Presupuestal 2da Adición (RP 2da Adición)</label>
+    <div class="muted" style="margin:6px 0 8px;"><b>Edita solo si ya tienes Segunda Adición de Contrato</b></div>
+    <input id="c-rpAdicion2" type="tel" inputmode="numeric" placeholder="N° de RP 2da Adición" maxlength="10" style="border:1.5px solid #ccc;">
+  </div>
+
+  <!-- Modal Picker (fuera de los grupos: es position:fixed) -->
+  <div id="contratoFechaModal" class="picker-modal" aria-hidden="true" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:9999;">
+    <div class="picker-box" style="width:90%; max-width:520px; background:#fff; border-radius:8px; padding:16px;">
+      <h3 style="margin:0 0 8px 0;">Selecciona la fecha</h3>
+      <div class="picker-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:12px 0;">
+        <div><small>Día</small><select id="contratoDia" size="10"></select></div>
+        <div><small>Mes</small><select id="contratoMes" size="12"></select></div>
+        <div><small>Año</small><select id="contratoAnio" size="3" disabled><option selected>2026</option></select></div>
       </div>
+      <div class="picker-actions" style="display:flex; gap:8px; justify-content:flex-end;">
+        <button type="button" class="btn btn-cancel" onclick="cancelarPickerContrato()">Cancelar</button>
+        <button type="button" class="btn btn-ok" onclick="confirmarPickerContrato()">Ok</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row spaced" style="margin-top:12px;">
+    <button id="c-guardar" class="btn-primary">Guardar Cambios</button>
+    <button id="c-cancelar" class="danger">Cancelar</button>
+  </div>
+</div>
+</div>
     </section>
 
     <!-- VISTA DATOS PERSONALES -->
