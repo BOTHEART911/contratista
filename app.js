@@ -1,6 +1,6 @@
 /* ================== CONFIGURACIÓN ================== */
 const API_BASE = 'https://script.google.com/macros/s/AKfycbx5nz42xZ53WEM55Kmt_i9ngh9bn_qZjjHo3_Ub_nSz3MO0B8YDbapwk7s0LQhhnG0X/exec';
-
+ 
   const DATA_POLICY_LOGO = 'https://res.cloudinary.com/dqqeavica/image/upload/v1746906622/Logo_hzevh9.png';
 const DATA_POLICY_BANNER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif';
 
