@@ -5004,31 +5004,20 @@ async function checkAdicionContrato_(){
   const informeNum = numPure(informeEl.textContent || '');
   const totalNum   = numPure(totalEl.value || '');
 
-  // Aplica adición en la última cuenta (4 de 4, 6 de 6, 8 de 8)
-  // y también en la penúltima (3 de 4, 5 de 6, 7 de 8).
+  // Última cuenta (4 de 4) y penúltima (3 de 4)
   const diff = totalNum - informeNum;
   if(!informeNum || !totalNum || diff < 0 || diff > 1) return;
 
-  // ---- Determinar el tipo de adición a partir del valor contractual (columna CI) ----
-  // PRIMARIO / vacío  -> se pregunta por la PRIMERA adición
-  // 1RA ADICIÓN       -> se pregunta por la SEGUNDA adición
-  // 2DA ADICIÓN       -> ya tiene el máximo: NO se muestra el modal
+  // ---- Estado contractual (columna CI) ----
+  // CI = "1RA ADICIÓN" o "2DA ADICIÓN" → Contratación YA hizo el ajuste.
+  // El ordinal del texto se toma de CI (sin corrimiento): evita la confusión del "SEGUNDA".
   const contractualVal = String(IC_STATE.contractual || '').toUpperCase();
-  let tipoAdicion  = 'primera';
-  let ordinalLabel = 'PRIMERA';
+  const ordinalLabel   = /2DA|SEGUNDA/.test(contractualVal) ? 'SEGUNDA' : 'PRIMERA';
 
-  if(/2DA|SEGUNDA/.test(contractualVal)){
-    // El contrato ya tiene Segunda Adición: no aplica configurar otra
-    return;
-  }else if(/1RA|PRIMERA/.test(contractualVal)){
-    tipoAdicion  = 'segunda';
-    ordinalLabel = 'SEGUNDA';
-  }
-
-  // ---- PASO 1: pregunta dirigida (Sí/No) según el ordinal deducido ----
+  // ---- PASO 1: pregunta informativa/pedagógica (Sí/No) ----
   const paso1 = await Swal.fire({
     icon:'question',
-    title:`¿TU CONTRATO TENDRÁ ${ordinalLabel} ADICIÓN?`,
+    title:`¿TU CONTRATO TIENE ${ordinalLabel} ADICIÓN?`,
     html:`
       <div style="text-align:left; line-height:1.5; font-size:.95rem;">
         <p style="margin:0 0 8px;">
@@ -5036,50 +5025,40 @@ async function checkAdicionContrato_(){
           según el Total de Informes (<b>${informeNum} de ${totalNum}</b>).
         </p>
         <div style="background:#f8fafc; border:2px solid #e5e7eb; border-radius:12px; padding:10px; font-weight:700; color:#111;">
-          Si tu contrato fue <b>adicionado</b> por <b>${ordinalLabel.toLowerCase()} vez</b> (más tiempo y/o más valor),
+          Si tu contrato fue <b>adicionado</b> (${ordinalLabel.toLowerCase()} adición, más tiempo y/o más valor),
           configúralo aquí para que la App calcule correctamente tus próximas cuentas.
         </div>
-        <p style="margin:8px 0 0;">Si <b>NO</b> tienes ${ordinalLabel.toLowerCase()} Adición, continúa con normalidad.</p>
+        <p style="margin:8px 0 0;">Si <b>NO</b> tienes Adición, continúa con normalidad.</p>
       </div>
     `,
     showCancelButton:true,
-    confirmButtonText:`SÍ, tendrá ${ordinalLabel} Adición`,
+    confirmButtonText:`SÍ, tiene ${ordinalLabel} Adición`,
     cancelButtonText:'NO',
     allowOutsideClick:false,
     allowEscapeKey:false
   });
 
-  // NO → cerrar y seguir la vista normal
+  // NO → seguir la vista normal (cubre a quien simplemente termina su contrato)
   if(!paso1.isConfirmed) return;
 
-  // ---- Validar contra el backend si AR (primera) o CF (segunda) tienen valor ----
-  try{
-    const chk = await apiGet('checkAdicionDisponible', {
-      documento:  currentUser.documento,
-      supervisor: currentUser.supervisor || '',
-      contrato:   IC_STATE.contrato || '',
-      tipo:       tipoAdicion
+  // ---- FILTRO por CI: Contratación debe haber registrado la Adición ----
+  // Vale CUALQUIER adición (1RA o 2DA). Solo se bloquea si CI no contiene "ADICIÓN".
+  const ciTieneAdicion = /ADICI[OÓ]N/.test(contractualVal);
+  if(!ciTieneAdicion){
+    await Swal.fire({
+      icon:'info',
+      title:'NO PUEDES INGRESAR CUENTA',
+      html:'Aún no puedes generar tu cuenta. Debes esperar a que Contratación registre tu Adición en la App y te notifique a través de WhatsApp.',
+      confirmButtonText:'OK',
+      allowOutsideClick:false,
+      allowEscapeKey:false
     });
-
-    if(!chk || chk.hasValue !== true){
-      await Swal.fire({
-        icon:'info',
-        title:'NO PUEDES INGRESAR CUENTA',
-        html:'Para esta cuenta de transición, debes esperar a que Contratación haga el ajuste en la App y te notifique a través de WhatsApp.',
-        confirmButtonText:'OK',
-        allowOutsideClick:false,
-        allowEscapeKey:false
-      });
-      showView('view-inicio');
-      return;
-    }
-  }catch(e){
-    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+    showView('view-inicio');
     return;
   }
-  // ---- PASO 2: cantidad de pagos + valor de la adición (igual que antes) ----
-  let __adiPagos = 0;
 
+  // ---- PASO 2: cantidad de pagos + valor de la adición (SIN CAMBIOS) ----
+  let __adiPagos = 0;
   const paso2 = await Swal.fire({
     icon:'info',
     title:'CONFIGURA TU ADICIÓN',
