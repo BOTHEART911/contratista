@@ -958,8 +958,9 @@ let contratoModoEdicion = 'primario';
 
 function aplicarVisibilidadContrato_(contractual){
   const c = String(contractual || '').toUpperCase();
-  let modo = 'primario';
-  if(/2DA|SEGUNDA/.test(c))      modo = 'adicion2';
+let modo = 'primario';
+  if(/CEDIDO/.test(c))           modo = 'cedido';
+  else if(/2DA|SEGUNDA/.test(c)) modo = 'adicion2';
   else if(/1RA|PRIMERA/.test(c)) modo = 'adicion1';
 
   contratoModoEdicion = modo;
@@ -986,7 +987,7 @@ function resetVistas(){
   const rf = document.getElementById('reg-firma-preview'); if(rf){ rf.src=''; rf.style.display='none'; }
 
   // Campos de contrato
-  ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-rpAdicion','c-rpAdicion2','c-regimen','c-factura','c-costos'].forEach(id=>{
+  ['c-fechaInicio','c-diaInicio','c-mesInicio','c-fechaTermino','c-diaTermino','c-mesTermino','c-meses','c-dias','c-ejecucion','c-rp','c-rpCedido','c-rpAdicion','c-rpAdicion2','c-regimen','c-factura','c-costos'].forEach(id=>{
     const el=document.getElementById(id); 
     if(el){ el.value=''; }
   });
@@ -5011,8 +5012,15 @@ async function checkAdicionContrato_(){
   // ---- Estado contractual (columna CI) ----
   // CI = "1RA ADICIÓN" o "2DA ADICIÓN" → Contratación YA hizo el ajuste.
   // El ordinal del texto se toma de CI (sin corrimiento): evita la confusión del "SEGUNDA".
-  const contractualVal = String(IC_STATE.contractual || '').toUpperCase();
-  const ordinalLabel   = /2DA|SEGUNDA/.test(contractualVal) ? 'SEGUNDA' : 'PRIMERA';
+const contractualVal = String(IC_STATE.contractual || '').toUpperCase();
+
+  // 2DA ADICIÓN → caso no común: NO se muestra modal.
+  if(/2DA|SEGUNDA/.test(contractualVal)) return;
+
+  // Ordinal de la SIGUIENTE adición, según lo YA registrado en CI:
+  //   PRIMARIO / CEDIDO  → PRIMERA (aún no tiene adición registrada)
+  //   1RA ADICIÓN        → SEGUNDA (ya tiene la 1ra; la siguiente es la 2da)
+  const ordinalLabel = /1RA|PRIMERA/.test(contractualVal) ? 'SEGUNDA' : 'PRIMERA';
 
   // ---- PASO 1: pregunta informativa/pedagógica (Sí/No) ----
   const paso1 = await Swal.fire({
@@ -6994,18 +7002,10 @@ document.getElementById('reg-volver').addEventListener('click', ()=>{ playSoundO
 /* ================== CONTRATO (lectura + edición) ================== */
 document.getElementById('contrato-volver').addEventListener('click', ()=>{ playSoundOnce(SOUNDS.back); showView('view-inicio'); });
 document.getElementById('contrato-editar').addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.login);
+ playSoundOnce(SOUNDS.login);
 
-  // CEDIDO: el contrato ya está configurado, no se permite actualizar
-  if(/CEDIDO/.test(String(contratoContractual || '').toUpperCase())){
-    Swal.fire({
-      icon:'info',
-      title:'CONTRATO CEDIDO',
-      text:'Ya los datos del contrato están configurados.'
-    });
-    return;
-  }
-
+  // CEDIDO: solo se permite actualizar el Registro Presupuestal (RP).
+  // La visibilidad (modo 'cedido') deja únicamente ese campo.
   aplicarVisibilidadContrato_(contratoContractual);
   document.getElementById('contrato-form').classList.remove('hidden');
 });
@@ -7016,6 +7016,7 @@ bindNumericSanitizer('c-rp', 10);
 bindNumericSanitizer('c-rpAdicion', 10);
 bindNumericSanitizer('c-rpAdicion2', 10);
 bindNumericSanitizer('numP', 3);
+bindNumericSanitizer('c-rpCedido', 10);
 
 
 function convertirNumeroATexto(n){
@@ -7128,6 +7129,41 @@ document.getElementById('c-guardar').addEventListener('click', async ()=>{
 
   // === MODO ADICIÓN: solo se guarda el RP correspondiente ===
   const modoC = contratoModoEdicion || 'primario';
+ // === MODO CEDIDO: solo se guarda el Registro Presupuestal (RP) ===
+  if(modoC === 'cedido'){
+    const rpVal = (document.getElementById('c-rpCedido')?.value || '').replace(/\D/g,'');
+    if(!rpVal || rpVal.length !== 10){
+      await Swal.fire({ icon:'warning', title:'RP INVÁLIDO', text:'El Registro Presupuestal (RP) debe tener exactamente 10 dígitos.' });
+      document.getElementById('c-rpCedido')?.focus();
+      return;
+    }
+
+    const rs = await Swal.fire({
+      icon:'info', title:'Resumen de Cambios',
+      html:`<b>Registro Presupuestal (RP):</b> ${rpVal}`,
+      showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Editar', soundTag:'resumen'
+    });
+    if(!rs.isConfirmed) return;
+
+    try{
+      const r = await apiPost('saveDatosContrato', {
+        documento: currentUser.documento,
+        secretaria: currentUser.secretaria || '',
+        modo: 'cedido',
+        rp: rpVal
+      });
+      if(r && r.success){
+        await Swal.fire({ icon:'success', title:'Actualización Exitosa', timer:1600, showConfirmButton:false });
+        await cargarContratoLectura();
+        document.getElementById('contrato-form').classList.add('hidden');
+      }else{
+        Swal.fire({ icon:'error', title:'Error al guardar', text:r?.message || 'Error desconocido' });
+      }
+    }catch(e){
+      Swal.fire({ icon:'error', title:'Error', text:e.message });
+    }
+    return;
+  }
   if(modoC === 'adicion1' || modoC === 'adicion2'){
     const esPrimera = (modoC === 'adicion1');
     const rpId  = esPrimera ? 'c-rpAdicion' : 'c-rpAdicion2';
