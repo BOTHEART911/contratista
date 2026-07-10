@@ -6297,7 +6297,18 @@ function abrirPickerIC(target){
 
   
 /* Fecha de Radicación: modal limitado (hoy y siguientes 2 días hábiles; fin de semana/festivos 2026) */
-const FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','13/07/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026']);
+/* ÚNICA fuente de verdad de días no hábiles (festivos + días no laborales SEP) */
+const FERIADOS_2026 = new Set([
+  // 2026 — festivos Colombia
+  '01/01/2026','12/01/2026','23/03/2026','02/04/2026','03/04/2026',
+  '01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026',
+  '20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026',
+  '16/11/2026','08/12/2026','25/12/2026',
+  // 2027 — necesarios por el corte de diciembre
+  '01/01/2027','11/01/2027',
+  // Días no laborales internos
+  '13/07/2026',
+]);
 function esHabil(d){ // d = Date
   const dd = pad2(d.getDate()), mm = pad2(d.getMonth()+1), yy = d.getFullYear();
   const key = `${dd}/${mm}/${yy}`;
@@ -8596,7 +8607,7 @@ function icConfirmarFin(){
 }
 
 // 3) Radicado (hoy + 2 hábiles; feriados no hábiles, excepción diciembre habilita todos excepto feriados)
-const IC_FERIADOS_2026 = new Set(['23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026','15/06/2026','29/06/2026','13/07/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026','02/11/2026','16/11/2026','08/12/2026','25/11/2026','01/01/2027']);
+const IC_FERIADOS_2026 = FERIADOS_2026; // misma referencia: se configura en un solo lugar
 function icEsHabil(d){
   const dd = icPad2(d.getDate());
   const mm = icPad2(d.getMonth() + 1);
