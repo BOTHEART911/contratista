@@ -1,6 +1,6 @@
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
 
-const CACHE_NAME = 'contratista-v1';
+const CACHE_NAME = 'contratista-v2';
 const APP_SHELL = ['./', './index.html', './app.js', './styles.css', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -51,7 +51,7 @@ self.addEventListener('fetch', (event) => {
   const isAppShell = /\.(html|js|css)$/.test(url.pathname) || url.pathname.endsWith('/');
   if (isAppShell && url.origin === location.origin) {
     event.respondWith(
-      fetch(req).then(res => {
+      fetch(req, { cache: 'no-store' }).then(res => {
         const copy = res.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(req, copy)).catch(() => {});
         return res;
